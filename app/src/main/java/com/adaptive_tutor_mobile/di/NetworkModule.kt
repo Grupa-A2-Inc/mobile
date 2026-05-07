@@ -1,7 +1,6 @@
 package com.adaptive_tutor_mobile.di
 
 import android.webkit.CookieManager
-import com.adaptive_tutor_mobile.BuildConfig
 import com.adaptive_tutor_mobile.data.remote.api.AuthApi
 import com.adaptive_tutor_mobile.data.remote.dto.RefreshResponse
 import com.google.gson.Gson
@@ -23,7 +22,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
 import javax.inject.Singleton
 
-private val BASE_URL = BuildConfig.BASE_URL
+private const val BASE_URL = "https://api.adaptiveelearning.online/"
 
 // ── WebKit-backed CookieJar ───────────────────────────────────────────────────
 

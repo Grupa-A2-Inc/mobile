@@ -76,7 +76,10 @@ fun OrgAdminHomeScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(orgAdminCards) { card ->
+            items(
+                items = orgAdminCards,
+                key = { card -> card.title }
+            ) { card ->
                 ElevatedCard(
                     onClick = { scope.launch { snackbarHostState.showSnackbar("Coming soon") } }
                 ) {

@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -204,7 +205,10 @@ private fun DashboardTab(
                             }
                         }
                     }
-                    items(courses.take(3)) { course ->
+                    items(
+                        items = courses.take(3),
+                        key = { course -> course.courseId }
+                    ) { course ->
                         CourseCard(
                             title = course.courseTitle,
                             description = null,
@@ -313,7 +317,10 @@ private fun MyCoursesTab(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(courses) { course ->
+                        items(
+                            items = courses,
+                            key = { course -> course.courseId }
+                        ) { course ->
                             CourseCard(
                                 title = course.courseTitle,
                                 description = null,

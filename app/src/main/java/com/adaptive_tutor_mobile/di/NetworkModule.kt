@@ -1,6 +1,7 @@
 package com.adaptive_tutor_mobile.di
 
 import android.webkit.CookieManager
+import com.adaptive_tutor_mobile.BuildConfig
 import com.adaptive_tutor_mobile.data.remote.api.AuthApi
 import com.adaptive_tutor_mobile.data.remote.dto.RefreshResponse
 import com.google.gson.Gson
@@ -22,7 +23,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
 import javax.inject.Singleton
 
-private const val BASE_URL = "https://backend-for-render-ws6z.onrender.com/"
+private val BASE_URL = BuildConfig.BASE_URL
 
 // ── WebKit-backed CookieJar ───────────────────────────────────────────────────
 

@@ -41,8 +41,33 @@ import androidx.compose.ui.unit.dp
 import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
 import com.adaptive_tutor_mobile.domain.model.User
 import androidx.compose.material3.ExperimentalMaterial3Api
+
 private val emailRegexRegister = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 private val organizationTypes = listOf("SCHOOL", "UNIVERSITY", "COMPANY", "OTHER")
+
+// ── Form State Data Class ─────────────────────────────────────────────────────
+private data class RegisterFormState(
+    // Personal data
+    val firstName: String = "",
+    val lastName: String = "",
+    val email: String = "",
+    val password: String = "",
+    val confirmPassword: String = "",
+    val passwordVisible: Boolean = false,
+    val confirmVisible: Boolean = false,
+    
+    // Organization data
+    val organizationName: String = "",
+    val organizationType: String = organizationTypes[0],
+    val orgTypeExpanded: Boolean = false,
+    val country: String = "",
+    val city: String = "",
+    val address: String = "",
+    val phoneNumber: String = "",
+    
+    // Validation
+    val errors: Map<String, String> = emptyMap()
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,24 +77,7 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
-    var firstName by remember { mutableStateOf("") }
-    var lastName  by remember { mutableStateOf("") }
-    var email     by remember { mutableStateOf("") }
-    var password  by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmVisible  by remember { mutableStateOf(false) }
-
-    var organizationName by remember { mutableStateOf("") }
-    var organizationType by remember { mutableStateOf(organizationTypes[0]) }
-    var orgTypeExpanded  by remember { mutableStateOf(false) }
-    var country  by remember { mutableStateOf("") }
-    var city     by remember { mutableStateOf("") }
-    var address  by remember { mutableStateOf("") }
-    var phoneNumber by remember { mutableStateOf("") }
-
-    var errors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var formState by remember { mutableStateOf(RegisterFormState()) }
 
     LaunchedEffect(uiState) {
         if (uiState is AuthUiState.Success) {
@@ -94,78 +102,78 @@ fun RegisterScreen(
 
             item {
                 OutlinedTextField(
-                    value = firstName,
-                    onValueChange = { firstName = it },
+                    value = formState.firstName,
+                    onValueChange = { formState = formState.copy(firstName = it) },
                     label = { Text("Prenume") },
-                    isError = errors["firstName"] != null,
-                    supportingText = errors["firstName"]?.let { { Text(it) } },
+                    isError = formState.errors["firstName"] != null,
+                    supportingText = formState.errors["firstName"]?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
             }
             item {
                 OutlinedTextField(
-                    value = lastName,
-                    onValueChange = { lastName = it },
+                    value = formState.lastName,
+                    onValueChange = { formState = formState.copy(lastName = it) },
                     label = { Text("Nume") },
-                    isError = errors["lastName"] != null,
-                    supportingText = errors["lastName"]?.let { { Text(it) } },
+                    isError = formState.errors["lastName"] != null,
+                    supportingText = formState.errors["lastName"]?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
             }
             item {
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = formState.email,
+                    onValueChange = { formState = formState.copy(email = it) },
                     label = { Text("Email") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    isError = errors["email"] != null,
-                    supportingText = errors["email"]?.let { { Text(it) } },
+                    isError = formState.errors["email"] != null,
+                    supportingText = formState.errors["email"]?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
             }
             item {
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = formState.password,
+                    onValueChange = { formState = formState.copy(password = it) },
                     label = { Text("Parolă") },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None
+                    visualTransformation = if (formState.passwordVisible) VisualTransformation.None
                                            else PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        IconButton(onClick = { formState = formState.copy(passwordVisible = !formState.passwordVisible) }) {
                             Icon(
-                                imageVector = if (passwordVisible) Icons.Filled.Visibility
+                                imageVector = if (formState.passwordVisible) Icons.Filled.Visibility
                                               else Icons.Filled.VisibilityOff,
                                 contentDescription = null
                             )
                         }
                     },
-                    isError = errors["password"] != null,
-                    supportingText = errors["password"]?.let { { Text(it) } },
+                    isError = formState.errors["password"] != null,
+                    supportingText = formState.errors["password"]?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
             }
             item {
                 OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
+                    value = formState.confirmPassword,
+                    onValueChange = { formState = formState.copy(confirmPassword = it) },
                     label = { Text("Confirmă parola") },
-                    visualTransformation = if (confirmVisible) VisualTransformation.None
+                    visualTransformation = if (formState.confirmVisible) VisualTransformation.None
                                            else PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton(onClick = { confirmVisible = !confirmVisible }) {
+                        IconButton(onClick = { formState = formState.copy(confirmVisible = !formState.confirmVisible) }) {
                             Icon(
-                                imageVector = if (confirmVisible) Icons.Filled.Visibility
+                                imageVector = if (formState.confirmVisible) Icons.Filled.Visibility
                                               else Icons.Filled.VisibilityOff,
                                 contentDescription = null
                             )
                         }
                     },
-                    isError = errors["confirmPassword"] != null,
-                    supportingText = errors["confirmPassword"]?.let { { Text(it) } },
+                    isError = formState.errors["confirmPassword"] != null,
+                    supportingText = formState.errors["confirmPassword"]?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -179,38 +187,38 @@ fun RegisterScreen(
 
             item {
                 OutlinedTextField(
-                    value = organizationName,
-                    onValueChange = { organizationName = it },
+                    value = formState.organizationName,
+                    onValueChange = { formState = formState.copy(organizationName = it) },
                     label = { Text("Numele organizației") },
-                    isError = errors["organizationName"] != null,
-                    supportingText = errors["organizationName"]?.let { { Text(it) } },
+                    isError = formState.errors["organizationName"] != null,
+                    supportingText = formState.errors["organizationName"]?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
             }
             item {
                 ExposedDropdownMenuBox(
-                    expanded = orgTypeExpanded,
-                    onExpandedChange = { orgTypeExpanded = it }
+                    expanded = formState.orgTypeExpanded,
+                    onExpandedChange = { formState = formState.copy(orgTypeExpanded = it) }
                 ) {
                     OutlinedTextField(
-                        value = organizationType,
+                        value = formState.organizationType,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Tipul organizației") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = orgTypeExpanded) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = formState.orgTypeExpanded) },
                         modifier = Modifier
                             .menuAnchor()
                             .fillMaxWidth()
                     )
                     ExposedDropdownMenu(
-                        expanded = orgTypeExpanded,
-                        onDismissRequest = { orgTypeExpanded = false }
+                        expanded = formState.orgTypeExpanded,
+                        onDismissRequest = { formState = formState.copy(orgTypeExpanded = false) }
                     ) {
                         organizationTypes.forEach { type ->
                             DropdownMenuItem(
                                 text = { Text(type) },
-                                onClick = { organizationType = type; orgTypeExpanded = false }
+                                onClick = { formState = formState.copy(organizationType = type, orgTypeExpanded = false) }
                             )
                         }
                     }
@@ -218,30 +226,30 @@ fun RegisterScreen(
             }
             item {
                 OutlinedTextField(
-                    value = country,
-                    onValueChange = { country = it },
+                    value = formState.country,
+                    onValueChange = { formState = formState.copy(country = it) },
                     label = { Text("Țară") },
-                    isError = errors["country"] != null,
-                    supportingText = errors["country"]?.let { { Text(it) } },
+                    isError = formState.errors["country"] != null,
+                    supportingText = formState.errors["country"]?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
             }
             item {
                 OutlinedTextField(
-                    value = city,
-                    onValueChange = { city = it },
+                    value = formState.city,
+                    onValueChange = { formState = formState.copy(city = it) },
                     label = { Text("Oraș") },
-                    isError = errors["city"] != null,
-                    supportingText = errors["city"]?.let { { Text(it) } },
+                    isError = formState.errors["city"] != null,
+                    supportingText = formState.errors["city"]?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
             }
             item {
                 OutlinedTextField(
-                    value = address,
-                    onValueChange = { address = it },
+                    value = formState.address,
+                    onValueChange = { formState = formState.copy(address = it) },
                     label = { Text("Adresă (opțional)") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
@@ -249,8 +257,8 @@ fun RegisterScreen(
             }
             item {
                 OutlinedTextField(
-                    value = phoneNumber,
-                    onValueChange = { phoneNumber = it },
+                    value = formState.phoneNumber,
+                    onValueChange = { formState = formState.copy(phoneNumber = it) },
                     label = { Text("Telefon (opțional)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                     modifier = Modifier.fillMaxWidth(),
@@ -281,29 +289,31 @@ fun RegisterScreen(
                 Button(
                     onClick = {
                         val errs = mutableMapOf<String, String>()
-                        if (firstName.isBlank()) errs["firstName"] = "Câmp obligatoriu"
-                        if (lastName.isBlank())  errs["lastName"]  = "Câmp obligatoriu"
-                        if (!emailRegexRegister.matches(email)) errs["email"] = "Email invalid"
-                        if (password.length < 8) errs["password"] = "Minim 8 caractere"
-                        if (confirmPassword != password) errs["confirmPassword"] = "Parolele nu coincid"
-                        if (organizationName.isBlank()) errs["organizationName"] = "Câmp obligatoriu"
-                        if (country.isBlank()) errs["country"] = "Câmp obligatoriu"
-                        if (city.isBlank()) errs["city"] = "Câmp obligatoriu"
-                        errors = errs
+                        if (formState.firstName.isBlank()) errs["firstName"] = "Câmp obligatoriu"
+                        if (formState.lastName.isBlank())  errs["lastName"]  = "Câmp obligatoriu"
+                        if (!emailRegexRegister.matches(formState.email)) errs["email"] = "Email invalid"
+                        if (formState.password.length < 8) errs["password"] = "Minim 8 caractere"
+                        if (formState.confirmPassword != formState.password) errs["confirmPassword"] = "Parolele nu coincid"
+                        if (formState.organizationName.isBlank()) errs["organizationName"] = "Câmp obligatoriu"
+                        if (formState.country.isBlank()) errs["country"] = "Câmp obligatoriu"
+                        if (formState.city.isBlank()) errs["city"] = "Câmp obligatoriu"
+                        
+                        formState = formState.copy(errors = errs)
+                        
                         if (errs.isEmpty()) {
                             viewModel.register(
                                 RegisterRequest(
-                                    firstName = firstName.trim(),
-                                    lastName  = lastName.trim(),
-                                    email     = email.trim(),
-                                    password  = password,
-                                    confirmPassword = confirmPassword,
-                                    organizationName = organizationName.trim(),
-                                    country  = country.trim(),
-                                    city     = city.trim(),
-                                    organizationType = organizationType,
-                                    address     = address.trim().takeIf { it.isNotEmpty() },
-                                    phoneNumber = phoneNumber.trim().takeIf { it.isNotEmpty() }
+                                    firstName = formState.firstName.trim(),
+                                    lastName  = formState.lastName.trim(),
+                                    email     = formState.email.trim(),
+                                    password  = formState.password,
+                                    confirmPassword = formState.confirmPassword,
+                                    organizationName = formState.organizationName.trim(),
+                                    country  = formState.country.trim(),
+                                    city     = formState.city.trim(),
+                                    organizationType = formState.organizationType,
+                                    address     = formState.address.trim().takeIf { it.isNotEmpty() },
+                                    phoneNumber = formState.phoneNumber.trim().takeIf { it.isNotEmpty() }
                                 )
                             )
                         }

@@ -76,7 +76,10 @@ fun TeacherHomeScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(teacherCards) { card ->
+            items(
+                items = teacherCards,
+                key = { card -> card.title }
+            ) { card ->
                 ElevatedCard(
                     onClick = { scope.launch { snackbarHostState.showSnackbar("Coming soon") } }
                 ) {

@@ -35,3 +35,5 @@ Thumbs.db
 
 # Android Studio captures
 captures/
+
+.env

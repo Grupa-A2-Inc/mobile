@@ -74,7 +74,10 @@ fun ParentHomeScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(parentCards) { card ->
+            items(
+                items = parentCards,
+                key = { card -> card.title }
+            ) { card ->
                 ElevatedCard(
                     onClick = { scope.launch { snackbarHostState.showSnackbar("Coming soon") } }
                 ) {

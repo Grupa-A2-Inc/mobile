@@ -81,7 +81,10 @@ fun AdminHomeScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(adminCards) { card ->
+            items(
+                items = adminCards,
+                key = { card -> card.title }
+            ) { card ->
                 ElevatedCard(
                     onClick = {
                         scope.launch { snackbarHostState.showSnackbar("Coming soon") }

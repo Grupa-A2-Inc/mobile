@@ -11,6 +11,11 @@ sealed class Screen(val route: String) {
     object TeacherHome    : Screen("teacher_home")
     object StudentHome    : Screen("student_home")
     object ParentHome     : Screen("parent_home")
+
+    object PublicCourses : Screen("public_courses")
+    object CourseDetail : Screen("course_detail/{courseId}") {
+        fun createRoute(courseId: String) = "course_detail/$courseId"
+    }
 }
 
 fun routeForRole(role: UserRole): String = when (role) {

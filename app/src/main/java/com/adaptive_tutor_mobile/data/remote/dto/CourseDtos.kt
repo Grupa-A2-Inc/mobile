@@ -37,6 +37,14 @@ data class ResponseCourseFullViewDto(
     val chapters: List<ChapterFullViewDTO>
 )
 
+data class PageResponseCourseDto(
+    val content: List<ResponseCourseDto>,
+    val totalPages: Int,
+    val totalElements: Int,
+    val number: Int,
+    val size: Int
+)
+
 // ── CHAPTER ──────────────────────────────────────────────────────────────────
 
 data class ChapterFullViewDTO(

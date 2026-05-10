@@ -13,12 +13,16 @@ import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.auth.ForgotPasswordScreen
 import com.adaptive_tutor_mobile.presentation.auth.LoginScreen
 import com.adaptive_tutor_mobile.presentation.auth.RegisterScreen
+import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 import com.adaptive_tutor_mobile.presentation.home.admin.AdminHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.orgadmin.OrgAdminHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.parent.ParentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.student.StudentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
-
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import androidx.compose.material3.Text
+import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
@@ -107,7 +111,8 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                navController = navController
             )
         }
 
@@ -120,6 +125,21 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                     }
                 }
             )
+        }
+
+        composable(Screen.PublicCourses.route) {
+            PublicCoursesScreen(navController = navController)
+        }
+
+        composable(
+            route = Screen.CourseDetail.route,
+            arguments = listOf(
+                navArgument("courseId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
+            // Dev 4 implementeaza ecranul - deocamdata placeholder
+            Text("Course Detail: $courseId")
         }
     }
 }

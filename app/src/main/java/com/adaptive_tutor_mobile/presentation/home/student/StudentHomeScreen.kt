@@ -52,6 +52,8 @@ import com.adaptive_tutor_mobile.presentation.components.LoadingScreen
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.navigation.NavController
+import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 
 private const val TAB_HOME = "student_tab_home"
 private const val TAB_MY_COURSES = "student_tab_my_courses"
@@ -66,9 +68,11 @@ private val bottomNavItems = listOf(
 )
 
 @Composable
+
 fun StudentHomeScreen(
     viewModel: AuthViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    navController: NavController
 ) {
     val studentViewModel: StudentViewModel = hiltViewModel()
     val currentUser by viewModel.currentUser.collectAsState()
@@ -96,8 +100,8 @@ fun StudentHomeScreen(
                 onExploreClick = { currentTab = TAB_EXPLORE },
                 modifier = Modifier.padding(innerPadding)
             )
-            TAB_EXPLORE -> ExploreTab(
-                modifier = Modifier.padding(innerPadding)
+            TAB_EXPLORE -> PublicCoursesScreen(
+                navController = navController
             )
             TAB_PROFILE -> ProfileTab(
                 firstName = firstName,

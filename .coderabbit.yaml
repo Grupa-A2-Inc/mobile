@@ -1,0 +1,10 @@
+language: "ro"   # sau "en"
+reviews:
+  auto_review:
+    enabled: true
+    drafts: false          # nu face review la draft PR-uri
+  path_filters:
+    - "!**/build/**"
+    - "!**/*.generated.kt"
+chat:
+  auto_reply: true

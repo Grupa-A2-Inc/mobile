@@ -2,6 +2,8 @@ package com.adaptive_tutor_mobile.di
 
 import android.webkit.CookieManager
 import com.adaptive_tutor_mobile.data.remote.api.AuthApi
+import com.adaptive_tutor_mobile.data.remote.api.CourseDetailApi
+import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 import com.adaptive_tutor_mobile.data.remote.dto.RefreshResponse
 import com.google.gson.Gson
 import dagger.Module
@@ -21,7 +23,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
 import javax.inject.Singleton
-import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 
 private const val BASE_URL = "https://api.adaptiveelearning.online/"
 
@@ -82,13 +83,9 @@ class TokenRefreshAuthenticator(
 ) : okhttp3.Authenticator {
 
     override fun authenticate(route: okhttp3.Route?, response: Response): Request? {
-        // Avoid refresh loop — if the failing request is already the refresh endpoint, bail out
         if (response.request.url.encodedPath.contains("auth/refresh")) return null
-
-        // Only handle 401
         if (response.code != 401) return null
 
-        // Synchronous refresh using the plain client (no auth interceptor)
         return try {
             val plainClient = plainClientProvider()
             val refreshRequest = Request.Builder()
@@ -175,7 +172,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
 
     @Provides
     @Singleton
@@ -186,4 +184,9 @@ object NetworkModule {
     @Singleton
     fun provideEnrollmentApi(retrofit: Retrofit): EnrollmentApi =
         retrofit.create(EnrollmentApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCourseDetailApi(retrofit: Retrofit): CourseDetailApi =
+        retrofit.create(CourseDetailApi::class.java)
 }

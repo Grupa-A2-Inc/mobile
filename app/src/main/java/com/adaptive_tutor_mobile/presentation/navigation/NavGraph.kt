@@ -1,7 +1,12 @@
 package com.adaptive_tutor_mobile.presentation.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -31,11 +36,11 @@ fun navigateByRole(navController: NavController, role: UserRole) {
 }
 
 @Composable
-fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
+fun AppNavGraph(sessionStore: SessionStore) {
     val navController = rememberNavController()
-
-    // Listen for forced logout events from the token authenticator
     val authViewModel: AuthViewModel = hiltViewModel()
+
+    // Force logout (din TokenRefreshAuthenticator)
     LaunchedEffect(Unit) {
         sessionStore.forceLogoutEvent.collect {
             authViewModel.logout()
@@ -45,7 +50,18 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
         }
     }
 
-    NavHost(navController = navController, startDestination = startDestination) {
+    NavHost(navController = navController, startDestination = Screen.Splash.route) {
+
+        composable(Screen.Splash.route) {
+            SplashRoute(
+                sessionStore = sessionStore,
+                onDecided = { route ->
+                    navController.navigate(route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable(Screen.Login.route) {
             LoginScreen(
@@ -74,36 +90,21 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
         composable(Screen.AdminHome.route) {
             AdminHomeScreen(
                 viewModel = authViewModel,
-                onLogout = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                onLogout = { popToLogin(navController) }
             )
         }
-
         composable(Screen.OrgAdminHome.route) {
             OrgAdminHomeScreen(
                 viewModel = authViewModel,
-                onLogout = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                onLogout = { popToLogin(navController) }
             )
         }
-
         composable(Screen.TeacherHome.route) {
             TeacherHomeScreen(
                 viewModel = authViewModel,
-                onLogout = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                onLogout = { popToLogin(navController) }
             )
         }
-
         composable(Screen.StudentHome.route) {
             StudentHomeScreen(
                 viewModel = authViewModel,
@@ -115,15 +116,10 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 navController = navController
             )
         }
-
         composable(Screen.ParentHome.route) {
             ParentHomeScreen(
                 viewModel = authViewModel,
-                onLogout = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                }
+                onLogout = { popToLogin(navController) }
             )
         }
 
@@ -141,5 +137,32 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             // Dev 4 implementeaza ecranul - deocamdata placeholder
             Text("Course Detail: $courseId")
         }
+    }
+}
+
+private fun popToLogin(navController: NavController) {
+    navController.navigate(Screen.Login.route) {
+        popUpTo(0) { inclusive = true }
+    }
+}
+
+@Composable
+private fun SplashRoute(
+    sessionStore: SessionStore,
+    onDecided: (String) -> Unit
+) {
+    LaunchedEffect(Unit) {
+        val token = sessionStore.getAccessToken()
+        val user = if (token != null) sessionStore.getUser() else null
+        val destination = when {
+            token == null     -> Screen.Login.route
+            user == null      -> Screen.Login.route
+            else              -> routeForRole(user.role)
+        }
+        onDecided(destination)
+    }
+
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
     }
 }

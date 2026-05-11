@@ -26,6 +26,9 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
 
+      - name: Create local.properties
+        run: echo "BASE_URL=https://api.adaptiveelearning.online" > local.properties
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 

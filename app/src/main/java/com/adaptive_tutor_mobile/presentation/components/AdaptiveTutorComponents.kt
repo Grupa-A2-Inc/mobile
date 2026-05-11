@@ -55,6 +55,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
 
+private val StatusPublishedColor = Color(0xFF4CAF50)
+private val StatusInactiveColor = Color(0xFF9E9E9E)
+
 // ── BottomNavItem ─────────────────────────────────────────────────────────────
 
 data class BottomNavItem(
@@ -66,6 +69,36 @@ data class BottomNavItem(
 // ── CourseCard ────────────────────────────────────────────────────────────────
 
 @Composable
+private fun CourseCardProgress(progressPercent: Double) {
+    Spacer(modifier = Modifier.height(12.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "Progres",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
+        Text(
+            text = "${progressPercent.toInt()}%",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Medium
+        )
+    }
+    Spacer(modifier = Modifier.height(4.dp))
+    LinearProgressIndicator(
+        progress = { (progressPercent / 100.0).toFloat().coerceIn(0f, 1f) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(6.dp)
+            .clip(RoundedCornerShape(3.dp)),
+        strokeCap = StrokeCap.Round
+    )
+}
+
+@Composable
 fun CourseCard(
     title: String,
     description: String?,
@@ -74,12 +107,13 @@ fun CourseCard(
     progressPercent: Double? = null,
     onClick: () -> Unit
 ) {
+    val statusColor = if (status == "PUBLISHED") StatusPublishedColor else StatusInactiveColor
+
     ElevatedCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
-            // Gradient header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,10 +140,7 @@ fun CourseCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    StatusChip(
-                        text = status,
-                        color = if (status == "PUBLISHED") Color(0xFF4CAF50) else Color(0xFF9E9E9E)
-                    )
+                    StatusChip(text = status, color = statusColor)
                 }
                 if (!description.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(4.dp))
@@ -130,32 +161,7 @@ fun CourseCard(
                     )
                 }
                 if (progressPercent != null) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Progres",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                        Text(
-                            text = "${progressPercent.toInt()}%",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    LinearProgressIndicator(
-                        progress = { (progressPercent / 100.0).toFloat().coerceIn(0f, 1f) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        strokeCap = StrokeCap.Round
-                    )
+                    CourseCardProgress(progressPercent)
                 }
             }
         }

@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val DEFAULT_ERROR_MESSAGE = "Eroare necunoscută"
+
 sealed class AuthUiState {
     object Idle : AuthUiState()
     object Loading : AuthUiState()
@@ -53,7 +55,7 @@ class AuthViewModel @Inject constructor(
                     _currentUser.value = user
                     _uiState.value = AuthUiState.Success(user)
                 }
-                .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: "Eroare necunoscută") }
+                .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: DEFAULT_ERROR_MESSAGE) }
         }
     }
 
@@ -65,7 +67,7 @@ class AuthViewModel @Inject constructor(
                     _currentUser.value = user
                     _uiState.value = AuthUiState.Success(user)
                 }
-                .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: "Eroare necunoscută") }
+                .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: DEFAULT_ERROR_MESSAGE) }
         }
     }
 
@@ -83,7 +85,7 @@ class AuthViewModel @Inject constructor(
             _uiState.value = AuthUiState.Loading
             forgotPasswordUseCase(email)
                 .onSuccess { _uiState.value = AuthUiState.ForgotPasswordSent }
-                .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: "Eroare necunoscută") }
+                .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: DEFAULT_ERROR_MESSAGE) }
         }
     }
 

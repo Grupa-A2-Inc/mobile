@@ -59,8 +59,8 @@ class AuthRepositoryImpl @Inject constructor(
         if (!body.isNullOrBlank()) {
             return try {
                 val json = com.google.gson.JsonParser.parseString(body).asJsonObject
-                json.get("message")?.asString
-                    ?: json.get("error")?.asString
+                json["message"]?.asString
+                    ?: json["error"]?.asString
                     ?: "Eroare $code"
             } catch (_: Exception) { "Eroare $code" }
         }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adaptive_tutor_mobile.di.SessionStore
 import com.adaptive_tutor_mobile.presentation.navigation.AppNavGraph
+import com.adaptive_tutor_mobile.presentation.navigation.Screen
 import com.adaptive_tutor_mobile.ui.theme.AdaptiveTutorTheme
 import com.adaptive_tutor_mobile.ui.theme.ThemeViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
             val themeMode by themeViewModel.themeMode.collectAsState()
 
             AdaptiveTutorTheme(themeMode = themeMode) {
-                AppNavGraph(sessionStore = sessionStore)
+                AppNavGraph(startDestination = Screen.Login.route, sessionStore = sessionStore)
             }
         }
     }

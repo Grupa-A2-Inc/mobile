@@ -4,16 +4,18 @@ import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 import com.adaptive_tutor_mobile.domain.model.Course
 import com.adaptive_tutor_mobile.domain.repository.CourseRepository
 import javax.inject.Inject
+import com.adaptive_tutor_mobile.domain.model.PagedCourses
 
 class CourseRepositoryImpl @Inject constructor(
     private val enrollmentApi: EnrollmentApi
 ) : CourseRepository {
 
-    override suspend fun getPublicCourses(page: Int, size: Int): Result<List<Course>> {
+    override suspend fun getPublicCourses(page: Int, size: Int): Result<PagedCourses> {
         return try {
             val response = enrollmentApi.getPublicCourses(page, size)
             if (response.isSuccessful) {
-                val courses = response.body()?.content?.map { dto ->
+                val body = response.body()
+                val courses = body?.content?.map { dto ->
                     Course(
                         id = dto.id,
                         title = dto.title,
@@ -23,7 +25,7 @@ class CourseRepositoryImpl @Inject constructor(
                         visibility = dto.visibility
                     )
                 } ?: emptyList()
-                Result.success(courses)
+                Result.success(PagedCourses(courses, body?.totalPages ?: 1, body?.number ?: 0))
             } else {
                 Result.failure(Exception("Error: ${response.code()}"))
             }

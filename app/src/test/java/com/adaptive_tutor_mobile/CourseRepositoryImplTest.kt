@@ -40,8 +40,8 @@ class CourseRepositoryImplTest {
         val result = repository.getPublicCourses(0, 10)
 
         assertTrue(result.isSuccess)
-        assertEquals(1, result.getOrNull()?.size)
-        assertEquals("Test Course", result.getOrNull()?.first()?.title)
+        assertEquals(1, result.getOrNull()?.courses?.size)
+        assertEquals("Test Course", result.getOrNull()?.courses?.first()?.title)
     }
 
     @Test
@@ -51,7 +51,7 @@ class CourseRepositoryImplTest {
         val result = repository.getPublicCourses(0, 10)
 
         assertTrue(result.isSuccess)
-        assertEquals(0, result.getOrNull()?.size)
+        assertEquals(0, result.getOrNull()?.courses?.size)
     }
 
     @Test
@@ -128,6 +128,6 @@ class CourseRepositoryImplTest {
         val result = repository.getPublicCourses(0, 10)
 
         assertTrue(result.isSuccess)
-        assertEquals("Math", result.getOrNull()?.first()?.title)
+        assertEquals("Math", result.getOrNull()?.courses?.first()?.title)
     }
 }

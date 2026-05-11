@@ -28,21 +28,44 @@ class PublicCoursesViewModel @Inject constructor(
 
     private val _enrollSuccess = MutableStateFlow<String?>(null)
     val enrollSuccess: StateFlow<String?> = _enrollSuccess
+
     private val _enrolledCourseIds = MutableStateFlow<Set<String>>(emptySet())
     val enrolledCourseIds: StateFlow<Set<String>> = _enrolledCourseIds
+
+    private val _currentPage = MutableStateFlow(0)
+    val currentPage: StateFlow<Int> = _currentPage
+
+    private val _totalPages = MutableStateFlow(1)
+    val totalPages: StateFlow<Int> = _totalPages
 
     init {
         loadCourses()
     }
 
-    fun loadCourses(page: Int = 0, size: Int = 20) {
+    fun loadCourses(page: Int = 0, size: Int = 10) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
             val result = getPublicCoursesUseCase(page, size)
-            result.onSuccess { _courses.value = it }
+            result.onSuccess {
+                _courses.value = it.courses
+                _currentPage.value = it.currentPage
+                _totalPages.value = it.totalPages
+            }
             result.onFailure { _errorMessage.value = it.message }
             _isLoading.value = false
+        }
+    }
+
+    fun nextPage() {
+        if (_currentPage.value < _totalPages.value - 1) {
+            loadCourses(_currentPage.value + 1)
+        }
+    }
+
+    fun previousPage() {
+        if (_currentPage.value > 0) {
+            loadCourses(_currentPage.value - 1)
         }
     }
 
@@ -50,7 +73,7 @@ class PublicCoursesViewModel @Inject constructor(
         viewModelScope.launch {
             val result = enrollInCourseUseCase(courseId)
             result.onSuccess {
-                _enrollSuccess.value = "Înscris cu succes!"
+                _enrollSuccess.value = "Inscris cu succes!"
                 _enrolledCourseIds.value = _enrolledCourseIds.value + courseId
             }
             result.onFailure { _errorMessage.value = it.message }

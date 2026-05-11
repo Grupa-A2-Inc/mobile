@@ -3,6 +3,7 @@ package com.adaptive_tutor_mobile.presentation.navigation
 import com.adaptive_tutor_mobile.domain.model.UserRole
 
 sealed class Screen(val route: String) {
+    object Splash         : Screen("splash")
     object Login          : Screen("login")
     object Register       : Screen("register")
     object ForgotPassword : Screen("forgot_password")

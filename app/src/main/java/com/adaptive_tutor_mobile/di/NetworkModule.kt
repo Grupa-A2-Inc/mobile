@@ -51,16 +51,26 @@ class WebKitCookieJar : CookieJar {
 // ── Auth Interceptor ──────────────────────────────────────────────────────────
 
 class AuthInterceptor(private val sessionStore: SessionStore) : Interceptor {
+    private val skipPaths = listOf(
+        "/api/v1/auth/login",
+        "/api/v1/auth/register",
+        "/api/v1/auth/refresh",
+        "/api/v1/auth/password-reset/request",
+        "/api/v1/auth/password-reset/confirm",
+        "/api/v1/auth/set-password"
+    )
+
     override fun intercept(chain: Interceptor.Chain): Response {
-        val token = sessionStore.getAccessToken()
-        val request = if (token != null) {
-            chain.request().newBuilder()
-                .header("Authorization", "Bearer $token")
-                .build()
-        } else {
-            chain.request()
+        val req = chain.request()
+        val path = req.url.encodedPath
+        if (skipPaths.any { path.endsWith(it) }) {
+            return chain.proceed(req)
         }
-        return chain.proceed(request)
+        val token = sessionStore.getAccessToken()
+        val newReq = if (token != null) {
+            req.newBuilder().header("Authorization", "Bearer $token").build()
+        } else req
+        return chain.proceed(newReq)
     }
 }
 

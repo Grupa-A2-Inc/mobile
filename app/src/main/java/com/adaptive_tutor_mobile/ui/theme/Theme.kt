@@ -61,6 +61,6 @@ fun AdaptiveTutorTheme(
 
 // Keep backward-compat alias so existing call sites still compile
 @Composable
-fun Adaptive_tutor_mobileTheme(
+fun AdaptiveTutorMobileTheme(
     content: @Composable () -> Unit
 ) = AdaptiveTutorTheme(content = content)

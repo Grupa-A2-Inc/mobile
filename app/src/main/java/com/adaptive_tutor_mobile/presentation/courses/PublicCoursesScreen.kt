@@ -71,7 +71,11 @@ fun PublicCoursesScreen(
                             Card(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                ) {
                                     Text(
                                         text = course.title,
                                         style = MaterialTheme.typography.titleMedium,

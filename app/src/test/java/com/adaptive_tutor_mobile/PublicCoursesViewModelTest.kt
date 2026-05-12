@@ -2,6 +2,7 @@ package com.adaptive_tutor_mobile
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.adaptive_tutor_mobile.domain.model.Course
+import com.adaptive_tutor_mobile.domain.model.PagedCourses
 import com.adaptive_tutor_mobile.domain.usecase.EnrollInCourseUseCase
 import com.adaptive_tutor_mobile.domain.usecase.GetPublicCoursesUseCase
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesViewModel
@@ -48,10 +49,12 @@ class PublicCoursesViewModelTest {
 
     @Test
     fun `loadCourses sets courses on success`() = runTest {
-        val courses = listOf(
-            Course("1", "Math", "Desc", "Science", "PUBLISHED", "PUBLIC")
+        val pagedCourses = PagedCourses(
+            courses = listOf(Course("1", "Math", "Desc", "Science", "PUBLISHED", "PUBLIC")),
+            totalPages = 1,
+            currentPage = 0
         )
-        whenever(getPublicCoursesUseCase(0, 20)).thenReturn(Result.success(courses))
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(pagedCourses))
 
         viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
         advanceUntilIdle()
@@ -62,7 +65,7 @@ class PublicCoursesViewModelTest {
 
     @Test
     fun `loadCourses sets errorMessage on failure`() = runTest {
-        whenever(getPublicCoursesUseCase(0, 20)).thenReturn(Result.failure(Exception("Network error")))
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.failure(Exception("Network error")))
 
         viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
         advanceUntilIdle()
@@ -72,7 +75,7 @@ class PublicCoursesViewModelTest {
 
     @Test
     fun `enroll sets enrollSuccess on success`() = runTest {
-        whenever(getPublicCoursesUseCase(0, 20)).thenReturn(Result.success(emptyList()))
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
         whenever(enrollInCourseUseCase("course1")).thenReturn(Result.success(Unit))
 
         viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
@@ -87,7 +90,7 @@ class PublicCoursesViewModelTest {
 
     @Test
     fun `enroll sets errorMessage on failure`() = runTest {
-        whenever(getPublicCoursesUseCase(0, 20)).thenReturn(Result.success(emptyList()))
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
         whenever(enrollInCourseUseCase("course1")).thenReturn(Result.failure(Exception("Error")))
 
         viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
@@ -101,7 +104,7 @@ class PublicCoursesViewModelTest {
 
     @Test
     fun `clearEnrollSuccess sets enrollSuccess to null`() = runTest {
-        whenever(getPublicCoursesUseCase(0, 20)).thenReturn(Result.success(emptyList()))
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
         whenever(enrollInCourseUseCase("course1")).thenReturn(Result.success(Unit))
 
         viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
@@ -117,7 +120,7 @@ class PublicCoursesViewModelTest {
 
     @Test
     fun `clearError sets errorMessage to null`() = runTest {
-        whenever(getPublicCoursesUseCase(0, 20)).thenReturn(Result.failure(Exception("Error")))
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.failure(Exception("Error")))
 
         viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
         advanceUntilIdle()
@@ -129,7 +132,7 @@ class PublicCoursesViewModelTest {
 
     @Test
     fun `enroll adds courseId to enrolledCourseIds`() = runTest {
-        whenever(getPublicCoursesUseCase(0, 20)).thenReturn(Result.success(emptyList()))
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
         whenever(enrollInCourseUseCase("course1")).thenReturn(Result.success(Unit))
 
         viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
@@ -143,7 +146,9 @@ class PublicCoursesViewModelTest {
 
     @Test
     fun `loadCourses with different page and size`() = runTest {
-        whenever(getPublicCoursesUseCase(1, 10)).thenReturn(Result.success(emptyList()))
+        val pagedCourses = PagedCourses(emptyList(), 1, 0)
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(pagedCourses))
+        whenever(getPublicCoursesUseCase(1, 10)).thenReturn(Result.success(pagedCourses))
 
         viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
         advanceUntilIdle()

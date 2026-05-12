@@ -1,6 +1,7 @@
 package com.adaptive_tutor_mobile
 
 import com.adaptive_tutor_mobile.domain.model.Course
+import com.adaptive_tutor_mobile.domain.model.PagedCourses
 import com.adaptive_tutor_mobile.domain.repository.CourseRepository
 import com.adaptive_tutor_mobile.domain.usecase.GetPublicCoursesUseCase
 import kotlinx.coroutines.test.runTest
@@ -17,15 +18,17 @@ class GetPublicCoursesUseCaseTest {
 
     @Test
     fun `invoke returns success with courses`() = runTest {
-        val courses = listOf(
-            Course("1", "Math", "Desc", "Science", "PUBLISHED", "PUBLIC")
+        val pagedCourses = PagedCourses(
+            courses = listOf(Course("1", "Math", "Desc", "Science", "PUBLISHED", "PUBLIC")),
+            totalPages = 1,
+            currentPage = 0
         )
-        whenever(repository.getPublicCourses(0, 10)).thenReturn(Result.success(courses))
+        whenever(repository.getPublicCourses(0, 10)).thenReturn(Result.success(pagedCourses))
 
         val result = useCase(0, 10)
 
         assertTrue(result.isSuccess)
-        assertEquals(1, result.getOrNull()?.size)
+        assertEquals(1, result.getOrNull()?.courses?.size)
     }
 
     @Test
@@ -39,7 +42,8 @@ class GetPublicCoursesUseCaseTest {
 
     @Test
     fun `invoke delegates to repository with correct params`() = runTest {
-        whenever(repository.getPublicCourses(1, 5)).thenReturn(Result.success(emptyList()))
+        val pagedCourses = PagedCourses(emptyList(), 1, 0)
+        whenever(repository.getPublicCourses(1, 5)).thenReturn(Result.success(pagedCourses))
 
         val result = useCase(1, 5)
 

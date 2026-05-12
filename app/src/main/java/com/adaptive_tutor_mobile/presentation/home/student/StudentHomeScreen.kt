@@ -103,7 +103,8 @@ fun StudentHomeScreen(
                 modifier = Modifier.padding(innerPadding)
             )
             TAB_EXPLORE -> PublicCoursesScreen(
-                navController = navController
+                navController = navController,
+                modifier = Modifier.padding(innerPadding)
             )
             TAB_PROFILE -> ProfileTab(
                 firstName = firstName,

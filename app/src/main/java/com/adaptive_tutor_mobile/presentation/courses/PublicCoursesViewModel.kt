@@ -2,6 +2,7 @@ package com.adaptive_tutor_mobile.presentation.courses
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.domain.model.Course
 import com.adaptive_tutor_mobile.domain.usecase.EnrollInCourseUseCase
 import com.adaptive_tutor_mobile.domain.usecase.GetPublicCoursesUseCase
@@ -14,7 +15,8 @@ import javax.inject.Inject
 @HiltViewModel
 class PublicCoursesViewModel @Inject constructor(
     private val getPublicCoursesUseCase: GetPublicCoursesUseCase,
-    private val enrollInCourseUseCase: EnrollInCourseUseCase
+    private val enrollInCourseUseCase: EnrollInCourseUseCase,
+    private val progressApi: ProgressApi
 ) : ViewModel() {
 
     private val _courses = MutableStateFlow<List<Course>>(emptyList())
@@ -39,7 +41,27 @@ class PublicCoursesViewModel @Inject constructor(
     val totalPages: StateFlow<Int> = _totalPages
 
     init {
+        loadEnrolledIds()
         loadCourses()
+    }
+
+    /**
+     * Încarcă lista cursurilor la care studentul e deja înscris,
+     * ca să afișăm corect butonul „Înscris ✓" încă de la prima afișare.
+     */
+    private fun loadEnrolledIds() {
+        viewModelScope.launch {
+            try {
+                val response = progressApi.getMyEnrolledCourses()
+                if (response.isSuccessful) {
+                    val ids = response.body()?.content?.map { it.courseId }?.toSet() ?: emptySet()
+                    _enrolledCourseIds.value = ids
+                }
+            } catch (_: Exception) {
+                // best-effort: dacă pică, UI-ul rămâne cu set gol
+                // backend-ul oricum va răspunde cu 409 dacă userul apasă „Înscrie-te"
+            }
+        }
     }
 
     fun loadCourses(page: Int = 0, size: Int = 10) {
@@ -73,10 +95,24 @@ class PublicCoursesViewModel @Inject constructor(
         viewModelScope.launch {
             val result = enrollInCourseUseCase(courseId)
             result.onSuccess {
-                _enrollSuccess.value = "Inscris cu succes!"
+                _enrollSuccess.value = "Înscris cu succes!"
                 _enrolledCourseIds.value = _enrolledCourseIds.value + courseId
             }
-            result.onFailure { _errorMessage.value = it.message }
+            result.onFailure { e ->
+                val msg = e.message.orEmpty()
+                _errorMessage.value = when {
+                    msg.contains("already enrolled", ignoreCase = true) -> {
+                        // sincronizează UI dacă cumva s-a desincronizat
+                        _enrolledCourseIds.value = _enrolledCourseIds.value + courseId
+                        "Ești deja înscris la acest curs"
+                    }
+                    msg.contains("409") -> {
+                        _enrolledCourseIds.value = _enrolledCourseIds.value + courseId
+                        "Ești deja înscris la acest curs"
+                    }
+                    else -> msg.ifBlank { "Eroare la înscriere" }
+                }
+            }
         }
     }
 

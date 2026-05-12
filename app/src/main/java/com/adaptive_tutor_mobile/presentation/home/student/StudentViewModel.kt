@@ -2,7 +2,7 @@ package com.adaptive_tutor_mobile.presentation.home.student
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.adaptive_tutor_mobile.data.remote.api.CourseApi
+import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +19,7 @@ sealed class CoursesUiState {
 
 @HiltViewModel
 class StudentViewModel @Inject constructor(
-    private val courseApi: CourseApi
+    private val progressApi: ProgressApi
 ) : ViewModel() {
 
     private val _coursesState = MutableStateFlow<CoursesUiState>(CoursesUiState.Loading)
@@ -33,11 +33,14 @@ class StudentViewModel @Inject constructor(
         viewModelScope.launch {
             _coursesState.value = CoursesUiState.Loading
             try {
-                val response = courseApi.getEnrolledCourses()
+                val response = progressApi.getMyEnrolledCourses()
                 if (response.isSuccessful) {
-                    _coursesState.value = CoursesUiState.Success(response.body() ?: emptyList())
+                    val courses = response.body()?.content ?: emptyList()
+                    _coursesState.value = CoursesUiState.Success(courses)
                 } else {
-                    _coursesState.value = CoursesUiState.Error("Nu s-au putut încărca cursurile (cod ${response.code()})")
+                    _coursesState.value = CoursesUiState.Error(
+                        "Nu s-au putut încărca cursurile (cod ${response.code()})"
+                    )
                 }
             } catch (e: Exception) {
                 _coursesState.value = CoursesUiState.Error(e.message ?: "Eroare necunoscută")

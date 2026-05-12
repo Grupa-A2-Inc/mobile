@@ -72,7 +72,8 @@ private val bottomNavItems = listOf(
 fun StudentHomeScreen(
     viewModel: AuthViewModel,
     onLogout: () -> Unit,
-    navController: NavController
+    navController: NavController,
+    onNavigateToEnrolledCourses: () -> Unit = {}
 ) {
     val studentViewModel: StudentViewModel = hiltViewModel()
     val currentUser by viewModel.currentUser.collectAsState()
@@ -93,6 +94,7 @@ fun StudentHomeScreen(
             TAB_HOME -> DashboardTab(
                 firstName = firstName,
                 studentViewModel = studentViewModel,
+                onSeeAllCourses = onNavigateToEnrolledCourses,
                 modifier = Modifier.padding(innerPadding)
             )
             TAB_MY_COURSES -> MyCoursesTab(
@@ -121,11 +123,17 @@ fun StudentHomeScreen(
 private fun DashboardTab(
     firstName: String,
     studentViewModel: StudentViewModel,
+    onSeeAllCourses: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val coursesState by studentViewModel.coursesState.collectAsState()
     val dateFormat = remember { SimpleDateFormat("EEEE, d MMMM", Locale("ro")) }
     val today = remember { dateFormat.format(Date()) }
+
+//asta se suprapune
+//    TextButton(onClick = onSeeAllCourses) {
+//        Text("Vezi toate →")
+//    }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -205,7 +213,7 @@ private fun DashboardTab(
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.SemiBold
                             )
-                            TextButton(onClick = {}) {
+                            TextButton(onClick = onSeeAllCourses) {
                                 Text("Vezi toate →")
                             }
                         }

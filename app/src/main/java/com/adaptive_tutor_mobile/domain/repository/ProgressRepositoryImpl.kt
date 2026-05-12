@@ -17,9 +17,9 @@ class ProgressRepositoryImpl @Inject constructor(
 ) : ProgressRepository {
 
     override suspend fun getEnrolledCourses(): Result<List<EnrolledCourse>> = runCatching {
-        val response = courseApi.getEnrolledCourses()
+        val response = progressApi.getMyEnrolledCourses()
         if (response.isSuccessful) {
-            response.body()?.map { it.toDomain() } ?: emptyList()
+            response.body()?.content?.map { it.toDomain() } ?: emptyList()
         } else {
             error(parseError(response.code(), response.errorBody()?.string()))
         }

@@ -6,6 +6,7 @@ import com.adaptive_tutor_mobile.domain.model.PagedCourses
 import com.adaptive_tutor_mobile.domain.usecase.EnrollInCourseUseCase
 import com.adaptive_tutor_mobile.domain.usecase.GetPublicCoursesUseCase
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesViewModel
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -56,7 +57,7 @@ class PublicCoursesViewModelTest {
         )
         whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(pagedCourses))
 
-        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
         advanceUntilIdle()
 
         assertEquals(1, viewModel.courses.value.size)
@@ -67,7 +68,7 @@ class PublicCoursesViewModelTest {
     fun `loadCourses sets errorMessage on failure`() = runTest {
         whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.failure(Exception("Network error")))
 
-        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
         advanceUntilIdle()
 
         assertNotNull(viewModel.errorMessage.value)
@@ -78,7 +79,7 @@ class PublicCoursesViewModelTest {
         whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
         whenever(enrollInCourseUseCase("course1")).thenReturn(Result.success(Unit))
 
-        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
         advanceUntilIdle()
 
         viewModel.enroll("course1")
@@ -93,7 +94,7 @@ class PublicCoursesViewModelTest {
         whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
         whenever(enrollInCourseUseCase("course1")).thenReturn(Result.failure(Exception("Error")))
 
-        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
         advanceUntilIdle()
 
         viewModel.enroll("course1")
@@ -107,7 +108,7 @@ class PublicCoursesViewModelTest {
         whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
         whenever(enrollInCourseUseCase("course1")).thenReturn(Result.success(Unit))
 
-        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
         advanceUntilIdle()
 
         viewModel.enroll("course1")
@@ -122,7 +123,7 @@ class PublicCoursesViewModelTest {
     fun `clearError sets errorMessage to null`() = runTest {
         whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.failure(Exception("Error")))
 
-        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
         advanceUntilIdle()
 
         viewModel.clearError()
@@ -135,7 +136,7 @@ class PublicCoursesViewModelTest {
         whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
         whenever(enrollInCourseUseCase("course1")).thenReturn(Result.success(Unit))
 
-        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
         advanceUntilIdle()
 
         viewModel.enroll("course1")
@@ -150,7 +151,7 @@ class PublicCoursesViewModelTest {
         whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(pagedCourses))
         whenever(getPublicCoursesUseCase(1, 10)).thenReturn(Result.success(pagedCourses))
 
-        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase)
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
         advanceUntilIdle()
 
         viewModel.loadCourses(1, 10)

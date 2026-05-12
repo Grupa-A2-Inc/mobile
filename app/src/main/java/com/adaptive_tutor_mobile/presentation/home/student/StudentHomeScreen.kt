@@ -130,10 +130,10 @@ private fun DashboardTab(
     val dateFormat = remember { SimpleDateFormat("EEEE, d MMMM", Locale("ro")) }
     val today = remember { dateFormat.format(Date()) }
 
-
-    TextButton(onClick = onSeeAllCourses) {
-        Text("Vezi toate →")
-    }
+//asta se suprapune
+//    TextButton(onClick = onSeeAllCourses) {
+//        Text("Vezi toate →")
+//    }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -213,7 +213,7 @@ private fun DashboardTab(
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.SemiBold
                             )
-                            TextButton(onClick = {}) {
+                            TextButton(onClick = onSeeAllCourses) {
                                 Text("Vezi toate →")
                             }
                         }

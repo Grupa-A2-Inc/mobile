@@ -142,17 +142,17 @@ data class EnrolledCourseDto(
 
 // ── PROGRESS ─────────────────────────────────────────────────────────────────
 
-data class ProgressWithLessonListDto(
-    val totalLessons: Int,
-    val visitedLessons: Int,
-    val progressPercent: Double,
-    val completedAt: String?,
-    val lessons: List<LessonStatusDto>
-)
-
-data class LessonStatusDto(
-    val lessonId: String,
-    val title: String,
-    val visited: Boolean,
-    val visitedAt: String?
-)
+//data class ProgressWithLessonListDto(
+//    val totalLessons: Int,
+//    val visitedLessons: Int,
+//    val progressPercent: Double,
+//    val completedAt: String?,
+//    val lessons: List<LessonStatusDto>
+//)
+//
+//data class LessonStatusDto(
+//    val lessonId: String,
+//    val title: String,
+//    val visited: Boolean,
+//    val visitedAt: String?
+//)

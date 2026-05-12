@@ -15,6 +15,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Response
+import com.adaptive_tutor_mobile.data.remote.dto.PageDto
 
 class ProgressRepositoryImplTest {
 
@@ -33,10 +34,12 @@ class ProgressRepositoryImplTest {
 
     @Test
     fun `getEnrolledCourses success maps DTOs to domain list`() = runTest {
-        coEvery { courseApi.getEnrolledCourses() } returns Response.success(
-            listOf(
-                enrolledDto(courseId = "c1", title = "Math"),
-                enrolledDto(courseId = "c2", title = "Physics", progress = 88.0)
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.success(
+            PageDto(
+                content = listOf(
+                    enrolledDto(courseId = "c1", title = "Math"),
+                    enrolledDto(courseId = "c2", title = "Physics", progress = 88.0)
+                )
             )
         )
 
@@ -52,7 +55,7 @@ class ProgressRepositoryImplTest {
 
     @Test
     fun `getEnrolledCourses returns empty list when body is null`() = runTest {
-        coEvery { courseApi.getEnrolledCourses() } returns Response.success(null)
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.success(null)
 
         val result = repository.getEnrolledCourses()
 
@@ -62,7 +65,9 @@ class ProgressRepositoryImplTest {
 
     @Test
     fun `getEnrolledCourses returns empty list when backend returns empty array`() = runTest {
-        coEvery { courseApi.getEnrolledCourses() } returns Response.success(emptyList())
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.success(
+            PageDto(content = emptyList())
+        )
 
         val result = repository.getEnrolledCourses()
 
@@ -74,7 +79,7 @@ class ProgressRepositoryImplTest {
     fun `getEnrolledCourses parses message field from json error body`() = runTest {
         val body = """{"timestamp":"2025-01-01","status":403,"message":"Forbidden"}"""
             .toResponseBody("application/json".toMediaType())
-        coEvery { courseApi.getEnrolledCourses() } returns Response.error(403, body)
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.error(403, body)
 
         val result = repository.getEnrolledCourses()
 
@@ -84,7 +89,7 @@ class ProgressRepositoryImplTest {
 
     @Test
     fun `getEnrolledCourses falls back to 401 default when body empty`() = runTest {
-        coEvery { courseApi.getEnrolledCourses() } returns Response.error(
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.error(
             401, "".toResponseBody("application/json".toMediaType())
         )
 
@@ -96,7 +101,7 @@ class ProgressRepositoryImplTest {
 
     @Test
     fun `getEnrolledCourses falls back to 404 default when body empty`() = runTest {
-        coEvery { courseApi.getEnrolledCourses() } returns Response.error(
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.error(
             404, "".toResponseBody("application/json".toMediaType())
         )
 
@@ -108,7 +113,7 @@ class ProgressRepositoryImplTest {
 
     @Test
     fun `getEnrolledCourses falls back to generic code when body malformed`() = runTest {
-        coEvery { courseApi.getEnrolledCourses() } returns Response.error(
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.error(
             500,
             "not a json".toResponseBody("application/json".toMediaType())
         )

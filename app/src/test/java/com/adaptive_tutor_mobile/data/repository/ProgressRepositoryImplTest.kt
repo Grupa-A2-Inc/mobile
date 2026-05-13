@@ -191,4 +191,90 @@ class ProgressRepositoryImplTest {
         assertTrue(result.isFailure)
         assertEquals("Resursa nu a fost găsită", result.exceptionOrNull()?.message)
     }
+
+    @Test
+    fun `getMyProgress parses error field when message absent`() = runTest {
+        val body = """{"error":"Forbidden resource"}"""
+            .toResponseBody("application/json".toMediaType())
+        coEvery { progressApi.getMyProgress(any()) } returns Response.error(403, body)
+
+        val result = repository.getMyProgress("course-1")
+
+        assertTrue(result.isFailure)
+        assertEquals("Forbidden resource", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getMyProgress malformed json falls back to code`() = runTest {
+        coEvery { progressApi.getMyProgress(any()) } returns Response.error(
+            500, "not-json".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.getMyProgress("course-1")
+
+        assertTrue(result.isFailure)
+        assertEquals("Eroare 500", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getMyProgress network exception returns failure`() = runTest {
+        coEvery { progressApi.getMyProgress(any()) } throws RuntimeException("timeout")
+
+        val result = repository.getMyProgress("course-1")
+
+        assertTrue(result.isFailure)
+        assertEquals("timeout", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getCompletedCourses returns empty list when body is null`() = runTest {
+        coEvery { progressApi.getCompletedCourses() } returns Response.success(null)
+
+        val result = repository.getCompletedCourses()
+
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrNull()!!.isEmpty())
+    }
+
+    @Test
+    fun `getCompletedCourses 401 uses default message`() = runTest {
+        coEvery { progressApi.getCompletedCourses() } returns Response.error(
+            401, "".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.getCompletedCourses()
+
+        assertTrue(result.isFailure)
+        assertEquals("Sesiune expirată", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getCompletedCourses network exception returns failure`() = runTest {
+        coEvery { progressApi.getCompletedCourses() } throws RuntimeException("no network")
+
+        val result = repository.getCompletedCourses()
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `getEnrolledCourses 403 uses default message`() = runTest {
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.error(
+            403, "".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.getEnrolledCourses()
+
+        assertTrue(result.isFailure)
+        assertEquals("Nu ai permisiunea de a accesa această resursă", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getEnrolledCourses network exception returns failure`() = runTest {
+        coEvery { progressApi.getMyEnrolledCourses() } throws RuntimeException("offline")
+
+        val result = repository.getEnrolledCourses()
+
+        assertTrue(result.isFailure)
+    }
 }

@@ -59,11 +59,11 @@ fun TestScreen(
     when {
         state.isLoading -> Scaffold(
             topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
-        ) { LoadingScreen() }
+        ) { padding -> Box(Modifier.padding(padding)) { LoadingScreen() } }
 
         state.error != null -> Scaffold(
             topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
-        ) { ErrorScreen(state.error!!, onRetry = onNavigateBack) }
+        ) { padding -> Box(Modifier.padding(padding)) { ErrorScreen(state.error!!, onRetry = onNavigateBack) } }
 
         state.report != null -> TestResultScreen(state = state, onBack = onNavigateBack)
 
@@ -79,7 +79,7 @@ fun TestScreen(
 
         else -> Scaffold(
             topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
-        ) { LoadingScreen() }
+        ) { padding -> Box(Modifier.padding(padding)) { LoadingScreen() } }
     }
 }
 

@@ -159,4 +159,111 @@ class PublicCoursesViewModelTest {
 
         assertTrue(viewModel.courses.value.isEmpty())
     }
+
+    @Test
+    fun `nextPage loads page 1 when totalPages is 2`() = runTest {
+        val page0 = PagedCourses(listOf(Course("1", "A", "", "S", "PUBLISHED", "PUBLIC")), totalPages = 2, currentPage = 0)
+        val page1 = PagedCourses(listOf(Course("2", "B", "", "S", "PUBLISHED", "PUBLIC")), totalPages = 2, currentPage = 1)
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(page0))
+        whenever(getPublicCoursesUseCase(1, 10)).thenReturn(Result.success(page1))
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+
+        viewModel.nextPage()
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.currentPage.value)
+        assertEquals("B", viewModel.courses.value.first().title)
+    }
+
+    @Test
+    fun `nextPage does nothing when already on last page`() = runTest {
+        val pagedCourses = PagedCourses(emptyList(), totalPages = 1, currentPage = 0)
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(pagedCourses))
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+
+        viewModel.nextPage()
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.currentPage.value)
+    }
+
+    @Test
+    fun `previousPage decrements page when on page 1`() = runTest {
+        val page0 = PagedCourses(emptyList(), totalPages = 2, currentPage = 0)
+        val page1 = PagedCourses(emptyList(), totalPages = 2, currentPage = 1)
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(page0))
+        whenever(getPublicCoursesUseCase(1, 10)).thenReturn(Result.success(page1))
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+        viewModel.nextPage()
+        advanceUntilIdle()
+
+        viewModel.previousPage()
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.currentPage.value)
+    }
+
+    @Test
+    fun `previousPage does nothing when already on page 0`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+
+        viewModel.previousPage()
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.currentPage.value)
+    }
+
+    @Test
+    fun `enroll already-enrolled response adds courseId and sets informational error`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        whenever(enrollInCourseUseCase("course1")).thenReturn(
+            Result.failure(Exception("already enrolled in this course"))
+        )
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+        viewModel.enroll("course1")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.enrolledCourseIds.value.contains("course1"))
+        assertEquals("Ești deja înscris la acest curs", viewModel.errorMessage.value)
+    }
+
+    @Test
+    fun `enroll 409 response adds courseId and sets informational error`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        whenever(enrollInCourseUseCase("course1")).thenReturn(
+            Result.failure(Exception("409 Conflict"))
+        )
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+        viewModel.enroll("course1")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.enrolledCourseIds.value.contains("course1"))
+        assertEquals("Ești deja înscris la acest curs", viewModel.errorMessage.value)
+    }
+
+    @Test
+    fun `enroll blank error message uses fallback`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        whenever(enrollInCourseUseCase("course1")).thenReturn(Result.failure(Exception("")))
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+        viewModel.enroll("course1")
+        advanceUntilIdle()
+
+        assertEquals("Eroare la înscriere", viewModel.errorMessage.value)
+    }
 }

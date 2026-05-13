@@ -6,7 +6,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
 
-interface AdaptiveApi {
+fun interface AdaptiveApi {
 
     @POST("api/v1/adaptive/start")
     suspend fun startSession(

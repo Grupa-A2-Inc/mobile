@@ -39,7 +39,8 @@ class TestViewModel @Inject constructor(
     private var questionStartTime = System.currentTimeMillis()
 
     init {
-        savedStateHandle.get<String>("testId")?.let { startTest(it) }
+        val testId: String? = savedStateHandle["testId"]
+        testId?.let { startTest(it) }
     }
 
     private fun startTest(testId: String) {
@@ -90,7 +91,7 @@ class TestViewModel @Inject constructor(
             SubmitAnswerDto(
                 questionId = q.questionId,
                 selectedOptionIds = s.selectedAnswers[q.questionId].orEmpty(),
-                timeSpent = s.timeSpentSeconds[q.questionId]
+                timeSpent = s.timeSpentSeconds[q.questionId] ?: 0.0
             )
         }
         viewModelScope.launch {

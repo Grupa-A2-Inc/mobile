@@ -33,7 +33,8 @@ class LessonViewModel @Inject constructor(
     val state: StateFlow<LessonState> = _state.asStateFlow()
 
     init {
-        savedStateHandle.get<String>("lessonId")?.let { loadLesson(it) }
+        val lessonId: String? = savedStateHandle["lessonId"]
+        lessonId?.let { loadLesson(it) }
     }
 
     private fun loadLesson(lessonId: String) {

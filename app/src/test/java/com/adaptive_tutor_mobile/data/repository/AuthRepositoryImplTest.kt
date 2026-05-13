@@ -176,6 +176,77 @@ class AuthRepositoryImplTest {
         coVerify { sessionStore.clearAll() }
     }
 
+    @Test
+    fun `login null access token does not call saveAccessToken`() = runTest {
+        val response = AuthResponse("OK", null, null, sampleUser)
+        coEvery { api.login(any()) } returns Response.success(response)
+
+        val result = repository.login("a@b.c", "pass")
+
+        assertTrue(result.isSuccess)
+        coVerify(exactly = 0) { sessionStore.saveAccessToken(any()) }
+    }
+
+    @Test
+    fun `login 400 uses default message when body blank`() = runTest {
+        coEvery { api.login(any()) } returns Response.error(
+            400, "".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.login("a@b.c", "pass")
+
+        assertTrue(result.isFailure)
+        assertEquals("Date invalide", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `login 409 uses default message when body blank`() = runTest {
+        coEvery { api.login(any()) } returns Response.error(
+            409, "".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.login("a@b.c", "pass")
+
+        assertTrue(result.isFailure)
+        assertEquals("Cont deja existent", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `login unknown code returns generic message`() = runTest {
+        coEvery { api.login(any()) } returns Response.error(
+            503, "".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.login("a@b.c", "pass")
+
+        assertTrue(result.isFailure)
+        assertEquals("Eroare 503", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `login parses error field when message absent`() = runTest {
+        val body = """{"error":"Unauthorized"}"""
+            .toResponseBody("application/json".toMediaType())
+        coEvery { api.login(any()) } returns Response.error(401, body)
+
+        val result = repository.login("a@b.c", "pass")
+
+        assertTrue(result.isFailure)
+        assertEquals("Unauthorized", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `login malformed json body falls back to code string`() = runTest {
+        coEvery { api.login(any()) } returns Response.error(
+            401, "not-json".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.login("a@b.c", "pass")
+
+        assertTrue(result.isFailure)
+        assertEquals("Eroare 401", result.exceptionOrNull()?.message)
+    }
+
     // ── forgot password ──────────────────────────────────────────────────────
 
     @Test
@@ -200,5 +271,52 @@ class AuthRepositoryImplTest {
 
         assertTrue(result.isFailure)
         assertEquals("Server down", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `forgotPassword 400 uses default message when body blank`() = runTest {
+        coEvery { api.forgotPassword(any()) } returns Response.error(
+            400, "".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.forgotPassword("user@example.com")
+
+        assertTrue(result.isFailure)
+        assertEquals("Date invalide", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `forgotPassword network exception returns failure`() = runTest {
+        coEvery { api.forgotPassword(any()) } throws RuntimeException("no internet")
+
+        val result = repository.forgotPassword("user@example.com")
+
+        assertTrue(result.isFailure)
+        assertEquals("no internet", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `register failure with empty 400 body uses default message`() = runTest {
+        coEvery { api.register(any()) } returns Response.error(
+            400, "".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.register(
+            RegisterRequest("a", "b", "a@b.c", "12345678", "12345678", "Org", "RO", "City", "SCHOOL")
+        )
+
+        assertTrue(result.isFailure)
+        assertEquals("Date invalide", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `register null body throws inside Result`() = runTest {
+        coEvery { api.register(any()) } returns Response.success(null)
+
+        val result = repository.register(
+            RegisterRequest("a", "b", "a@b.c", "12345678", "12345678", "Org", "RO", "City", "SCHOOL")
+        )
+
+        assertTrue(result.isFailure)
     }
 }

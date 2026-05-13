@@ -218,6 +218,34 @@ class AuthViewModelTest {
         coVerify { logoutUseCase() }
     }
 
+    @Test
+    fun `forgotPassword failure with null message uses default`() = runTest {
+        coEvery { forgotPasswordUseCase(any()) } returns Result.failure(RuntimeException())
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.forgotPassword("a@b.c")
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertTrue(state is AuthUiState.Error)
+        assertEquals("Eroare necunoscută", (state as AuthUiState.Error).message)
+    }
+
+    @Test
+    fun `register failure with null message uses default`() = runTest {
+        coEvery { registerUseCase(any()) } returns Result.failure(RuntimeException())
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.register(RegisterRequest("a", "b", "a@b.c", "12345678", "12345678", "Org", "RO", "City", "SCHOOL"))
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertTrue(state is AuthUiState.Error)
+        assertEquals("Eroare necunoscută", (state as AuthUiState.Error).message)
+    }
+
     // ── resetState ───────────────────────────────────────────────────────────
 
     @Test

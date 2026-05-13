@@ -77,17 +77,18 @@ class AdaptiveViewModel @Inject constructor(
         )
     }
 
-    fun nextQuestion() {
+    fun goToQuestion(index: Int) {
         saveCurrentQuestionTime()
-
         val session = _uiState.value.session ?: return
-        val nextIndex = _uiState.value.currentIndex + 1
-
-        if (nextIndex < session.exercises.size) {
+        if (index in 0 until session.exercises.size) {
             questionStartedAtMillis = System.currentTimeMillis()
-            _uiState.value = _uiState.value.copy(currentIndex = nextIndex)
+            _uiState.value = _uiState.value.copy(currentIndex = index)
         }
     }
+
+    fun nextQuestion() = goToQuestion(_uiState.value.currentIndex + 1)
+
+    fun prevQuestion() = goToQuestion(_uiState.value.currentIndex - 1)
 
     fun submitSession() {
         saveCurrentQuestionTime()

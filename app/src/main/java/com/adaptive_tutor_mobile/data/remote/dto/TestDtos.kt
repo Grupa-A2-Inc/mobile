@@ -100,15 +100,16 @@ data class AttemptReportDTO(
     val scorePercent: Double?,
     val passed: Boolean?,
     val completedAt: String?,
-    val question: List<QuestionForAttemptReportDTO>
+    val questions: List<QuestionForAttemptReportDTO> = emptyList()
 )
 
 data class QuestionForAttemptReportDTO(
     val questionId: Int,
     val questionType: String,
     val content: String,
-    val selectedOptionIds: List<Int>,
-    val correctOptionIds: List<Int>
+    val selectedOptionIds: List<Int> = emptyList(),
+    val correctOptionIds: List<Int> = emptyList(),
+    val correct: Boolean = false
 )
 
 data class AttemptStatusDTO(

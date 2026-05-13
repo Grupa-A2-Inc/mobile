@@ -36,7 +36,7 @@ fun AdaptiveResultScreen(
 
     Scaffold(
         topBar = {
-            AdaptiveTopBar(title = "Rezultat sesiune")
+            AdaptiveTopBar(title = "Rezultat sesiune", onBack = onBackToHome)
         }
     ) { innerPadding ->
         if (result == null) {

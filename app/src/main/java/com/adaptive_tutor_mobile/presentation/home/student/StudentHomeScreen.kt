@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
@@ -59,12 +60,14 @@ import com.adaptive_tutor_mobile.presentation.navigation.Screen
 private const val TAB_HOME = "student_tab_home"
 private const val TAB_MY_COURSES = "student_tab_my_courses"
 private const val TAB_EXPLORE = "student_tab_explore"
+private const val TAB_ADAPTIVE = "student_tab_adaptive"
 private const val TAB_PROFILE = "student_tab_profile"
 
 private val bottomNavItems = listOf(
     BottomNavItem(TAB_HOME, Icons.Filled.Home, "Acasă"),
     BottomNavItem(TAB_MY_COURSES, Icons.Filled.MenuBook, "Cursuri"),
     BottomNavItem(TAB_EXPLORE, Icons.Filled.Explore, "Explorează"),
+    BottomNavItem(TAB_ADAPTIVE, Icons.Filled.Psychology, "Adaptiv"),
     BottomNavItem(TAB_PROFILE, Icons.Filled.Person, "Profil")
 )
 
@@ -88,7 +91,10 @@ fun StudentHomeScreen(
             AdaptiveBottomBar(
                 items = bottomNavItems,
                 currentRoute = currentTab,
-                onItemClick = { currentTab = it }
+                onItemClick = { tab ->
+                    if (tab == TAB_ADAPTIVE) onAdaptiveClick()
+                    else currentTab = tab
+                }
             )
         }
     ) { innerPadding ->

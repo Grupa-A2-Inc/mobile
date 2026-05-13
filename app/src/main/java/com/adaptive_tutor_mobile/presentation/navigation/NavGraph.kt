@@ -25,6 +25,7 @@ import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveResultScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveSessionScreen
 import com.adaptive_tutor_mobile.presentation.lesson.LessonScreen
+import com.adaptive_tutor_mobile.presentation.test.TestScreen
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
@@ -179,8 +180,19 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
         ) {
             LessonScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToTest = { /* TODO: navigate to test */ }
+                onNavigateToTest = { testId ->
+                    navController.navigate(Screen.TestAttempt.createRoute(testId))
+                }
             )
+        }
+
+        composable(
+            route = Screen.TestAttempt.route,
+            arguments = listOf(
+                navArgument("testId") { type = NavType.StringType }
+            )
+        ) {
+            TestScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

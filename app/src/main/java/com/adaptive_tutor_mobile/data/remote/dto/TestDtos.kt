@@ -56,10 +56,12 @@ data class OptionResponseDto(
 
 data class QuestionForStudentDto(
     val questionId: Int,
-    val questionType: String,
-    val content: String,
+    @com.google.gson.annotations.SerializedName("questionType", alternate = ["type"])
+    val questionType: String? = null,
+    @com.google.gson.annotations.SerializedName("content", alternate = ["text"])
+    val content: String? = null,
     val difficulty: Double?,
-    val options: List<OptionForStudentDto>
+    val options: List<OptionForStudentDto>? = null
 )
 
 data class OptionForStudentDto(
@@ -76,7 +78,7 @@ data class StartAttemptResponseDto(
     val startedAt: String,
     val timeLimitSec: Int?,
     val test: TestInfoForAttemptDto,
-    val questions: List<QuestionForStudentDto>
+    val questions: List<QuestionForStudentDto>? = null
 )
 
 data class TestInfoForAttemptDto(
@@ -100,15 +102,16 @@ data class AttemptReportDTO(
     val scorePercent: Double?,
     val passed: Boolean?,
     val completedAt: String?,
-    val questions: List<QuestionForAttemptReportDTO> = emptyList()
+    val questions: List<QuestionForAttemptReportDTO>? = null
 )
 
 data class QuestionForAttemptReportDTO(
     val questionId: Int,
-    val questionType: String,
-    val content: String,
-    val selectedOptionIds: List<Int> = emptyList(),
-    val correctOptionIds: List<Int> = emptyList(),
+    val questionType: String? = null,
+    @com.google.gson.annotations.SerializedName("content", alternate = ["text"])
+    val content: String? = null,
+    val selectedOptionIds: List<Int>? = null,
+    val correctOptionIds: List<Int>? = null,
     val correct: Boolean = false
 )
 

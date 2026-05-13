@@ -2,11 +2,12 @@ package com.adaptive_tutor_mobile.presentation.adaptive
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.adaptive_tutor_mobile.domain.model.AdaptiveAnswer
-import com.adaptive_tutor_mobile.domain.model.AdaptiveResult
+import com.adaptive_tutor_mobile.data.remote.dto.AttemptReportDTO
+import com.adaptive_tutor_mobile.data.remote.dto.SubmitAnswerDto
+import com.adaptive_tutor_mobile.data.remote.dto.SubmitRequestDto
 import com.adaptive_tutor_mobile.domain.model.AdaptiveSession
+import com.adaptive_tutor_mobile.domain.repository.TestRepository
 import com.adaptive_tutor_mobile.domain.usecase.StartAdaptiveSessionUseCase
-import com.adaptive_tutor_mobile.domain.usecase.SubmitAdaptiveSessionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,9 +18,9 @@ import javax.inject.Inject
 data class AdaptiveUiState(
     val session: AdaptiveSession? = null,
     val currentIndex: Int = 0,
-    val selectedAnswers: Map<String, List<String>> = emptyMap(),
-    val timeSpentByExercise: Map<String, Long> = emptyMap(),
-    val result: AdaptiveResult? = null,
+    val selectedAnswers: Map<Int, List<Int>> = emptyMap(),
+    val timeSpentSeconds: Map<Int, Double> = emptyMap(),
+    val result: AttemptReportDTO? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -27,7 +28,7 @@ data class AdaptiveUiState(
 @HiltViewModel
 class AdaptiveViewModel @Inject constructor(
     private val startAdaptiveSessionUseCase: StartAdaptiveSessionUseCase,
-    private val submitAdaptiveSessionUseCase: SubmitAdaptiveSessionUseCase
+    private val testRepository: TestRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdaptiveUiState())
@@ -38,12 +39,7 @@ class AdaptiveViewModel @Inject constructor(
     fun startSession(subjectId: Int, topicId: Int, count: Int) {
         viewModelScope.launch {
             _uiState.value = AdaptiveUiState(isLoading = true)
-
-            startAdaptiveSessionUseCase(
-                subjectId = subjectId,
-                topicId = topicId,
-                count = count
-            )
+            startAdaptiveSessionUseCase(subjectId = subjectId, topicId = topicId, count = count)
                 .onSuccess { session ->
                     questionStartedAtMillis = System.currentTimeMillis()
                     _uiState.value = AdaptiveUiState(session = session)
@@ -56,68 +52,43 @@ class AdaptiveViewModel @Inject constructor(
         }
     }
 
-    fun selectAnswer(exerciseId: String, answer: String) {
-        val session = _uiState.value.session ?: return
-        val exercise = session.exercises.firstOrNull { it.id == exerciseId } ?: return
-
-        val currentSelection = _uiState.value.selectedAnswers[exerciseId].orEmpty()
-
-        val newSelection = if (exercise.type == "MULTIPLE_CHOICE") {
-            if (answer in currentSelection) {
-                currentSelection - answer
-            } else {
-                currentSelection + answer
-            }
-        } else {
-            listOf(answer)
-        }
-
+    fun selectAnswer(questionId: Int, optionId: Int, singleChoice: Boolean) {
+        val current = _uiState.value.selectedAnswers[questionId].orEmpty()
+        val newSelection = if (singleChoice) listOf(optionId)
+        else if (optionId in current) current - optionId
+        else current + optionId
         _uiState.value = _uiState.value.copy(
-            selectedAnswers = _uiState.value.selectedAnswers + (exerciseId to newSelection)
+            selectedAnswers = _uiState.value.selectedAnswers + (questionId to newSelection)
         )
     }
 
     fun goToQuestion(index: Int) {
         saveCurrentQuestionTime()
         val session = _uiState.value.session ?: return
-        if (index in 0 until session.exercises.size) {
+        if (index in 0 until session.questions.size) {
             questionStartedAtMillis = System.currentTimeMillis()
             _uiState.value = _uiState.value.copy(currentIndex = index)
         }
     }
 
     fun nextQuestion() = goToQuestion(_uiState.value.currentIndex + 1)
-
     fun prevQuestion() = goToQuestion(_uiState.value.currentIndex - 1)
 
     fun submitSession() {
         saveCurrentQuestionTime()
-
         val session = _uiState.value.session ?: return
-
-        val answers = session.exercises.map { exercise ->
-            AdaptiveAnswer(
-                exerciseId = exercise.id,
-                givenAnswers = _uiState.value.selectedAnswers[exercise.id].orEmpty(),
-                timeSpent = _uiState.value.timeSpentByExercise[exercise.id] ?: 0L
+        val answers = session.questions.map { q ->
+            SubmitAnswerDto(
+                questionId = q.questionId,
+                selectedOptionIds = _uiState.value.selectedAnswers[q.questionId].orEmpty(),
+                timeSpent = _uiState.value.timeSpentSeconds[q.questionId]
             )
         }
-
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                isLoading = true,
-                errorMessage = null
-            )
-
-            submitAdaptiveSessionUseCase(
-                sessionId = session.sessionId,
-                answers = answers
-            )
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            testRepository.submitAttempt(session.sessionId, SubmitRequestDto(answers))
                 .onSuccess { result ->
-                    _uiState.value = _uiState.value.copy(
-                        result = result,
-                        isLoading = false
-                    )
+                    _uiState.value = _uiState.value.copy(result = result, isLoading = false)
                 }
                 .onFailure { error ->
                     _uiState.value = _uiState.value.copy(
@@ -134,16 +105,11 @@ class AdaptiveViewModel @Inject constructor(
 
     private fun saveCurrentQuestionTime() {
         val session = _uiState.value.session ?: return
-        val exercise = session.exercises.getOrNull(_uiState.value.currentIndex) ?: return
-
-        val elapsedSeconds = ((System.currentTimeMillis() - questionStartedAtMillis) / 1000)
-            .coerceAtLeast(0)
-
-        val previousValue = _uiState.value.timeSpentByExercise[exercise.id] ?: 0L
-
+        val q = session.questions.getOrNull(_uiState.value.currentIndex) ?: return
+        val elapsed = (System.currentTimeMillis() - questionStartedAtMillis) / 1000.0
+        val prev = _uiState.value.timeSpentSeconds[q.questionId] ?: 0.0
         _uiState.value = _uiState.value.copy(
-            timeSpentByExercise = _uiState.value.timeSpentByExercise +
-                    (exercise.id to previousValue + elapsedSeconds)
+            timeSpentSeconds = _uiState.value.timeSpentSeconds + (q.questionId to prev + elapsed)
         )
     }
 }

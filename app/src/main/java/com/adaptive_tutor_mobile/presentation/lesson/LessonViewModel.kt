@@ -43,6 +43,7 @@ class LessonViewModel @Inject constructor(
                 onSuccess = { lessonDetail ->
                     _state.update { it.copy(isLoading = false, lesson = lessonDetail, isCheckingTest = true) }
                     checkTest(lessonId)
+                    launch { lessonRepository.markVisited(lessonId) }
                 },
                 onFailure = { exception ->
                     _state.update { it.copy(isLoading = false, error = exception.message ?: "Eroare necunoscută") }

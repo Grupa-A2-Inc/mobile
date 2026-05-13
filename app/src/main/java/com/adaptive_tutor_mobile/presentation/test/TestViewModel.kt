@@ -51,7 +51,7 @@ class TestViewModel @Inject constructor(
                         it.copy(
                             isLoading = false,
                             attemptId = attempt.attemptId,
-                            questions = attempt.questions
+                            questions = attempt.questions.orEmpty()
                         )
                     }
                 },

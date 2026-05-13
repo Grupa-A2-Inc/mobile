@@ -140,7 +140,7 @@ private fun TestQuestionScreen(
                     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = question.content,
+                                text = question.content ?: "",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -154,7 +154,7 @@ private fun TestQuestionScreen(
                         }
                     }
                 }
-                items(question.options) { option ->
+                items(question.options.orEmpty()) { option ->
                     FilterChip(
                         selected = option.optionId in selected,
                         onClick = { onSelectOption(question.questionId, option.optionId, isSingle) },
@@ -302,7 +302,7 @@ private fun TestResultScreen(
                 )
             }
 
-            itemsIndexed(report.questions) { index, rq ->
+            itemsIndexed(report.questions.orEmpty()) { index, rq ->
                 ResultQuestionCard(
                     index = index + 1,
                     reportQuestion = rq,
@@ -347,7 +347,7 @@ private fun ResultQuestionCard(
                     modifier = Modifier.size(20.dp)
                 )
                 Text(
-                    text = "$index. ${reportQuestion.content}",
+                    text = "$index. ${reportQuestion.content ?: ""}",
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.weight(1f)
@@ -357,11 +357,11 @@ private fun ResultQuestionCard(
             if (original != null) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                val selectedTexts = reportQuestion.selectedOptionIds.mapNotNull { id ->
-                    original.options.firstOrNull { it.optionId == id }?.text
+                val selectedTexts = reportQuestion.selectedOptionIds.orEmpty().mapNotNull { id ->
+                    original.options.orEmpty().firstOrNull { it.optionId == id }?.text
                 }
-                val correctTexts = reportQuestion.correctOptionIds.mapNotNull { id ->
-                    original.options.firstOrNull { it.optionId == id }?.text
+                val correctTexts = reportQuestion.correctOptionIds.orEmpty().mapNotNull { id ->
+                    original.options.orEmpty().firstOrNull { it.optionId == id }?.text
                 }
 
                 if (selectedTexts.isNotEmpty()) {

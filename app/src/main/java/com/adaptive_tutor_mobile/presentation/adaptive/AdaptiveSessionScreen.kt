@@ -79,6 +79,11 @@ fun AdaptiveSessionScreen(
                 }
             )
 
+            state.session!!.questions.isEmpty() -> ErrorScreen(
+                message = "Sesiunea nu conține exerciții. Încearcă din nou.",
+                onRetry = { viewModel.clearError() }
+            )
+
             else -> AdaptiveQuestionContent(
                 state = state,
                 modifier = Modifier.padding(innerPadding),
@@ -158,9 +163,7 @@ private fun AdaptiveStartContent(
                             text = { Text(subject.name) },
                             onClick = {
                                 selectedSubject = subject
-                                selectedTopic = TOPIC_LIST
-                                    .filter { it.subjectId == subject.id }
-                                    .first()
+                                selectedTopic = TOPIC_LIST.filter { it.subjectId == subject.id }.first()
                                 subjectExpanded = false
                             },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
@@ -201,10 +204,7 @@ private fun AdaptiveStartContent(
                                     )
                                 }
                             },
-                            onClick = {
-                                selectedTopic = topic
-                                topicExpanded = false
-                            },
+                            onClick = { selectedTopic = topic; topicExpanded = false },
                             contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                         )
                     }
@@ -218,10 +218,7 @@ private fun AdaptiveStartContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "Număr exerciții",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Text(text = "Număr exerciții", style = MaterialTheme.typography.bodyLarge)
                     Text(
                         text = "${exerciseCount.roundToInt()}",
                         style = MaterialTheme.typography.bodyLarge,
@@ -242,19 +239,12 @@ private fun AdaptiveStartContent(
         item {
             Button(
                 onClick = {
-                    onStart(
-                        selectedSubject.id,
-                        selectedTopic.id,
-                        exerciseCount.roundToInt()
-                    )
+                    onStart(selectedSubject.id, selectedTopic.id, exerciseCount.roundToInt())
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(
-                    text = "Pornește sesiunea",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(text = "Pornește sesiunea", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
@@ -265,7 +255,7 @@ private fun AdaptiveStartContent(
 @Composable
 private fun AdaptiveQuestionContent(
     state: AdaptiveUiState,
-    onSelectAnswer: (String, String) -> Unit,
+    onSelectAnswer: (Int, Int, Boolean) -> Unit,
     onNext: () -> Unit,
     onPrev: () -> Unit,
     onGoToQuestion: (Int) -> Unit,
@@ -273,10 +263,11 @@ private fun AdaptiveQuestionContent(
     modifier: Modifier = Modifier
 ) {
     val session = state.session ?: return
-    val exercise = session.exercises[state.currentIndex]
-    val selectedAnswers = state.selectedAnswers[exercise.id].orEmpty()
-    val isLast = state.currentIndex == session.exercises.lastIndex
-    val progress = (state.currentIndex + 1).toFloat() / session.exercises.size.toFloat()
+    val question = session.questions[state.currentIndex]
+    val selectedAnswers = state.selectedAnswers[question.questionId].orEmpty()
+    val isLast = state.currentIndex == session.questions.lastIndex
+    val progress = (state.currentIndex + 1).toFloat() / session.questions.size.toFloat()
+    val isSingle = question.questionType == "SINGLE_CHOICE" || question.questionType == "TRUE_FALSE"
 
     Column(modifier = modifier.fillMaxSize()) {
         LinearProgressIndicator(
@@ -293,7 +284,7 @@ private fun AdaptiveQuestionContent(
         ) {
             item {
                 Text(
-                    text = "Întrebarea ${state.currentIndex + 1} / ${session.exercises.size}",
+                    text = "Întrebarea ${state.currentIndex + 1} / ${session.questions.size}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -303,16 +294,14 @@ private fun AdaptiveQuestionContent(
                 ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = exercise.text,
+                            text = question.content ?: "",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = if (exercise.type == "MULTIPLE_CHOICE")
-                                "Alege unul sau mai multe răspunsuri"
-                            else
-                                "Alege un singur răspuns",
+                            text = if (isSingle) "Alege un singur răspuns"
+                            else "Alege unul sau mai multe răspunsuri",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
@@ -322,11 +311,11 @@ private fun AdaptiveQuestionContent(
 
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    exercise.answers.forEach { answer ->
+                    question.options.orEmpty().forEach { option ->
                         FilterChip(
-                            selected = answer in selectedAnswers,
-                            onClick = { onSelectAnswer(exercise.id, answer) },
-                            label = { Text(answer) },
+                            selected = option.optionId in selectedAnswers,
+                            onClick = { onSelectAnswer(question.questionId, option.optionId, isSingle) },
+                            label = { Text(option.text) },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -334,7 +323,6 @@ private fun AdaptiveQuestionContent(
             }
         }
 
-        // Fixed bottom navigation
         HorizontalDivider()
         Surface(color = MaterialTheme.colorScheme.surface) {
             Column(
@@ -342,8 +330,8 @@ private fun AdaptiveQuestionContent(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    itemsIndexed(session.exercises) { index, ex ->
-                        val hasAnswer = state.selectedAnswers[ex.id]?.isNotEmpty() == true
+                    itemsIndexed(session.questions) { index, q ->
+                        val hasAnswer = state.selectedAnswers[q.questionId]?.isNotEmpty() == true
                         QuestionChip(
                             number = index + 1,
                             isCurrent = index == state.currentIndex,

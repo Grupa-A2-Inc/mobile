@@ -47,4 +47,8 @@ class LessonRepositoryImpl @Inject constructor(
             null
         }
     }
+
+    override suspend fun markVisited(lessonId: String) {
+        try { api.getLessonById(lessonId) } catch (_: Exception) {}
+    }
 }

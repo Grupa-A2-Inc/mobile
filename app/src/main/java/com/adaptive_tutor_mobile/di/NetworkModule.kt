@@ -2,6 +2,9 @@ package com.adaptive_tutor_mobile.di
 
 import android.webkit.CookieManager
 import com.adaptive_tutor_mobile.data.remote.api.AuthApi
+import com.adaptive_tutor_mobile.data.remote.api.CourseDetailApi
+import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
+import com.adaptive_tutor_mobile.data.remote.api.LessonApi
 import com.adaptive_tutor_mobile.data.remote.dto.RefreshResponse
 import com.google.gson.Gson
 import dagger.Module
@@ -21,6 +24,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
 import javax.inject.Singleton
+import com.adaptive_tutor_mobile.data.remote.api.AdaptiveApi
+import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
+import com.adaptive_tutor_mobile.data.remote.api.TestApi
 
 private const val BASE_URL = "https://api.adaptiveelearning.online/"
 
@@ -50,16 +56,26 @@ class WebKitCookieJar : CookieJar {
 // ── Auth Interceptor ──────────────────────────────────────────────────────────
 
 class AuthInterceptor(private val sessionStore: SessionStore) : Interceptor {
+    private val skipPaths = listOf(
+        "/api/v1/auth/login",
+        "/api/v1/auth/register",
+        "/api/v1/auth/refresh",
+        "/api/v1/auth/password-reset/request",
+        "/api/v1/auth/password-reset/confirm",
+        "/api/v1/auth/set-password"
+    )
+
     override fun intercept(chain: Interceptor.Chain): Response {
-        val token = sessionStore.getAccessToken()
-        val request = if (token != null) {
-            chain.request().newBuilder()
-                .header("Authorization", "Bearer $token")
-                .build()
-        } else {
-            chain.request()
+        val req = chain.request()
+        val path = req.url.encodedPath
+        if (skipPaths.any { path.endsWith(it) }) {
+            return chain.proceed(req)
         }
-        return chain.proceed(request)
+        val token = sessionStore.getAccessToken()
+        val newReq = if (token != null) {
+            req.newBuilder().header("Authorization", "Bearer $token").build()
+        } else req
+        return chain.proceed(newReq)
     }
 }
 
@@ -71,13 +87,9 @@ class TokenRefreshAuthenticator(
 ) : okhttp3.Authenticator {
 
     override fun authenticate(route: okhttp3.Route?, response: Response): Request? {
-        // Avoid refresh loop — if the failing request is already the refresh endpoint, bail out
         if (response.request.url.encodedPath.contains("auth/refresh")) return null
-
-        // Only handle 401
         if (response.code != 401) return null
 
-        // Synchronous refresh using the plain client (no auth interceptor)
         return try {
             val plainClient = plainClientProvider()
             val refreshRequest = Request.Builder()
@@ -164,10 +176,43 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
 
     @Provides
     @Singleton
     fun provideCourseApi(retrofit: Retrofit): com.adaptive_tutor_mobile.data.remote.api.CourseApi =
         retrofit.create(com.adaptive_tutor_mobile.data.remote.api.CourseApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideEnrollmentApi(retrofit: Retrofit): EnrollmentApi =
+        retrofit.create(EnrollmentApi::class.java)
+    @Provides
+    @Singleton
+    fun provideProgressApi(retrofit: Retrofit): ProgressApi =
+        retrofit.create(ProgressApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCourseDetailApi(retrofit: Retrofit): CourseDetailApi =
+        retrofit.create(CourseDetailApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAdaptiveApi(retrofit: Retrofit): AdaptiveApi {
+        return retrofit.create(AdaptiveApi::class.java)
+    }
+
+    // ------ Dev5: Lessons ------
+    @Provides
+    @Singleton
+    fun provideLessonApi(retrofit: Retrofit): LessonApi {
+        return retrofit.create(LessonApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTestApi(retrofit: Retrofit): TestApi =
+        retrofit.create(TestApi::class.java)
 }

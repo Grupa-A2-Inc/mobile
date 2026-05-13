@@ -37,6 +37,14 @@ data class ResponseCourseFullViewDto(
     val chapters: List<ChapterFullViewDTO>
 )
 
+data class PageResponseCourseDto(
+    val content: List<ResponseCourseDto>,
+    val totalPages: Int,
+    val totalElements: Int,
+    val number: Int,
+    val size: Int
+)
+
 // ── CHAPTER ──────────────────────────────────────────────────────────────────
 
 data class ChapterFullViewDTO(
@@ -132,19 +140,3 @@ data class EnrolledCourseDto(
     val completedAt: String?
 )
 
-// ── PROGRESS ─────────────────────────────────────────────────────────────────
-
-data class ProgressWithLessonListDto(
-    val totalLessons: Int,
-    val visitedLessons: Int,
-    val progressPercent: Double,
-    val completedAt: String?,
-    val lessons: List<LessonStatusDto>
-)
-
-data class LessonStatusDto(
-    val lessonId: String,
-    val title: String,
-    val visited: Boolean,
-    val visitedAt: String?
-)

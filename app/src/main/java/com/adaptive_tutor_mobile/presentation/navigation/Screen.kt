@@ -3,6 +3,7 @@ package com.adaptive_tutor_mobile.presentation.navigation
 import com.adaptive_tutor_mobile.domain.model.UserRole
 
 sealed class Screen(val route: String) {
+    object Splash         : Screen("splash")
     object Login          : Screen("login")
     object Register       : Screen("register")
     object ForgotPassword : Screen("forgot_password")
@@ -11,6 +12,32 @@ sealed class Screen(val route: String) {
     object TeacherHome    : Screen("teacher_home")
     object StudentHome    : Screen("student_home")
     object ParentHome     : Screen("parent_home")
+    object AdaptiveSession : Screen("adaptive_session")
+    object AdaptiveResult  : Screen("adaptive_result")
+
+    object PublicCourses : Screen("public_courses")
+    object CourseDetail : Screen("course_detail/{courseId}") {
+        fun createRoute(courseId: String) = "course_detail/$courseId"
+    }
+
+    object EnrolledCourses : Screen("enrolled_courses")
+
+    object Lesson : Screen("lesson/{lessonId}") {
+        fun createRoute(lessonId: String) = "lesson/$lessonId"
+    }
+
+    // ── Dev 6: Rute pentru Testare ──────────────────────────────────────
+    object Test : Screen("test/{testId}") {
+        fun createRoute(testId: String) = "test/$testId"
+    }
+
+    object TestResult : Screen("test_result/{attemptId}") {
+        fun createRoute(attemptId: String) = "test_result/$attemptId"
+    }
+
+    object TestAttempt : Screen("test_attempt/{testId}") {
+        fun createRoute(testId: String) = "test_attempt/$testId"
+    }
 }
 
 fun routeForRole(role: UserRole): String = when (role) {

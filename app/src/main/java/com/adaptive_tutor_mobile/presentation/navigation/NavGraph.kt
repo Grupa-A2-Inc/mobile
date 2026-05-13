@@ -2,22 +2,31 @@ package com.adaptive_tutor_mobile.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.adaptive_tutor_mobile.di.SessionStore
 import com.adaptive_tutor_mobile.domain.model.UserRole
 import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.auth.ForgotPasswordScreen
 import com.adaptive_tutor_mobile.presentation.auth.LoginScreen
 import com.adaptive_tutor_mobile.presentation.auth.RegisterScreen
+import com.adaptive_tutor_mobile.presentation.courses.CourseDetailScreen
+import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 import com.adaptive_tutor_mobile.presentation.home.admin.AdminHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.orgadmin.OrgAdminHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.parent.ParentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.student.StudentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
+import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveResultScreen
+import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveSessionScreen
+import com.adaptive_tutor_mobile.presentation.lesson.LessonScreen
+import com.adaptive_tutor_mobile.presentation.test.TestScreen
 
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
@@ -30,7 +39,6 @@ fun navigateByRole(navController: NavController, role: UserRole) {
 fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
     val navController = rememberNavController()
 
-    // Listen for forced logout events from the token authenticator
     val authViewModel: AuthViewModel = hiltViewModel()
     LaunchedEffect(Unit) {
         sessionStore.forceLogoutEvent.collect {
@@ -103,9 +111,40 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
         composable(Screen.StudentHome.route) {
             StudentHomeScreen(
                 viewModel = authViewModel,
+                onAdaptiveClick = {
+                    navController.navigate(Screen.AdaptiveSession.route)
+                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
+                    }
+                },
+                navController = navController
+            )
+        }
+
+        composable(Screen.AdaptiveSession.route) {
+            AdaptiveSessionScreen(
+                onBackToHome = {
+                    navController.navigate(Screen.StudentHome.route) {
+                        popUpTo(Screen.StudentHome.route) { inclusive = true }
+                    }
+                },
+                onShowResult = {
+                    navController.navigate(Screen.AdaptiveResult.route)
+                }
+            )
+        }
+
+        composable(Screen.AdaptiveResult.route) { entry ->
+            val sessionEntry = remember(entry) {
+                navController.getBackStackEntry(Screen.AdaptiveSession.route)
+            }
+            AdaptiveResultScreen(
+                viewModel = hiltViewModel(sessionEntry),
+                onBackToHome = {
+                    navController.navigate(Screen.StudentHome.route) {
+                        popUpTo(Screen.StudentHome.route) { inclusive = true }
                     }
                 }
             )
@@ -120,6 +159,47 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                     }
                 }
             )
+        }
+
+        composable(Screen.PublicCourses.route) {
+            PublicCoursesScreen(navController = navController)
+        }
+
+        composable(
+            route = Screen.CourseDetail.route,
+            arguments = listOf(
+                navArgument("courseId") { type = NavType.StringType }
+            )
+        ) {
+            CourseDetailScreen(
+                onNavigateBack = { navController.navigateUp() },
+                onNavigateToLesson = { lessonId ->
+                    navController.navigate(Screen.Lesson.createRoute(lessonId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.Lesson.route,
+            arguments = listOf(
+                navArgument("lessonId") { type = NavType.StringType }
+            )
+        ) {
+            LessonScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToTest = { testId ->
+                    navController.navigate(Screen.TestAttempt.createRoute(testId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.TestAttempt.route,
+            arguments = listOf(
+                navArgument("testId") { type = NavType.StringType }
+            )
+        ) {
+            TestScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

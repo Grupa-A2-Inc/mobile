@@ -3,7 +3,11 @@
     "allow": [
       "Bash(./gradlew assembleDebug --quiet)",
       "Bash(git restore *)",
-      "Bash(./gradlew :app:compileDebugKotlin)"
+      "Bash(./gradlew :app:compileDebugKotlin)",
+      "Bash(./gradlew :app:testDebugUnitTest)",
+      "Bash(./gradlew :app:lintDebug)",
+      "Bash(./gradlew --stop)",
+      "Bash(./gradlew :app:clean)"
     ]
   }
 }

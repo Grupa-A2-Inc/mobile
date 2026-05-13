@@ -81,12 +81,13 @@ class AdaptiveViewModel @Inject constructor(
             SubmitAnswerDto(
                 questionId = q.questionId,
                 selectedOptionIds = _uiState.value.selectedAnswers[q.questionId].orEmpty(),
-                timeSpent = _uiState.value.timeSpentSeconds[q.questionId]
+                timeSpent = _uiState.value.timeSpentSeconds[q.questionId] ?: 0.0
             )
         }
+        val attemptId = session.attemptId ?: session.sessionId
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            testRepository.submitAttempt(session.sessionId, SubmitRequestDto(answers))
+            testRepository.submitAttempt(attemptId, SubmitRequestDto(answers))
                 .onSuccess { result ->
                     _uiState.value = _uiState.value.copy(result = result, isLoading = false)
                 }

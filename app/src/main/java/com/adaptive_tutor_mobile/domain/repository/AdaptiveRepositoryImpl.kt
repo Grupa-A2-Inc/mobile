@@ -29,6 +29,7 @@ class AdaptiveRepositoryImpl @Inject constructor(
             val body = response.body() ?: error("Empty response body")
             AdaptiveSession(
                 sessionId = body.sessionId,
+                attemptId = body.attemptId,
                 expiresAt = body.expiresAt,
                 questions = body.exercises.orEmpty().mapIndexed { listIndex, ex ->
                     ex.toQuestionForStudent(listIndex)
@@ -62,7 +63,7 @@ class AdaptiveRepositoryImpl @Inject constructor(
         if (!body.isNullOrBlank()) {
             return try {
                 val json = JsonParser.parseString(body).asJsonObject
-                json.get("message")?.asString ?: json.get("error")?.asString ?: "Eroare $code"
+                json["message"]?.asString ?: json["error"]?.asString ?: "Eroare $code"
             } catch (_: Exception) { "Eroare $code" }
         }
         return when (code) {

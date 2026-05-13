@@ -10,6 +10,7 @@ data class AdaptiveStartRequestDto(
 
 data class AdaptiveStartResponseDto(
     val sessionId: String,
+    val attemptId: String? = null,
     val expiresAt: String?,
     @SerializedName("exercises", alternate = ["questions"])
     val exercises: List<AdaptiveExerciseStudentDto>? = null

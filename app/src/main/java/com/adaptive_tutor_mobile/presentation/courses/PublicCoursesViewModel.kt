@@ -101,12 +101,7 @@ class PublicCoursesViewModel @Inject constructor(
             result.onFailure { e ->
                 val msg = e.message.orEmpty()
                 _errorMessage.value = when {
-                    msg.contains("already enrolled", ignoreCase = true) -> {
-                        // sincronizează UI dacă cumva s-a desincronizat
-                        _enrolledCourseIds.value = _enrolledCourseIds.value + courseId
-                        "Ești deja înscris la acest curs"
-                    }
-                    msg.contains("409") -> {
+                    msg.contains("already enrolled", ignoreCase = true) || msg.contains("409") -> {
                         _enrolledCourseIds.value = _enrolledCourseIds.value + courseId
                         "Ești deja înscris la acest curs"
                     }

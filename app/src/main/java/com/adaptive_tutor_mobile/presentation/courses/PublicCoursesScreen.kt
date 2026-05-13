@@ -1,6 +1,5 @@
 package com.adaptive_tutor_mobile.presentation.courses
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -77,7 +76,10 @@ fun PublicCoursesScreen(
                             modifier = Modifier.weight(1f)
                         ) {
                             items(courses) { course ->
-                                Card(modifier = Modifier.fillMaxWidth()) {
+                                Card(
+                                    onClick = { navController.navigate("course_detail/${course.id}") },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -85,10 +87,7 @@ fun PublicCoursesScreen(
                                     ) {
                                         Text(
                                             text = course.title,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier.clickable {
-                                                navController.navigate("course_detail/${course.id}")
-                                            }
+                                            style = MaterialTheme.typography.titleMedium
                                         )
                                         course.category?.let {
                                             Text(text = it, style = MaterialTheme.typography.bodySmall)

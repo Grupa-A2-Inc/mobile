@@ -54,6 +54,7 @@ import java.util.Date
 import java.util.Locale
 import androidx.navigation.NavController
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
+import com.adaptive_tutor_mobile.presentation.navigation.Screen
 
 private const val TAB_HOME = "student_tab_home"
 private const val TAB_MY_COURSES = "student_tab_my_courses"
@@ -94,11 +95,13 @@ fun StudentHomeScreen(
             TAB_HOME -> DashboardTab(
                 firstName = firstName,
                 studentViewModel = studentViewModel,
+                navController = navController,
                 onSeeAllCourses = onNavigateToEnrolledCourses,
                 modifier = Modifier.padding(innerPadding)
             )
             TAB_MY_COURSES -> MyCoursesTab(
                 studentViewModel = studentViewModel,
+                navController = navController,
                 onExploreClick = { currentTab = TAB_EXPLORE },
                 modifier = Modifier.padding(innerPadding)
             )
@@ -123,6 +126,7 @@ fun StudentHomeScreen(
 private fun DashboardTab(
     firstName: String,
     studentViewModel: StudentViewModel,
+    navController: NavController,
     onSeeAllCourses: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -186,12 +190,15 @@ private fun DashboardTab(
                                 title = inProgressCourse.courseTitle,
                                 description = null,
                                 category = inProgressCourse.courseCategory,
-                                status = "PUBLISHED",
                                 progressPercent = inProgressCourse.progressPercent,
-                                onClick = {}
+                                onClick = {
+                                    navController.navigate(Screen.CourseDetail.createRoute(inProgressCourse.courseId))
+                                }
                             )
                             Button(
-                                onClick = {},
+                                onClick = {
+                                    navController.navigate(Screen.CourseDetail.createRoute(inProgressCourse.courseId))
+                                },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("Continuă")
@@ -226,9 +233,10 @@ private fun DashboardTab(
                             title = course.courseTitle,
                             description = null,
                             category = course.courseCategory,
-                            status = "PUBLISHED",
                             progressPercent = course.progressPercent,
-                            onClick = {}
+                            onClick = {
+                                navController.navigate(Screen.CourseDetail.createRoute(course.courseId))
+                            }
                         )
                     }
                 }
@@ -294,6 +302,7 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
 @Composable
 private fun MyCoursesTab(
     studentViewModel: StudentViewModel,
+    navController: NavController,
     onExploreClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -338,9 +347,10 @@ private fun MyCoursesTab(
                                 title = course.courseTitle,
                                 description = null,
                                 category = course.courseCategory,
-                                status = "PUBLISHED",
                                 progressPercent = course.progressPercent,
-                                onClick = {}
+                                onClick = {
+                                    navController.navigate(Screen.CourseDetail.createRoute(course.courseId))
+                                }
                             )
                         }
                     }

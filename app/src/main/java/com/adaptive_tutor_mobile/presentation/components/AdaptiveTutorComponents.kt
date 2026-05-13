@@ -55,8 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
 
-private val StatusPublishedColor = Color(0xFF4CAF50)
-private val StatusInactiveColor = Color(0xFF9E9E9E)
 
 // ── BottomNavItem ─────────────────────────────────────────────────────────────
 
@@ -103,12 +101,9 @@ fun CourseCard(
     title: String,
     description: String?,
     category: String?,
-    status: String,
     progressPercent: Double? = null,
     onClick: () -> Unit
 ) {
-    val statusColor = if (status == "PUBLISHED") StatusPublishedColor else StatusInactiveColor
-
     ElevatedCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
@@ -128,20 +123,12 @@ fun CourseCard(
                     )
             )
             Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    StatusChip(text = status, color = statusColor)
-                }
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
                 if (!description.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(

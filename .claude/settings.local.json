@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(./gradlew assembleDebug --quiet)",
-      "Bash(git restore *)"
+      "Bash(git restore *)",
+      "Bash(./gradlew :app:compileDebugKotlin)"
     ]
   }
 }

@@ -22,6 +22,8 @@ import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.adaptive_tutor_mobile.presentation.course.CourseDetailScreen
+import com.adaptive_tutor_mobile.presentation.test.TestScreen
+import com.adaptive_tutor_mobile.presentation.test.TestResultScreen
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
@@ -149,6 +151,39 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 onNavigateBack = { navController.popBackStack() },
                 onCourseClick = { courseId ->
                     navController.navigate(Screen.CourseDetail.createRoute(courseId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.Test.route,
+            arguments = listOf(
+                navArgument("testId") { type = NavType.StringType }
+            )
+        ) {
+            TestScreen(
+                onNavigateToResult = { attemptId ->
+                    navController.navigate(Screen.TestResult.createRoute(attemptId)) {
+                        popUpTo(Screen.Test.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = Screen.TestResult.route,
+            arguments = listOf(
+                navArgument("attemptId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val attemptId = backStackEntry.arguments?.getString("attemptId") ?: ""
+            TestResultScreen(
+                attemptId = attemptId,
+                onBackToLesson = {
+                    navController.popBackStack()
+                },
+                onRetryTest = {
+                    navController.popBackStack()
                 }
             )
         }

@@ -22,6 +22,8 @@ import com.adaptive_tutor_mobile.presentation.home.orgadmin.OrgAdminHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.parent.ParentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.student.StudentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
+import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveResultScreen
+import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveSessionScreen
 import com.adaptive_tutor_mobile.presentation.lesson.LessonScreen
 // ── Dev 6: Importuri noi ──────────────────────────────────────────────────
 import com.adaptive_tutor_mobile.presentation.test.TestScreen
@@ -110,6 +112,9 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
         composable(Screen.StudentHome.route) {
             StudentHomeScreen(
                 viewModel = authViewModel,
+                onAdaptiveClick = {
+                    navController.navigate(Screen.AdaptiveSession.route)
+                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
@@ -118,7 +123,28 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 navController = navController
             )
         }
+        composable(Screen.AdaptiveSession.route) {
+            AdaptiveSessionScreen(
+                onBackToHome = {
+                    navController.navigate(Screen.StudentHome.route) {
+                        popUpTo(Screen.StudentHome.route) { inclusive = true }
+                    }
+                },
+                onShowResult = {
+                    navController.navigate(Screen.AdaptiveResult.route)
+                }
+            )
+        }
 
+        composable(Screen.AdaptiveResult.route) {
+            AdaptiveResultScreen(
+                onBackToHome = {
+                    navController.navigate(Screen.StudentHome.route) {
+                        popUpTo(Screen.StudentHome.route) { inclusive = true }
+                    }
+                }
+            )
+        }
         composable(Screen.ParentHome.route) {
             ParentHomeScreen(
                 viewModel = authViewModel,

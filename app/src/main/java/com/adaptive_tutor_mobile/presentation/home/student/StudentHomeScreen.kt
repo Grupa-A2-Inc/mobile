@@ -72,6 +72,7 @@ private val bottomNavItems = listOf(
 
 fun StudentHomeScreen(
     viewModel: AuthViewModel,
+    onAdaptiveClick: () -> Unit,
     onLogout: () -> Unit,
     navController: NavController,
     onNavigateToEnrolledCourses: () -> Unit = {}
@@ -95,6 +96,7 @@ fun StudentHomeScreen(
             TAB_HOME -> DashboardTab(
                 firstName = firstName,
                 studentViewModel = studentViewModel,
+                onAdaptiveClick = onAdaptiveClick,
                 navController = navController,
                 onSeeAllCourses = onNavigateToEnrolledCourses,
                 modifier = Modifier.padding(innerPadding)
@@ -128,16 +130,12 @@ private fun DashboardTab(
     studentViewModel: StudentViewModel,
     navController: NavController,
     onSeeAllCourses: () -> Unit,
+    onAdaptiveClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val coursesState by studentViewModel.coursesState.collectAsState()
     val dateFormat = remember { SimpleDateFormat("EEEE, d MMMM", Locale("ro")) }
     val today = remember { dateFormat.format(Date()) }
-
-//asta se suprapune
-//    TextButton(onClick = onSeeAllCourses) {
-//        Text("Vezi toate →")
-//    }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -157,6 +155,27 @@ private fun DashboardTab(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 )
+            }
+        }
+
+        item {
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onAdaptiveClick
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Sesiune adaptivă",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Primește exerciții adaptate nivelului tău și vezi rezultatul la final.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
             }
         }
 

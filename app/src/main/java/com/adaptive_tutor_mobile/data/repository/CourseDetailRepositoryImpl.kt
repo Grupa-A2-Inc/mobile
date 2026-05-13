@@ -7,6 +7,7 @@ import com.adaptive_tutor_mobile.data.remote.dto.ResponseCourseFullViewDto
 import com.adaptive_tutor_mobile.domain.model.Chapter
 import com.adaptive_tutor_mobile.domain.model.CourseDetail
 import com.adaptive_tutor_mobile.domain.model.LessonSummary
+import com.adaptive_tutor_mobile.domain.model.LessonWithContent
 import com.adaptive_tutor_mobile.domain.repository.CourseDetailRepository
 import javax.inject.Inject
 
@@ -14,12 +15,24 @@ class CourseDetailRepositoryImpl @Inject constructor(
     private val api: CourseDetailApi
 ) : CourseDetailRepository {
 
+    //------ Dev 5 ------
+    private val lessonContentCache = mutableMapOf<String, LessonWithContent>()
+    //-------------------
     override suspend fun getCourseFullView(courseId: String): Result<CourseDetail> {
         return runCatching {
             val dto = api.getCourseFullView(courseId)
+
+            lessonContentCache.clear()
+
             dto.toDomain()
         }
     }
+
+    //------ Dev 5 ------
+    override fun getCachedLessonWithContent(lessonId: String): LessonWithContent? {
+        return lessonContentCache[lessonId]
+    }
+    //-------------------
 
     // Mapping helpers
 
@@ -42,10 +55,18 @@ class CourseDetailRepositoryImpl @Inject constructor(
                 .map { it.toDomain() }
         )
 
-    private fun LessonFullViewDTO.toDomain() =
-        LessonSummary(
+    private fun LessonFullViewDTO.toDomain(): LessonSummary {
+        val summary = LessonSummary(
             id      = id,
             title   = title,
             hasTest = testId != null
         )
+
+        lessonContentCache[id] = LessonWithContent(
+            summary = summary,
+            contentMarkdown = contentMarkdown ?: ""
+        )
+
+        return summary
+    }
 }

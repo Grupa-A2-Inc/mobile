@@ -11,7 +11,7 @@ interface LessonApi {
     suspend fun getLessonById(@Path("id") id: String): LessonDtoEntity
 
     @GET("/api/v1/lessons/{id}/content")
-    suspend fun getLessonContent(@Path("id") id: String): String
+    suspend fun getLessonContent(@Path("id") id: String): ResponseBody
 
     @GET("/api/v1/lessons/{id}/resources")
     suspend fun getResources(@Path("id") id: String): List<ResponseLessonResourceDto>

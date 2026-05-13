@@ -23,6 +23,15 @@ sealed class Screen(val route: String) {
     object Lesson : Screen("lesson/{lessonId}") {
         fun createRoute(lessonId: String) = "lesson/$lessonId"
     }
+
+    // ── Dev 6: Rute pentru Testare ──────────────────────────────────────
+    object Test : Screen("test/{testId}") {
+        fun createRoute(testId: String) = "test/$testId"
+    }
+
+    object TestResult : Screen("test_result/{attemptId}") {
+        fun createRoute(attemptId: String) = "test_result/$attemptId"
+    }
 }
 
 fun routeForRole(role: UserRole): String = when (role) {

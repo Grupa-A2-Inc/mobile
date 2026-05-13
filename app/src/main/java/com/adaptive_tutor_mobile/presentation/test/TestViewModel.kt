@@ -1,5 +1,6 @@
 package com.adaptive_tutor_mobile.presentation.test
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,37 +23,59 @@ class TestViewModel @Inject constructor(
     private val submitAttemptUseCase: SubmitAttemptUseCase
 ) : ViewModel() {
 
+    // 1. Verificăm ID-ul din start
     private val testId: String = savedStateHandle["testId"] ?: ""
 
     private val _attempt = MutableStateFlow<TestAttempt?>(null)
-    val attempt: StateFlow<TestAttempt?> = _attempt.asStateFlow()
+    val attempt = _attempt.asStateFlow()
+
+    // 2. Adăugăm o stare explicită pentru erori sau loading
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
 
     private val _currentQuestionIndex = MutableStateFlow(0)
-    val currentQuestionIndex: StateFlow<Int> = _currentQuestionIndex.asStateFlow()
+    val currentQuestionIndex = _currentQuestionIndex.asStateFlow()
 
     private val _selectedAnswers = MutableStateFlow<Map<Int, List<Int>>>(emptyMap())
-    val selectedAnswers: StateFlow<Map<Int, List<Int>>> = _selectedAnswers.asStateFlow()
+    val selectedAnswers = _selectedAnswers.asStateFlow()
 
     private val _remainingSeconds = MutableStateFlow(0)
-    val remainingSeconds: StateFlow<Int> = _remainingSeconds.asStateFlow()
+    val remainingSeconds = _remainingSeconds.asStateFlow()
 
-    private val _isSubmitted = MutableStateFlow<String?>(null) // Păstrează attemptId după submit
-    val isSubmitted: StateFlow<String?> = _isSubmitted.asStateFlow()
+    private val _isSubmitted = MutableStateFlow<String?>(null)
+    val isSubmitted = _isSubmitted.asStateFlow()
 
     private var timerJob: Job? = null
 
     init {
-        loadAttempt()
+        if (testId.isNotEmpty() && testId != "null") {
+            loadAttempt()
+        } else {
+            _errorMessage.value = "ID-ul testului lipsește sau este invalid."
+        }
     }
 
     private fun loadAttempt() {
         viewModelScope.launch {
-            val result = startAttemptUseCase(testId)
-            result.onSuccess { data ->
-                _attempt.value = data
-                _remainingSeconds.value = data.timeLimitSec
-                startTimer()
-            }
+            _isLoading.value = true
+            _errorMessage.value = null
+
+            // 3. Gestionăm succesul și eșecul
+            startAttemptUseCase(testId)
+                .onSuccess { data ->
+                    _attempt.value = data
+                    _remainingSeconds.value = data.timeLimitSec
+                    startTimer()
+                }
+                .onFailure { exception ->
+                    Log.e("TestViewModel", "Eroare la încărcare test: ${exception.message}")
+                    _errorMessage.value = "Nu am putut porni testul. Verifică conexiunea."
+                }
+
+            _isLoading.value = false
         }
     }
 
@@ -63,7 +86,8 @@ class TestViewModel @Inject constructor(
                 delay(1000)
                 _remainingSeconds.value -= 1
             }
-            submit() // Auto-submit când ajunge la 0
+            // 4. Atenție: submit() este o funcție suspend, dar aici e apelată din corutină
+            submit()
         }
     }
 
@@ -74,9 +98,10 @@ class TestViewModel @Inject constructor(
     }
 
     fun nextQuestion() {
-        val maxIndex = (_attempt.value?.questions?.size ?: 1) - 1
-        if (_currentQuestionIndex.value < maxIndex) {
-            _currentQuestionIndex.value += 1
+        _attempt.value?.questions?.let { questions ->
+            if (_currentQuestionIndex.value < questions.size - 1) {
+                _currentQuestionIndex.value += 1
+            }
         }
     }
 
@@ -87,11 +112,19 @@ class TestViewModel @Inject constructor(
     }
 
     fun submit() {
-        timerJob?.cancel()
         val attemptId = _attempt.value?.attemptId ?: return
+        timerJob?.cancel()
+
         viewModelScope.launch {
+            _isLoading.value = true
             submitAttemptUseCase(attemptId, _selectedAnswers.value)
-            _isSubmitted.value = attemptId
+                .onSuccess {
+                    _isSubmitted.value = attemptId
+                }
+                .onFailure {
+                    _errorMessage.value = "Eroare la trimiterea răspunsurilor."
+                }
+            _isLoading.value = false
         }
     }
 }

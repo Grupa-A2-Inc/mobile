@@ -4,24 +4,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.adaptive_tutor_mobile.di.SessionStore
 import com.adaptive_tutor_mobile.domain.model.UserRole
 import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.auth.ForgotPasswordScreen
 import com.adaptive_tutor_mobile.presentation.auth.LoginScreen
 import com.adaptive_tutor_mobile.presentation.auth.RegisterScreen
+import com.adaptive_tutor_mobile.presentation.courses.CourseDetailScreen
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 import com.adaptive_tutor_mobile.presentation.home.admin.AdminHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.orgadmin.OrgAdminHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.parent.ParentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.student.StudentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
-import com.adaptive_tutor_mobile.presentation.course.CourseDetailScreen
+
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
@@ -33,7 +34,6 @@ fun navigateByRole(navController: NavController, role: UserRole) {
 fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
     val navController = rememberNavController()
 
-    // Listen for forced logout events from the token authenticator
     val authViewModel: AuthViewModel = hiltViewModel()
     LaunchedEffect(Unit) {
         sessionStore.forceLogoutEvent.collect {
@@ -111,10 +111,7 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
-                navController = navController,
-                onNavigateToEnrolledCourses = {
-                    navController.navigate(Screen.EnrolledCourses.route)
-                }
+                navController = navController
             )
         }
 
@@ -133,6 +130,7 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             PublicCoursesScreen(navController = navController)
         }
 
+        // ── Course Detail ────────────────────────────────────────────────────
         composable(
             route = Screen.CourseDetail.route,
             arguments = listOf(
@@ -140,15 +138,10 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             )
         ) {
             CourseDetailScreen(
-                onNavigateToLesson = { /* TODO: navigate to lesson */ }
-            )
-        }
-
-        composable(Screen.EnrolledCourses.route) {
-            com.adaptive_tutor_mobile.presentation.courses.EnrolledCoursesScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onCourseClick = { courseId ->
-                    navController.navigate(Screen.CourseDetail.createRoute(courseId))
+                onNavigateBack     = { navController.navigateUp() },
+                onNavigateToLesson = { lessonId ->
+                    // TODO: navController.navigate(Screen.Lesson.createRoute(lessonId))
+                    //       De implementat când Dev 5 adaugă LessonScreen.
                 }
             )
         }

@@ -64,12 +64,14 @@ fun LessonScreen(
                             modifier = Modifier.fillMaxWidth(),
                             factory = { ctx ->
                                 TextView(ctx).apply {
-                                    // You can set default text appearance here if needed
+                                    layoutParams = android.view.ViewGroup.LayoutParams(
+                                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                        android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                                    )
                                     setTextColor(android.graphics.Color.BLACK)
                                 }
                             },
                             update = { textView ->
-                                // This runs every time the state changes
                                 markwon.setMarkdown(textView, lesson.contentMarkdown)
                             }
                         )

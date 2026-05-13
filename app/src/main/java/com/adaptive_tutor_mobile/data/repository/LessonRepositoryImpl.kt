@@ -16,7 +16,10 @@ class LessonRepositoryImpl @Inject constructor(
         try {
             val lesson = api.getLessonById(lessonId)
             val contentDeferred = async {
-                try { api.getLessonContent(lessonId).string() } catch (exception: Exception) { "" }
+                try { api.getLessonContent(lessonId).string() } catch (exception: Exception) {
+                    android.util.Log.e("LessonRepository", "Failed to load content", exception)
+                    "Eroare la încărcarea conținutului."
+                }
             }
 
             val resourcesDeferred = async {

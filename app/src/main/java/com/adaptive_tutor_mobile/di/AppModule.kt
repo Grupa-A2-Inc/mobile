@@ -4,10 +4,12 @@ import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.repository.AuthRepositoryImpl
 import com.adaptive_tutor_mobile.data.repository.CourseDetailRepositoryImpl
 import com.adaptive_tutor_mobile.data.repository.CourseRepositoryImpl
+import com.adaptive_tutor_mobile.data.repository.LessonRepositoryImpl
 import com.adaptive_tutor_mobile.data.repository.ProgressRepositoryImpl
 import com.adaptive_tutor_mobile.domain.repository.AuthRepository
 import com.adaptive_tutor_mobile.domain.repository.CourseDetailRepository
 import com.adaptive_tutor_mobile.domain.repository.CourseRepository
+import com.adaptive_tutor_mobile.domain.repository.LessonRepository
 import com.adaptive_tutor_mobile.domain.repository.ProgressRepository
 import dagger.Binds
 import dagger.Module
@@ -37,6 +39,13 @@ abstract class AppModule {
     @Binds
     @Singleton
     abstract fun bindProgressRepository(impl: ProgressRepositoryImpl): ProgressRepository
+
+    // ------ Dev5: Lessons ------
+    @Binds
+    @Singleton
+    abstract fun bindLessonRepository(
+        lessonRepositoryImpl: LessonRepositoryImpl
+    ): LessonRepository
 
     companion object {
         // ── Dev 3: ProgressApi provider ──────────────────────────────────────

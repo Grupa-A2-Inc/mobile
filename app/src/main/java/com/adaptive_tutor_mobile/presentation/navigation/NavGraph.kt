@@ -22,6 +22,8 @@ import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.adaptive_tutor_mobile.presentation.course.CourseDetailScreen
+import com.adaptive_tutor_mobile.presentation.lesson.LessonScreen
+
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
@@ -140,7 +142,9 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             )
         ) {
             CourseDetailScreen(
-                onNavigateToLesson = { /* TODO: navigate to lesson */ }
+                onNavigateToLesson = { lessonId ->
+                    navController.navigate(Screen.Lesson.createRoute(lessonId))
+                }
             )
         }
 
@@ -150,6 +154,18 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 onCourseClick = { courseId ->
                     navController.navigate(Screen.CourseDetail.createRoute(courseId))
                 }
+            )
+        }
+
+        composable(
+            route = Screen.Lesson.route,
+            arguments = listOf(
+                navArgument("lessonId") { type = NavType.StringType }
+            )
+        ) {
+            LessonScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToTest = { /* TODO: navigate to test */ }
             )
         }
     }

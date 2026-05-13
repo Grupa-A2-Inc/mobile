@@ -11,7 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,11 +21,9 @@ import io.noties.markwon.Markwon
 @Composable
 fun LessonScreen(
     viewModel: LessonViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit,
     onNavigateToTest: (String) -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val uriHandler = LocalUriHandler.current
 
     Scaffold(
         topBar = {

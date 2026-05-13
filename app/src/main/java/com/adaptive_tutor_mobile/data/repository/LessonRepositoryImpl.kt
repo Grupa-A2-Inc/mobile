@@ -15,11 +15,9 @@ class LessonRepositoryImpl @Inject constructor(
 
     override suspend fun getLessonDetail(lessonId: String): Result<LessonDetail> = coroutineScope {
         try {
-            // 1. Get the heavy content from the dictionary cache
             val cachedLesson = courseDetailRepository.getCachedLessonWithContent(lessonId)
                 ?: throw Exception("Lecția nu a fost găsită în cache. Te rugăm să reîncarci cursul.")
 
-            // 2. Fetch resources if needed
             val resources = try {
                 api.getResources(lessonId).map {
                     LessonResource(id = it.id, title = it.title, url = it.url)
@@ -28,7 +26,6 @@ class LessonRepositoryImpl @Inject constructor(
                 emptyList()
             }
 
-            // 3. Combine them into the final UI state
             Result.success(
                 LessonDetail(
                     id = cachedLesson.summary.id,

@@ -2,6 +2,8 @@ package com.adaptive_tutor_mobile.domain.repository
 
 import com.adaptive_tutor_mobile.domain.model.LessonDetail
 
-fun interface LessonRepository {
+interface LessonRepository {
     suspend fun getLessonDetail(lessonId: String): Result<LessonDetail>
+    suspend fun checkLessonTest(lessonId: String): String?
+    suspend fun markVisited(lessonId: String)
 }

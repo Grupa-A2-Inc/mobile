@@ -26,6 +26,7 @@ import javax.inject.Named
 import javax.inject.Singleton
 import com.adaptive_tutor_mobile.data.remote.api.AdaptiveApi
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
+import com.adaptive_tutor_mobile.data.remote.api.TestApi
 
 private const val BASE_URL = "https://api.adaptiveelearning.online/"
 
@@ -209,4 +210,9 @@ object NetworkModule {
     fun provideLessonApi(retrofit: Retrofit): LessonApi {
         return retrofit.create(LessonApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideTestApi(retrofit: Retrofit): TestApi =
+        retrofit.create(TestApi::class.java)
 }

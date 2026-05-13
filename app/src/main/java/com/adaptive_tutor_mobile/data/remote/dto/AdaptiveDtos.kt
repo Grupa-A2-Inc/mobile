@@ -1,5 +1,7 @@
 package com.adaptive_tutor_mobile.data.remote.dto
 
+import com.google.gson.annotations.SerializedName
+
 data class AdaptiveStartRequestDto(
     val subjectId: Int,
     val topicId: Int,
@@ -9,36 +11,20 @@ data class AdaptiveStartRequestDto(
 data class AdaptiveStartResponseDto(
     val sessionId: String,
     val expiresAt: String?,
-    val exercises: List<AdaptiveExerciseDto>
+    @SerializedName("exercises", alternate = ["questions"])
+    val exercises: List<AdaptiveExerciseStudentDto>? = null
 )
 
-data class AdaptiveExerciseDto(
-    val exerciseId: String,
-    val text: String,
-    val type: String,
-    val answers: List<String>,
-    val difficulty: Double? = null
-)
-
-data class AdaptiveSubmitRequestDto(
-    val answers: List<AdaptiveAnswerDto>
-)
-
-data class AdaptiveAnswerDto(
-    val exerciseId: String,
-    val givenAnswers: List<String>,
-    val timeSpent: Long
-)
-
-data class AdaptiveSubmitResponseDto(
-    val totalScore: Double,
-    val results: List<AdaptiveExerciseResultDto>
-)
-
-data class AdaptiveExerciseResultDto(
-    val exerciseId: String,
-    val correct: Boolean,
-    val score: Double,
-    val correctAnswers: List<String>,
-    val givenAnswers: List<String>
+// Handles both old format (exerciseId + answers: List<String>)
+// and new format (questionId + options: List<OptionForStudentDto>)
+data class AdaptiveExerciseStudentDto(
+    @SerializedName("questionId", alternate = ["exerciseId"])
+    val questionId: String? = null,
+    @SerializedName("content", alternate = ["text"])
+    val content: String? = null,
+    @SerializedName("questionType", alternate = ["type"])
+    val questionType: String? = null,
+    val difficulty: Double? = null,
+    val options: List<OptionForStudentDto>? = null,
+    val answers: List<String>? = null
 )

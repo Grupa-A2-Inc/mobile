@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./gradlew assembleDebug --quiet)"
+      "Bash(./gradlew assembleDebug --quiet)",
+      "Bash(git restore *)"
     ]
   }
 }

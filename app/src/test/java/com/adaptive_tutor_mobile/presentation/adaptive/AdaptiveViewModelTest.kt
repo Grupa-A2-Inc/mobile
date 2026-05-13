@@ -274,6 +274,42 @@ class AdaptiveViewModelTest {
     }
 
     @Test
+    fun `clearError sets errorMessage to null`() = runTest {
+        coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns
+            Result.failure(RuntimeException("some error"))
+        val vm = viewModel()
+        vm.startSession(1, 2, 5)
+        advanceUntilIdle()
+        assertNotNull(vm.uiState.value.errorMessage)
+
+        vm.clearError()
+
+        assertNull(vm.uiState.value.errorMessage)
+    }
+
+    @Test
+    fun `submitSession failure with null message uses default`() = runTest {
+        coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
+        coEvery { testRepository.submitAttempt(any(), any()) } returns
+            Result.failure(RuntimeException())
+        val vm = viewModel()
+        vm.startSession(1, 2, 5)
+        advanceUntilIdle()
+
+        vm.submitSession()
+        advanceUntilIdle()
+
+        assertEquals("Nu am putut trimite răspunsurile", vm.uiState.value.errorMessage)
+    }
+
+    @Test
+    fun `goToQuestion before session starts does nothing`() = runTest {
+        val vm = viewModel()
+        vm.goToQuestion(1)
+        assertEquals(0, vm.uiState.value.currentIndex)
+    }
+
+    @Test
     fun `submitSession sends all questions including unanswered`() = runTest {
         coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
         coEvery { testRepository.submitAttempt(any(), any()) } returns Result.success(sampleReport)

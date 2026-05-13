@@ -20,6 +20,7 @@ private val LightColorScheme = lightColorScheme(
     surfaceVariant = SurfaceVariantLight,
     onBackground = OnBackgroundLight,
     onSurface = OnSurfaceLight,
+    onSurfaceVariant = OnSurfaceLight.copy(alpha = 0.65f),
     error = ErrorColor
 )
 
@@ -37,6 +38,7 @@ private val DarkColorScheme = darkColorScheme(
     surfaceVariant = SurfaceVariantDark,
     onBackground = OnBackgroundDark,
     onSurface = OnSurfaceDark,
+    onSurfaceVariant = OnSurfaceDark.copy(alpha = 0.65f),
     error = ErrorColor
 )
 

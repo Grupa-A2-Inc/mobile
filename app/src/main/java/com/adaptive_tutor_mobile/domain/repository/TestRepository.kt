@@ -9,3 +9,11 @@ interface TestRepository {
     suspend fun getAttemptResult(attemptId: String): Result<AttemptResult>
     // suspend fun getMyAttempts(testId: String): Result<List<TestAttempt>> // Opțional, dacă e cerut în UI
 }
+import com.adaptive_tutor_mobile.data.remote.dto.AttemptReportDTO
+import com.adaptive_tutor_mobile.data.remote.dto.StartAttemptResponseDto
+import com.adaptive_tutor_mobile.data.remote.dto.SubmitRequestDto
+
+interface TestRepository {
+    suspend fun startTest(testId: String): Result<StartAttemptResponseDto>
+    suspend fun submitAttempt(attemptId: String, request: SubmitRequestDto): Result<AttemptReportDTO>
+}

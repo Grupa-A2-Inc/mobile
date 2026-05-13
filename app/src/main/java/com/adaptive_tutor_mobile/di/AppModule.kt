@@ -83,4 +83,9 @@ abstract class AppModule {
         fun provideTestApi(retrofit: Retrofit): TestApi =
             retrofit.create(TestApi::class.java)
     }
+    @Binds
+    @Singleton
+    abstract fun bindTestRepository(
+        impl: TestRepositoryImpl
+    ): TestRepository
 }

@@ -38,4 +38,17 @@ class LessonRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun checkLessonTest(lessonId: String): String? {
+        return try {
+            val response = api.getLessonTest(lessonId)
+            if (response.isSuccessful) response.body()?.id else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    override suspend fun markVisited(lessonId: String) {
+        try { api.getLessonById(lessonId) } catch (_: Exception) {}
+    }
 }

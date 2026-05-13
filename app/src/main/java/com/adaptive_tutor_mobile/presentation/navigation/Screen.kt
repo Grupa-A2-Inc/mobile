@@ -33,6 +33,8 @@ sealed class Screen(val route: String) {
 
     object TestResult : Screen("test_result/{attemptId}") {
         fun createRoute(attemptId: String) = "test_result/$attemptId"
+    object TestAttempt : Screen("test_attempt/{testId}") {
+        fun createRoute(testId: String) = "test_attempt/$testId"
     }
 }
 

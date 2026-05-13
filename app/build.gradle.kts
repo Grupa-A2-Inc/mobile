@@ -110,11 +110,11 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn("testDebugUnitTest")
     reports {
         xml.required.set(true)
-        xml.outputLocation.set(file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
+        xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml"))
     }
     sourceDirectories.setFrom(files("src/main/java"))
     classDirectories.setFrom(
-        fileTree("${buildDir}/tmp/kotlin-classes/debug") {
+        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
             exclude(
                 "**/R.class",
                 "**/R$*.class",
@@ -124,7 +124,7 @@ tasks.register<JacocoReport>("jacocoTestReport") {
             )
         }
     )
-    executionData.setFrom(fileTree(buildDir) {
+    executionData.setFrom(fileTree(layout.buildDirectory) {
         include("jacoco/testDebugUnitTest.exec")
     })
 }

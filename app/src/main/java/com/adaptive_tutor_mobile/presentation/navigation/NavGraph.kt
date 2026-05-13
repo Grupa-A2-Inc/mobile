@@ -2,6 +2,7 @@ package com.adaptive_tutor_mobile.presentation.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -29,6 +30,7 @@ import com.adaptive_tutor_mobile.presentation.lesson.LessonScreen
 import com.adaptive_tutor_mobile.presentation.test.TestScreen
 import com.adaptive_tutor_mobile.presentation.test.TestResultScreen
 
+import com.adaptive_tutor_mobile.presentation.test.TestScreen
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
@@ -136,8 +138,12 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             )
         }
 
-        composable(Screen.AdaptiveResult.route) {
+        composable(Screen.AdaptiveResult.route) { entry ->
+            val sessionEntry = remember(entry) {
+                navController.getBackStackEntry(Screen.AdaptiveSession.route)
+            }
             AdaptiveResultScreen(
+                viewModel = hiltViewModel(sessionEntry),
                 onBackToHome = {
                     navController.navigate(Screen.StudentHome.route) {
                         popUpTo(Screen.StudentHome.route) { inclusive = true }
@@ -224,7 +230,18 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                     // Ne întoarcem la lecție sau la test
                     navController.popBackStack()
                 }
+                    navController.navigate(Screen.TestAttempt.createRoute(testId))
+                }
             )
+        }
+
+        composable(
+            route = Screen.TestAttempt.route,
+            arguments = listOf(
+                navArgument("testId") { type = NavType.StringType }
+            )
+        ) {
+            TestScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

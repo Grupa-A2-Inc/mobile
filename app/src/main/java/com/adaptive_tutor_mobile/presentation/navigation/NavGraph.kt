@@ -24,6 +24,7 @@ import com.adaptive_tutor_mobile.presentation.home.student.StudentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveResultScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveSessionScreen
+import com.adaptive_tutor_mobile.presentation.lesson.LessonScreen
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
@@ -165,9 +166,20 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             CourseDetailScreen(
                 onNavigateBack     = { navController.navigateUp() },
                 onNavigateToLesson = { lessonId ->
-                    // TODO: navController.navigate(Screen.Lesson.createRoute(lessonId))
-                    //       De implementat când Dev 5 adaugă LessonScreen.
+                    navController.navigate(Screen.Lesson.createRoute(lessonId))
                 }
+            )
+        }
+
+        composable(
+            route = Screen.Lesson.route,
+            arguments = listOf(
+                navArgument("lessonId") { type = NavType.StringType }
+            )
+        ) {
+            LessonScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToTest = { /* TODO: navigate to test */ }
             )
         }
     }

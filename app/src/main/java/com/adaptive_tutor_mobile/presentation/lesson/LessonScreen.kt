@@ -21,6 +21,7 @@ import io.noties.markwon.Markwon
 @Composable
 fun LessonScreen(
     viewModel: LessonViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit,
     onNavigateToTest: (String) -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()

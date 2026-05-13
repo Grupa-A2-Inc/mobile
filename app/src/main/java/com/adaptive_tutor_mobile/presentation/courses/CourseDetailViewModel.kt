@@ -1,4 +1,4 @@
-package com.adaptive_tutor_mobile.presentation.course
+package com.adaptive_tutor_mobile.presentation.courses
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -26,7 +26,6 @@ class CourseDetailViewModel @Inject constructor(
     private val getCourseFullViewUseCase: GetCourseFullViewUseCase
 ) : ViewModel() {
 
-    // Extracts courseId injected via navigation argument
     private val courseId: String = checkNotNull(savedStateHandle["courseId"])
 
     private val _uiState = MutableStateFlow(CourseDetailUiState())
@@ -41,22 +40,19 @@ class CourseDetailViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
             getCourseFullViewUseCase(courseId)
                 .onSuccess { detail ->
-                    _uiState.update {
-                        it.copy(courseDetail = detail, isLoading = false)
-                    }
+                    _uiState.update { it.copy(courseDetail = detail, isLoading = false) }
                 }
                 .onFailure { throwable ->
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = throwable.localizedMessage ?: "Eroare necunoscută"
+                            error = throwable.localizedMessage ?: "Eroare necunoscuta"
                         )
                     }
                 }
         }
     }
 
-    // Toggles expanded/collapsed state for the given chapter.
     fun toggleChapter(chapterId: String) {
         _uiState.update { state ->
             val updated = if (chapterId in state.expandedChapters)

@@ -21,8 +21,7 @@ import com.adaptive_tutor_mobile.presentation.home.student.StudentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import androidx.compose.material3.Text
-import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
+import com.adaptive_tutor_mobile.presentation.course.CourseDetailScreen
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
@@ -139,18 +138,17 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             arguments = listOf(
                 navArgument("courseId") { type = NavType.StringType }
             )
-        ) { backStackEntry ->
-            val courseId = backStackEntry.arguments?.getString("courseId") ?: ""
-            // Dev 4 implementeaza ecranul - deocamdata placeholder
-            Text("Course Detail: $courseId")
+        ) {
+            CourseDetailScreen(
+                onNavigateToLesson = { /* TODO: navigate to lesson */ }
+            )
         }
 
         composable(Screen.EnrolledCourses.route) {
             com.adaptive_tutor_mobile.presentation.courses.EnrolledCoursesScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onCourseClick = { courseId ->
-                    // TODO Dev 4: înlocuiește când rute Screen.CourseDetail e definită
-                    // navController.navigate("course_detail/$courseId")
+                    navController.navigate(Screen.CourseDetail.createRoute(courseId))
                 }
             )
         }

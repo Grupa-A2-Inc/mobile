@@ -4,6 +4,7 @@ import android.webkit.CookieManager
 import com.adaptive_tutor_mobile.data.remote.api.AuthApi
 import com.adaptive_tutor_mobile.data.remote.api.CourseDetailApi
 import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
+import com.adaptive_tutor_mobile.data.remote.api.LessonApi
 import com.adaptive_tutor_mobile.data.remote.dto.RefreshResponse
 import com.google.gson.Gson
 import dagger.Module
@@ -189,4 +190,11 @@ object NetworkModule {
     @Singleton
     fun provideCourseDetailApi(retrofit: Retrofit): CourseDetailApi =
         retrofit.create(CourseDetailApi::class.java)
+
+    // ------ Dev5: Lessons ------
+    @Provides
+    @Singleton
+    fun provideLessonApi(retrofit: Retrofit): LessonApi {
+        return retrofit.create(LessonApi::class.java)
+    }
 }

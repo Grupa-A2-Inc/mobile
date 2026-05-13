@@ -19,6 +19,10 @@ sealed class Screen(val route: String) {
     }
 
     object EnrolledCourses : Screen("enrolled_courses")
+
+    object Lesson : Screen("lesson/{lessonId}") {
+        fun createRoute(lessonId: String) = "lesson/$lessonId"
+    }
 }
 
 fun routeForRole(role: UserRole): String = when (role) {

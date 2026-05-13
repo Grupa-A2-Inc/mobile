@@ -26,6 +26,10 @@ import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveResultScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveSessionScreen
 import com.adaptive_tutor_mobile.presentation.lesson.LessonScreen
+// ── Dev 6: Importuri noi ──────────────────────────────────────────────────
+import com.adaptive_tutor_mobile.presentation.test.TestScreen
+import com.adaptive_tutor_mobile.presentation.test.TestResultScreen
+
 import com.adaptive_tutor_mobile.presentation.test.TestScreen
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
@@ -177,6 +181,7 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             )
         }
 
+        // ── Lesson Screen ────────────────────────────────────────────────────
         composable(
             route = Screen.Lesson.route,
             arguments = listOf(
@@ -186,6 +191,45 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             LessonScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToTest = { testId ->
+                    // Dev 6: Acum navigăm real către ecranul de test
+                    navController.navigate(Screen.Test.createRoute(testId))
+                }
+            )
+        }
+
+        // ── Dev 6: Test & Test Result ────────────────────────────────────────
+        composable(
+            route = Screen.Test.route,
+            arguments = listOf(
+                navArgument("testId") { type = NavType.StringType }
+            )
+        ) {
+            TestScreen(
+                onNavigateToResult = { attemptId ->
+                    navController.navigate(Screen.TestResult.createRoute(attemptId)) {
+                        // Ștergem testul din backstack ca studentul să nu revină la el cu butonul Back
+                        popUpTo(Screen.Test.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = Screen.TestResult.route,
+            arguments = listOf(
+                navArgument("attemptId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val attemptId = backStackEntry.arguments?.getString("attemptId") ?: ""
+            TestResultScreen(
+                attemptId = attemptId,
+                onBackToLesson = {
+                    navController.popBackStack()
+                },
+                onRetryTest = {
+                    // Ne întoarcem la lecție sau la test
+                    navController.popBackStack()
+                }
                     navController.navigate(Screen.TestAttempt.createRoute(testId))
                 }
             )

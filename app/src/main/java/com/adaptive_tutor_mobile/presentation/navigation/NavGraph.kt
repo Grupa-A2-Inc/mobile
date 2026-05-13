@@ -1,12 +1,15 @@
 package com.adaptive_tutor_mobile.presentation.navigation
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.adaptive_tutor_mobile.di.SessionStore
 import com.adaptive_tutor_mobile.domain.model.UserRole
 import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
@@ -19,10 +22,12 @@ import com.adaptive_tutor_mobile.presentation.home.orgadmin.OrgAdminHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.parent.ParentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.student.StudentHomeScreen
 import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
-import androidx.compose.material3.Text
-import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
+// ── Dev 6: Importuri noi ──────────────────────────────────────────────────
+import com.adaptive_tutor_mobile.presentation.test.TestScreen
+import com.adaptive_tutor_mobile.presentation.test.TestResultScreen
+import com.adaptive_tutor_mobile.presentation.test.TestResultScreen
+import com.adaptive_tutor_mobile.presentation.test.TestScreen
+
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
@@ -149,8 +154,46 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             com.adaptive_tutor_mobile.presentation.courses.EnrolledCoursesScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onCourseClick = { courseId ->
-                    // TODO Dev 4: înlocuiește când rute Screen.CourseDetail e definită
-                    // navController.navigate("course_detail/$courseId")
+                    navController.navigate(Screen.CourseDetail.createRoute(courseId))
+                }
+            )
+        }
+
+        // ── Dev 6:
+
+        composable(
+            route = Screen.Test.route,
+            arguments = listOf(
+                navArgument("testId") { type = NavType.StringType }
+            )
+        ) {
+            TestScreen(
+                onNavigateToResult = { attemptId ->
+                    navController.navigate(Screen.TestResult.createRoute(attemptId)) {
+                        // Ștergem ecranul de test din backstack pentru a nu permite
+                        // utilizatorului să se întoarcă la un test deja terminat
+                        popUpTo(Screen.Test.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = Screen.TestResult.route,
+            arguments = listOf(
+                navArgument("attemptId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val attemptId = backStackEntry.arguments?.getString("attemptId") ?: ""
+            TestResultScreen(
+                attemptId = attemptId,
+                onBackToLesson = {
+                    // Ne întoarcem la ecranul anterior (probabil curs/lecție)
+                    navController.popBackStack()
+                },
+                onRetryTest = {
+                    // Dacă vrei să poată reînceapă testul direct de aici
+                    navController.popBackStack()
                 }
             )
         }

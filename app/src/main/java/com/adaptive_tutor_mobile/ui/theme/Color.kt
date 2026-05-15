@@ -2,39 +2,45 @@ package com.adaptive_tutor_mobile.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ── Light palette ─────────────────────────────────────────────────────────────
-val Primary = Color(0xFF1E9E6B)            // vibrant emerald green
+// ── Light palette — albastru deschis ─────────────────────────────────────────
+val Primary = Color(0xFF4A90D9)            // albastru vibrant (ca în screenshot)
 val OnPrimary = Color(0xFFFFFFFF)
-val PrimaryContainer = Color(0xFFBEEDD6)   // pale mint
-val OnPrimaryContainer = Color(0xFF00391F)
+val PrimaryContainer = Color(0xFFD6E8F7)   // albastru pal / mint albastru
+val OnPrimaryContainer = Color(0xFF0D2E4A)
 
-val Secondary = Color(0xFF4CB87F)          // lighter accent green
+val Secondary = Color(0xFF6BAED6)          // albastru deschis accent
 val OnSecondary = Color(0xFFFFFFFF)
-val SecondaryContainer = Color(0xFFD8F0E5) // very soft green tint
+val SecondaryContainer = Color(0xFFDDEEF8) // foarte pal albăstrui
 
-val Tertiary = Color(0xFF00897B)           // teal-green for variety
+val Tertiary = Color(0xFF3A7ABF)           // albastru mai intens pentru varietate
 
-val BackgroundLight = Color(0xFFF5FCF8)    // warm white with green tint
+val BackgroundLight = Color(0xFFF0F6FD)    // alb cu tentă albăstruie (exact ca în screenshot)
 val SurfaceLight = Color(0xFFFFFFFF)
-val SurfaceVariantLight = Color(0xFFEAF5EE)
-val OnBackgroundLight = Color(0xFF0D1E15)
-val OnSurfaceLight = Color(0xFF0D1E15)
+val SurfaceVariantLight = Color(0xFFE3F0FB)
+val OnBackgroundLight = Color(0xFF0D1B2A)
+val OnSurfaceLight = Color(0xFF0D1B2A)
 
 // ── Dark palette ──────────────────────────────────────────────────────────────
-val PrimaryDark = Color(0xFF5FD49F)        // soft light green on dark
-val OnPrimaryDark = Color(0xFF00391F)
-val PrimaryContainerDark = Color(0xFF00522D)
-val OnPrimaryContainerDark = Color(0xFFBEEDD6)
+val PrimaryDark = Color(0xFF7BB8E8)        // albastru pal pe dark
+val OnPrimaryDark = Color(0xFF0D2E4A)
+val PrimaryContainerDark = Color(0xFF1A4A7A)
+val OnPrimaryContainerDark = Color(0xFFD6E8F7)
 
-val SecondaryDark = Color(0xFF90D4AF)
-val OnSecondaryDark = Color(0xFF00391F)
-val SecondaryContainerDark = Color(0xFF1C5C3A)
+val SecondaryDark = Color(0xFF9ECAE8)
+val OnSecondaryDark = Color(0xFF0D2E4A)
+val SecondaryContainerDark = Color(0xFF1A3A5C)
 
-val BackgroundDark = Color(0xFF0D1E15)     // very dark forest green
-val SurfaceDark = Color(0xFF162B1E)
-val SurfaceVariantDark = Color(0xFF233B2C)
-val OnBackgroundDark = Color(0xFFD5EDE1)
-val OnSurfaceDark = Color(0xFFD5EDE1)
+val BackgroundDark = Color(0xFF0D1B2A)     // dark albastru-inchis
+val SurfaceDark = Color(0xFF152336)
+val SurfaceVariantDark = Color(0xFF1E3048)
+val OnBackgroundDark = Color(0xFFD6E8F7)
+val OnSurfaceDark = Color(0xFFD6E8F7)
 
 // ── Shared ────────────────────────────────────────────────────────────────────
 val ErrorColor = Color(0xFFE53935)
+
+// ── Shimmer colors (folosite în LoadingShimmer) ────────────────────────────
+val ShimmerBase = Color(0xFFE3F0FB)
+val ShimmerHighlight = Color(0xFFF5FAFF)
+val ShimmerBaseDark = Color(0xFF1E3048)
+val ShimmerHighlightDark = Color(0xFF263D57)

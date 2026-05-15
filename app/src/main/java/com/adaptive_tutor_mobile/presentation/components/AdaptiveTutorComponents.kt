@@ -102,11 +102,12 @@ fun CourseCard(
     description: String?,
     category: String?,
     progressPercent: Double? = null,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     ElevatedCard(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         Column {
             Box(

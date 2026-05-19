@@ -92,4 +92,10 @@ class AuthViewModel @Inject constructor(
     fun resetState() {
         _uiState.value = AuthUiState.Idle
     }
+
+    fun refreshUser() {
+        viewModelScope.launch {
+            _currentUser.value = sessionStore.getUser()
+        }
+    }
 }

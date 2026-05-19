@@ -6,6 +6,17 @@ import javax.inject.Inject
 class ChangePasswordUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
-    suspend operator fun invoke(userId: String, currentPassword: String, newPassword: String, confirmPassword: String) =
-        userRepository.changePassword(userId, currentPassword, newPassword, confirmPassword)
+
+    suspend operator fun invoke(
+        userId: String,
+        currentPassword: String,
+        newPassword: String,
+        newPasswordConfirm: String
+    ) =
+        userRepository.changePassword(
+            userId,
+            currentPassword,
+            newPassword,
+            newPasswordConfirm
+        )
 }

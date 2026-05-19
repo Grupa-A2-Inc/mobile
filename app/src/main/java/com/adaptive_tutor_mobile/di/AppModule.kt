@@ -62,5 +62,9 @@ abstract class AppModule {
 
     @Binds
     @Singleton
+    abstract fun bindErrorReportRepository(impl: com.adaptive_tutor_mobile.data.repository.ErrorReportRepositoryImpl): com.adaptive_tutor_mobile.domain.repository.ErrorReportRepository
+
+    @Binds
+    @Singleton
     abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
 }

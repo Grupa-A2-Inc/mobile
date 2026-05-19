@@ -206,7 +206,6 @@ object NetworkModule {
         return retrofit.create(AdaptiveApi::class.java)
     }
 
-    // ------ Dev5: Lessons ------
     @Provides
     @Singleton
     fun provideLessonApi(retrofit: Retrofit): LessonApi {
@@ -222,6 +221,11 @@ object NetworkModule {
     @Singleton
     fun provideRatingApi(retrofit: Retrofit): com.adaptive_tutor_mobile.data.remote.api.RatingApi =
         retrofit.create(com.adaptive_tutor_mobile.data.remote.api.RatingApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideErrorReportApi(retrofit: Retrofit): com.adaptive_tutor_mobile.data.remote.api.ErrorReportApi =
+        retrofit.create(com.adaptive_tutor_mobile.data.remote.api.ErrorReportApi::class.java)
 
     @Provides
     @Singleton

@@ -90,8 +90,14 @@ class TokenRefreshAuthenticator(
     private val plainClientProvider: () -> OkHttpClient
 ) : okhttp3.Authenticator {
 
+    private val skipPaths = listOf(
+        "auth/login", "auth/register", "auth/refresh",
+        "auth/password-reset"
+    )
+
     override fun authenticate(route: okhttp3.Route?, response: Response): Request? {
-        if (response.request.url.encodedPath.contains("auth/refresh")) return null
+        val path = response.request.url.encodedPath
+        if (skipPaths.any { path.contains(it) }) return null
         if (response.code != 401) return null
 
         return try {

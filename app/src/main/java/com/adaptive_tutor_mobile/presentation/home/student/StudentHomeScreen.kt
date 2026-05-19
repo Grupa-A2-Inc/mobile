@@ -118,8 +118,11 @@ fun StudentHomeScreen(
                 items = bottomNavItems,
                 currentRoute = currentTab,
                 onItemClick = { tab ->
-                    if (tab == TAB_ADAPTIVE) onAdaptiveClick()
-                    else currentTab = tab
+                    when (tab) {
+                        TAB_ADAPTIVE -> onAdaptiveClick()
+                        TAB_PROFILE  -> navController.navigate(Screen.Profile.route)
+                        else         -> currentTab = tab
+                    }
                 }
             )
         }

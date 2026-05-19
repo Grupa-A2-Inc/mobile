@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -46,19 +47,23 @@ fun AdaptiveResultScreen(
     val result = state.result
     val questions = state.session?.questions.orEmpty()
 
+    LaunchedEffect(result) {
+        if (result == null) {
+            onBackToHome()
+        }
+    }
+
     Scaffold(
         topBar = { AdaptiveTopBar(title = "Rezultat sesiune", onBack = onBackToHome) }
     ) { innerPadding ->
         if (result == null) {
-            EmptyScreen(
-                message = "Nu există încă un rezultat pentru sesiunea adaptivă.",
-                icon = Icons.Filled.Assessment
-            )
             return@Scaffold
         }
 
         val scorePercent = result.scorePercent ?: 0.0
         val passed = result.passed == true
+        val correctCount = result.questions.orEmpty().count { it.correct }
+        val totalCount = result.questions.orEmpty().size
 
         LazyColumn(
             modifier = Modifier
@@ -74,9 +79,17 @@ fun AdaptiveResultScreen(
                             .padding(24.dp)
                             .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         ScoreCircle(scorePercent = scorePercent, passed = passed)
+                        
+                        Text(
+                            text = "Exerciții corecte: $correctCount / $totalCount",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if (passed) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+                        )
+
                         if (result.score != null) {
                             Text(
                                 text = "Scor: ${String.format("%.1f", result.score)}",

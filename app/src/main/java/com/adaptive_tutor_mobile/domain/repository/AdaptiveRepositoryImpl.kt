@@ -49,8 +49,35 @@ class AdaptiveRepositoryImpl @Inject constructor(
         val response = api.submitSession(sessionId, request)
         if (response.isSuccessful) {
             val body = response.body() ?: error("Empty response body")
-            // Ensure scorePercent is populated for the UI if missing from backend
-            body.copy(scorePercent = body.scorePercent ?: body.score)
+            
+            val questions = body.questions.orEmpty()
+            val correctCount = questions.count { it.correct }
+            val totalCount = questions.size
+            
+            // Calculate percentage locally as a reliable fallback
+            val calculatedPercent = if (totalCount > 0) {
+                (correctCount.toDouble() / totalCount.toDouble()) * 100.0
+            } else {
+                0.0
+            }
+            
+            // Logic for final percentage:
+            // 1. If body.scorePercent exists and is > 1.0, use it.
+            // 2. If body.scorePercent exists and is <= 1.0, multiply by 100.
+            // 3. Otherwise, use calculatedPercent.
+            val finalPercent = when {
+                body.scorePercent != null && body.scorePercent > 1.0 -> body.scorePercent
+                body.scorePercent != null -> body.scorePercent * 100.0
+                else -> calculatedPercent
+            }
+            
+            // Logic for passed: use backend value if present, otherwise threshold of 50%
+            val finalPassed = body.passed ?: (finalPercent >= 50.0)
+            
+            body.copy(
+                scorePercent = finalPercent,
+                passed = finalPassed
+            )
         } else {
             error(parseError(response.code(), response.errorBody()?.string()))
         }

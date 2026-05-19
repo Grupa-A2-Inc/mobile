@@ -255,7 +255,7 @@ private fun AdaptiveStartContent(
 @Composable
 private fun AdaptiveQuestionContent(
     state: AdaptiveUiState,
-    onSelectAnswer: (Int, Int, Boolean) -> Unit,
+    onSelectAnswer: (String, Int, Boolean) -> Unit,
     onNext: () -> Unit,
     onPrev: () -> Unit,
     onGoToQuestion: (Int) -> Unit,

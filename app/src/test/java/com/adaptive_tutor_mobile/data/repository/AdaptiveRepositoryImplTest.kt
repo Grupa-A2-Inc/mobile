@@ -53,10 +53,10 @@ class AdaptiveRepositoryImplTest {
         assertTrue(result.isSuccess)
         val session = result.getOrThrow()
         assertEquals(2, session.questions.size)
-        assertEquals(123, session.questions[0].questionId)
+        assertEquals("123", session.questions[0].questionId)
         assertEquals(2, session.questions[0].options?.size)
         assertEquals(0, session.questions[0].options?.first()?.optionId)
-        assertEquals(1, session.questions[1].questionId)
+        assertEquals("1", session.questions[1].questionId)
         assertEquals(10, session.questions[1].options?.first()?.optionId)
     }
 
@@ -187,7 +187,7 @@ class AdaptiveRepositoryImplTest {
     }
 
     @Test
-    fun `startSession uses list index when questionId is non-numeric string`() = runTest {
+    fun `startSession preserves non-numeric questionId`() = runTest {
         val exercises = listOf(
             AdaptiveExerciseStudentDto(
                 questionId = "abc",
@@ -200,7 +200,7 @@ class AdaptiveRepositoryImplTest {
 
         val session = repository.startSession(1, 2, 1).getOrThrow()
 
-        assertEquals(0, session.questions[0].questionId)
+        assertEquals("abc", session.questions[0].questionId)
     }
 
     @Test

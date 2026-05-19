@@ -31,7 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.adaptive_tutor_mobile.data.remote.dto.QuestionForAttemptReportDTO
+import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO
 import com.adaptive_tutor_mobile.presentation.components.AdaptiveTopBar
 import com.adaptive_tutor_mobile.presentation.components.ScoreCircle
 import com.adaptive_tutor_mobile.presentation.components.EmptyScreen
@@ -100,13 +100,9 @@ fun AdaptiveResultScreen(
                 val original = questions.firstOrNull { it.questionId == rq.questionId }
                 AdaptiveResultQuestionCard(
                     index = index + 1,
-                    reportQuestion = rq,
-                    selectedTexts = rq.selectedOptionIds.orEmpty().mapNotNull { id ->
-                        original?.options.orEmpty().firstOrNull { it.optionId == id }?.text
-                    },
-                    correctTexts = rq.correctOptionIds.orEmpty().mapNotNull { id ->
-                        original?.options.orEmpty().firstOrNull { it.optionId == id }?.text
-                    }
+                    reportQuestion = rq.copy(content = rq.content ?: original?.content),
+                    selectedTexts = rq.selectedOptionIds.orEmpty(),
+                    correctTexts = rq.correctOptionIds.orEmpty()
                 )
             }
 
@@ -122,7 +118,7 @@ fun AdaptiveResultScreen(
 @Composable
 private fun AdaptiveResultQuestionCard(
     index: Int,
-    reportQuestion: QuestionForAttemptReportDTO,
+    reportQuestion: AdaptiveQuestionForAttemptReportDTO,
     selectedTexts: List<String>,
     correctTexts: List<String>
 ) {

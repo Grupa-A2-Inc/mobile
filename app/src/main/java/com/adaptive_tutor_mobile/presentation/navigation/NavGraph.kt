@@ -195,6 +195,9 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToTest = { testId ->
                     navController.navigate(Screen.TestAttempt.createRoute(testId))
+                },
+                onNavigateToHistory = { testId ->
+                    navController.navigate(Screen.TestAttempts.createRoute(testId))
                 }
             )
         }
@@ -206,10 +209,7 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             )
         ) {
             TestScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToHistory = { testId ->
-                    navController.navigate(Screen.TestAttempts.createRoute(testId))
-                }
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

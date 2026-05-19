@@ -66,8 +66,7 @@ import com.adaptive_tutor_mobile.presentation.components.ScoreCircle
 @Composable
 fun TestScreen(
     viewModel: TestViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit,
-    onNavigateToHistory: (testId: String) -> Unit
+    onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -95,8 +94,7 @@ fun TestScreen(
 
                 state.report != null -> TestResultScreen(
                     state = state,
-                    onBack = onNavigateBack,
-                    onHistoryClick = onNavigateToHistory
+                    onBack = onNavigateBack
                 )
 
                 state.questions.isNotEmpty() -> TestQuestionScreen(
@@ -419,8 +417,7 @@ private fun ReportQuestionDialog(
 @Composable
 private fun TestResultScreen(
     state: TestUiState,
-    onBack: () -> Unit,
-    onHistoryClick: (String) -> Unit
+    onBack: () -> Unit
 ) {
     val report = state.report!!
     val passed = report.passed == true
@@ -471,19 +468,6 @@ private fun TestResultScreen(
                     reportQuestion = rq,
                     original = state.questions.firstOrNull { it.questionId == rq.questionId }
                 )
-            }
-
-            item {
-                Button(
-                    onClick = { state.testId?.let { onHistoryClick(it) } },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                ) {
-                    Text("Toate încercările mele")
-                }
             }
 
             item {

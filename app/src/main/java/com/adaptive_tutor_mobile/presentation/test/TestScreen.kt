@@ -20,8 +20,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -30,11 +33,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +56,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adaptive_tutor_mobile.data.remote.dto.QuestionForAttemptReportDTO
 import com.adaptive_tutor_mobile.data.remote.dto.QuestionForStudentDto
+import com.adaptive_tutor_mobile.domain.usecase.ReportQuestionErrorUseCase
 import com.adaptive_tutor_mobile.presentation.components.AdaptiveTopBar
 import com.adaptive_tutor_mobile.presentation.components.ErrorScreen
 import com.adaptive_tutor_mobile.presentation.components.LoadingScreen
@@ -55,31 +68,56 @@ fun TestScreen(
     onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    when {
-        state.isLoading -> Scaffold(
-            topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
-        ) { padding -> Box(Modifier.padding(padding)) { LoadingScreen() } }
+    // Snackbar pe succesul raportării
+    LaunchedEffect(state.reportSuccess) {
+        state.reportSuccess?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+            viewModel.clearReportSuccess()
+        }
+    }
 
-        state.error != null -> Scaffold(
-            topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
-        ) { padding -> Box(Modifier.padding(padding)) { ErrorScreen(state.error!!, onRetry = onNavigateBack) } }
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { outerPadding ->
+        Box(modifier = Modifier.padding(outerPadding)) {
+            when {
+                state.isLoading -> Scaffold(
+                    topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
+                ) { padding -> Box(Modifier.padding(padding)) { LoadingScreen() } }
 
-        state.report != null -> TestResultScreen(state = state, onBack = onNavigateBack)
+                state.error != null -> Scaffold(
+                    topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
+                ) { padding -> Box(Modifier.padding(padding)) { ErrorScreen(state.error!!, onRetry = onNavigateBack) } }
 
-        state.questions.isNotEmpty() -> TestQuestionScreen(
-            state = state,
-            onSelectOption = viewModel::selectOption,
-            onGoToQuestion = viewModel::goToQuestion,
-            onNext = viewModel::nextQuestion,
-            onPrev = viewModel::prevQuestion,
-            onSubmit = viewModel::submitTest,
-            onBack = onNavigateBack
+                state.report != null -> TestResultScreen(state = state, onBack = onNavigateBack)
+
+                state.questions.isNotEmpty() -> TestQuestionScreen(
+                    state = state,
+                    onSelectOption = viewModel::selectOption,
+                    onGoToQuestion = viewModel::goToQuestion,
+                    onNext = viewModel::nextQuestion,
+                    onPrev = viewModel::prevQuestion,
+                    onSubmit = viewModel::submitTest,
+                    onBack = onNavigateBack,
+                    onReportQuestion = viewModel::showReportDialog
+                )
+
+                else -> Scaffold(
+                    topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
+                ) { padding -> Box(Modifier.padding(padding)) { LoadingScreen() } }
+            }
+        }
+    }
+
+    if (state.showReportDialog) {
+        ReportQuestionDialog(
+            isSubmitting = state.isSubmittingReport,
+            errorMessage = state.reportError,
+            onDismiss = viewModel::dismissReportDialog,
+            onSubmit = viewModel::submitReport
         )
-
-        else -> Scaffold(
-            topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
-        ) { padding -> Box(Modifier.padding(padding)) { LoadingScreen() } }
     }
 }
 
@@ -93,7 +131,8 @@ private fun TestQuestionScreen(
     onNext: () -> Unit,
     onPrev: () -> Unit,
     onSubmit: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onReportQuestion: (Int) -> Unit
 ) {
     val question = state.questions.getOrNull(state.currentIndex) ?: return
     val total = state.questions.size
@@ -139,18 +178,42 @@ private fun TestQuestionScreen(
                 item {
                     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = question.content ?: "",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            Text(
-                                text = if (isSingle) "Alege un singur răspuns"
-                                else "Alege unul sau mai multe răspunsuri",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
+                            // Header: text intrebare + buton raporteaza în dreapta sus
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.Top,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = question.content ?: "",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                    Text(
+                                        text = if (isSingle) "Alege un singur răspuns"
+                                        else "Alege unul sau mai multe răspunsuri",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    )
+                                }
+                                TextButton(
+                                    onClick = { onReportQuestion(question.questionId) },
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Flag,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.size(4.dp))
+                                    Text(
+                                        text = "Raportează",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -250,6 +313,99 @@ fun QuestionChip(
             )
         }
     }
+}
+
+// ── Report dialog ─────────────────────────────────────────────────────────────
+
+@Composable
+private fun ReportQuestionDialog(
+    isSubmitting: Boolean,
+    errorMessage: String?,
+    onDismiss: () -> Unit,
+    onSubmit: (String) -> Unit
+) {
+    var description by rememberSaveable { mutableStateOf("") }
+    val minLength = ReportQuestionErrorUseCase.MIN_LENGTH
+    val maxLength = ReportQuestionErrorUseCase.MAX_LENGTH
+    val length = description.trim().length
+    val isValid = length in minLength..maxLength
+
+    AlertDialog(
+        onDismissRequest = { if (!isSubmitting) onDismiss() },
+        title = { Text("Raportează eroare") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "Descrie problema pe care ai întâlnit-o la această întrebare.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { if (it.length <= maxLength) description = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp),
+                    placeholder = { Text("Ex: răspunsul corect e marcat greșit…") },
+                    isError = length > 0 && !isValid,
+                    enabled = !isSubmitting,
+                    maxLines = 6
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val helper = when {
+                        length == 0 -> "Minim $minLength caractere"
+                        length < minLength -> "Mai trebuie ${minLength - length} caractere"
+                        else -> ""
+                    }
+                    Text(
+                        text = helper,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Text(
+                        text = "$length / $maxLength",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (length > maxLength) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+                if (errorMessage != null) {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = errorMessage,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(12.dp),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSubmit(description) },
+                enabled = isValid && !isSubmitting
+            ) {
+                Text(if (isSubmitting) "Se trimite..." else "Trimite")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isSubmitting
+            ) {
+                Text("Anulează")
+            }
+        }
+    )
 }
 
 // ── Result screen ─────────────────────────────────────────────────────────────

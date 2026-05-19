@@ -8,6 +8,7 @@ import com.adaptive_tutor_mobile.data.remote.dto.QuestionForStudentDto
 import com.adaptive_tutor_mobile.data.remote.dto.SubmitAnswerDto
 import com.adaptive_tutor_mobile.data.remote.dto.SubmitRequestDto
 import com.adaptive_tutor_mobile.domain.repository.TestRepository
+import com.adaptive_tutor_mobile.domain.usecase.ReportQuestionErrorUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,12 +25,20 @@ data class TestUiState(
     val currentIndex: Int = 0,
     val selectedAnswers: Map<Int, List<Int>> = emptyMap(),
     val timeSpentSeconds: Map<Int, Double> = emptyMap(),
-    val report: AttemptReportDTO? = null
+    val report: AttemptReportDTO? = null,
+
+    // ── Dev 5: error reporting ──────────────────────────────────────────
+    val showReportDialog: Boolean = false,
+    val reportingQuestionId: Int? = null,
+    val isSubmittingReport: Boolean = false,
+    val reportError: String? = null,
+    val reportSuccess: String? = null
 )
 
 @HiltViewModel
 class TestViewModel @Inject constructor(
     private val repository: TestRepository,
+    private val reportQuestionErrorUseCase: ReportQuestionErrorUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -109,5 +118,57 @@ class TestViewModel @Inject constructor(
         val prev = _state.value.timeSpentSeconds[q.questionId] ?: 0.0
         _state.update { it.copy(timeSpentSeconds = it.timeSpentSeconds + (q.questionId to prev + elapsed)) }
         questionStartTime = System.currentTimeMillis()
+    }
+
+    fun showReportDialog(questionId: Int) {
+        _state.update {
+            it.copy(
+                showReportDialog = true,
+                reportingQuestionId = questionId,
+                reportError = null
+            )
+        }
+    }
+
+    fun dismissReportDialog() {
+        _state.update {
+            it.copy(
+                showReportDialog = false,
+                reportingQuestionId = null,
+                reportError = null,
+                isSubmittingReport = false
+            )
+        }
+    }
+
+    fun submitReport(description: String) {
+        val questionId = _state.value.reportingQuestionId ?: return
+        viewModelScope.launch {
+            _state.update { it.copy(isSubmittingReport = true, reportError = null) }
+            reportQuestionErrorUseCase(questionId, description).fold(
+                onSuccess = {
+                    _state.update {
+                        it.copy(
+                            isSubmittingReport = false,
+                            showReportDialog = false,
+                            reportingQuestionId = null,
+                            reportSuccess = "Raportul a fost trimis. Mulțumim!"
+                        )
+                    }
+                },
+                onFailure = { e ->
+                    _state.update {
+                        it.copy(
+                            isSubmittingReport = false,
+                            reportError = e.message ?: "Eroare la trimiterea raportului"
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    fun clearReportSuccess() {
+        _state.update { it.copy(reportSuccess = null) }
     }
 }

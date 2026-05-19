@@ -178,6 +178,9 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 onNavigateBack = { navController.navigateUp() },
                 onNavigateToLesson = { lessonId ->
                     navController.navigate(Screen.Lesson.createRoute(lessonId))
+                },
+                onNavigateToStats = { courseId ->
+                    navController.navigate(Screen.PersonalStats.createRoute(courseId))
                 }
             )
         }
@@ -202,19 +205,16 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 navArgument("testId") { type = NavType.StringType }
             )
         ) {
-            TestScreen(onNavigateBack = { navController.popBackStack() })
-        }
-
-        composable(Screen.Profile.route) {
-            ProfileScreen(onNavigateBack = { navController.navigateUp() })
-        }
-    }
-}
-ckStack() },
+            TestScreen(
+                onNavigateBack = { navController.popBackStack() },
                 onNavigateToHistory = { testId ->
                     navController.navigate(Screen.TestAttempts.createRoute(testId))
                 }
             )
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(onNavigateBack = { navController.navigateUp() })
         }
 
         composable(

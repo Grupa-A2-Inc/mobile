@@ -25,9 +25,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
 import javax.inject.Singleton
 import com.adaptive_tutor_mobile.data.remote.api.AdaptiveApi
+import com.adaptive_tutor_mobile.data.remote.api.AttemptHistoryApi
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.api.TestApi
 import com.adaptive_tutor_mobile.data.remote.api.RatingApi
+import com.adaptive_tutor_mobile.data.remote.api.StatsApi
+import com.adaptive_tutor_mobile.data.remote.api.UserApi
 
 private const val BASE_URL = "https://api.adaptiveelearning.online/"
 
@@ -87,8 +90,14 @@ class TokenRefreshAuthenticator(
     private val plainClientProvider: () -> OkHttpClient
 ) : okhttp3.Authenticator {
 
+    private val skipPaths = listOf(
+        "auth/login", "auth/register", "auth/refresh",
+        "auth/password-reset"
+    )
+
     override fun authenticate(route: okhttp3.Route?, response: Response): Request? {
-        if (response.request.url.encodedPath.contains("auth/refresh")) return null
+        val path = response.request.url.encodedPath
+        if (skipPaths.any { path.contains(it) }) return null
         if (response.code != 401) return null
 
         return try {
@@ -205,7 +214,6 @@ object NetworkModule {
         return retrofit.create(AdaptiveApi::class.java)
     }
 
-    // ------ Dev5: Lessons ------
     @Provides
     @Singleton
     fun provideLessonApi(retrofit: Retrofit): LessonApi {
@@ -221,4 +229,24 @@ object NetworkModule {
     @Singleton
     fun provideRatingApi(retrofit: Retrofit): com.adaptive_tutor_mobile.data.remote.api.RatingApi =
         retrofit.create(com.adaptive_tutor_mobile.data.remote.api.RatingApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideErrorReportApi(retrofit: Retrofit): com.adaptive_tutor_mobile.data.remote.api.ErrorReportApi =
+        retrofit.create(com.adaptive_tutor_mobile.data.remote.api.ErrorReportApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): UserApi =
+        retrofit.create(UserApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideStatsApi(retrofit: Retrofit): StatsApi =
+        retrofit.create(StatsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAttemptHistoryApi(retrofit: Retrofit): AttemptHistoryApi =
+        retrofit.create(AttemptHistoryApi::class.java)
 }

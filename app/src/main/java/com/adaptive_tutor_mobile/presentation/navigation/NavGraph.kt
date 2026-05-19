@@ -26,7 +26,10 @@ import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveResultScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveSessionScreen
 import com.adaptive_tutor_mobile.presentation.lesson.LessonScreen
+import com.adaptive_tutor_mobile.presentation.profile.ProfileScreen
 import com.adaptive_tutor_mobile.presentation.test.TestScreen
+import com.adaptive_tutor_mobile.presentation.stats.PersonalStatsScreen
+import com.adaptive_tutor_mobile.presentation.test.TestAttemptsScreen
 
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
@@ -175,6 +178,9 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 onNavigateBack = { navController.navigateUp() },
                 onNavigateToLesson = { lessonId ->
                     navController.navigate(Screen.Lesson.createRoute(lessonId))
+                },
+                onNavigateToStats = { courseId ->
+                    navController.navigate(Screen.PersonalStats.createRoute(courseId))
                 }
             )
         }
@@ -189,6 +195,9 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToTest = { testId ->
                     navController.navigate(Screen.TestAttempt.createRoute(testId))
+                },
+                onNavigateToHistory = { testId ->
+                    navController.navigate(Screen.TestAttempts.createRoute(testId))
                 }
             )
         }
@@ -199,7 +208,27 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
                 navArgument("testId") { type = NavType.StringType }
             )
         ) {
-            TestScreen(onNavigateBack = { navController.popBackStack() })
+            TestScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(onNavigateBack = { navController.navigateUp() })
+        }
+
+        composable(
+            route = Screen.PersonalStats.route,
+            arguments = listOf(navArgument("courseId") { type = NavType.StringType })
+        ) {
+            PersonalStatsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(
+            route = Screen.TestAttempts.route,
+            arguments = listOf(navArgument("testId") { type = NavType.StringType })
+        ) {
+            TestAttemptsScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

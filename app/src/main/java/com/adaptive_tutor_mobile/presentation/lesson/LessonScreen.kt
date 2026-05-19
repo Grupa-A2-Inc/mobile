@@ -31,7 +31,8 @@ import androidx.compose.runtime.setValue
 fun LessonScreen(
     viewModel: LessonViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToTest: (String) -> Unit
+    onNavigateToTest: (String) -> Unit,
+    onNavigateToHistory: (String) -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -138,15 +139,29 @@ fun LessonScreen(
                                 ) {
                                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                                 }
-                                state.testId != null -> Button(
-                                    onClick = { onNavigateToTest(state.testId!!) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = MaterialTheme.shapes.medium
-                                ) {
-                                    Text(
-                                        text = "Dă testul",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
+                                state.testId != null -> {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Button(
+                                            onClick = { onNavigateToTest(state.testId!!) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = MaterialTheme.shapes.medium
+                                        ) {
+                                            Text(
+                                                text = "Dă testul",
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                        }
+                                        OutlinedButton(
+                                            onClick = { onNavigateToHistory(state.testId!!) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = MaterialTheme.shapes.medium
+                                        ) {
+                                            Text(
+                                                text = "Toate încercările mele",
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                        }
+                                    }
                                 }
                                 else -> {}
                             }

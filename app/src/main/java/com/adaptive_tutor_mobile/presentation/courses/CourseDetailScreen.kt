@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
@@ -34,6 +35,7 @@ import com.adaptive_tutor_mobile.domain.model.LessonSummary
 fun CourseDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToLesson: (lessonId: String) -> Unit,
+    onNavigateToStats: (courseId: String) -> Unit,
     viewModel: CourseDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -107,6 +109,7 @@ fun CourseDetailScreen(
                     expandedChapters = uiState.expandedChapters,
                     onToggleChapter  = viewModel::toggleChapter,
                     onLessonClick    = onNavigateToLesson,
+                    onStatsClick     = onNavigateToStats,
                     modifier         = Modifier.padding(innerPadding)
                 )
             }
@@ -122,6 +125,7 @@ private fun CourseDetailContent(
     expandedChapters: Set<String>,
     onToggleChapter: (String) -> Unit,
     onLessonClick: (String) -> Unit,
+    onStatsClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -134,7 +138,8 @@ private fun CourseDetailContent(
                 title        = courseDetail.title,
                 description  = courseDetail.description,
                 chapterCount = courseDetail.chapters.size,
-                lessonCount  = courseDetail.chapters.sumOf { it.lessons.size }
+                lessonCount  = courseDetail.chapters.sumOf { it.lessons.size },
+                onStatsClick = { onStatsClick(courseDetail.id) }
             )
         }
 
@@ -171,7 +176,8 @@ private fun CourseHeaderCard(
     title: String,
     description: String,
     chapterCount: Int,
-    lessonCount: Int
+    lessonCount: Int,
+    onStatsClick: () -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -220,6 +226,24 @@ private fun CourseHeaderCard(
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 StatChip(label = "$chapterCount capitole")
                 StatChip(label = "$lessonCount lectii")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onStatsClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            ) {
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Default.BarChart,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Statisticile mele")
             }
         }
     }

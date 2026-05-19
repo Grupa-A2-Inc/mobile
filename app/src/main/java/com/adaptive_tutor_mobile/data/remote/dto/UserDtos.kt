@@ -11,13 +11,14 @@ data class UserProfileDto(
 )
 
 data class UpdateUserDto(
+    val email: String,
     val firstName: String,
     val lastName: String,
-    val city: String?
+    val organizationId: String?
 )
 
 data class ChangePasswordDto(
     val currentPassword: String,
     val newPassword: String,
-    val confirmPassword: String
+    val newPasswordConfirm: String
 )

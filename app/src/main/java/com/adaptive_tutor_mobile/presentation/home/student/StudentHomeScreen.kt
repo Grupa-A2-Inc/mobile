@@ -57,7 +57,6 @@ import androidx.navigation.NavController
 import com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto
 import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.components.AdaptiveBottomBar
-import com.adaptive_tutor_mobile.presentation.components.AdaptiveTopBar
 import com.adaptive_tutor_mobile.presentation.components.BottomNavItem
 import com.adaptive_tutor_mobile.presentation.components.CourseCard
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
@@ -71,14 +70,14 @@ import java.util.Date
 import java.util.Locale
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Tab-uri bottom nav — 5 tab-uri originale
+// Tab-uri bottom nav
 // ─────────────────────────────────────────────────────────────────────────────
 
-private const val TAB_HOME      = "student_tab_home"
+private const val TAB_HOME       = "student_tab_home"
 private const val TAB_MY_COURSES = "student_tab_my_courses"
-private const val TAB_EXPLORE   = "student_tab_explore"
-private const val TAB_ADAPTIVE  = "student_tab_adaptive"
-private const val TAB_PROFILE   = "student_tab_profile"
+private const val TAB_EXPLORE    = "student_tab_explore"
+private const val TAB_ADAPTIVE   = "student_tab_adaptive"
+private const val TAB_PROFILE    = "student_tab_profile"
 
 private val bottomNavItems = listOf(
     BottomNavItem(TAB_HOME,       Icons.Filled.Home,      "Acasă"),
@@ -104,7 +103,6 @@ fun StudentHomeScreen(
     val currentUser by viewModel.currentUser.collectAsState()
     val firstName = currentUser?.firstName ?: "Student"
 
-    // rememberSaveable → supraviețuiește rotației / process death
     var currentTab by rememberSaveable { mutableStateOf(TAB_HOME) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -112,6 +110,8 @@ fun StudentHomeScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 studentViewModel.loadEnrolledCourses()
+                // ── Reîncarcă userul din SessionStore după revenire din ProfileScreen ──
+                viewModel.refreshUser()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -124,8 +124,11 @@ fun StudentHomeScreen(
                 items = bottomNavItems,
                 currentRoute = currentTab,
                 onItemClick = { tab ->
-                    if (tab == TAB_ADAPTIVE) onAdaptiveClick()
-                    else currentTab = tab
+                    when (tab) {
+                        TAB_ADAPTIVE -> onAdaptiveClick()
+                        TAB_PROFILE  -> navController.navigate(Screen.Profile.route)
+                        else         -> currentTab = tab
+                    }
                 }
             )
         }
@@ -150,10 +153,11 @@ fun StudentHomeScreen(
                 modifier = Modifier.padding(innerPadding)
             )
             TAB_PROFILE -> ProfileTab(
-                firstName = firstName,
-                lastName = currentUser?.lastName ?: "",
-                email = currentUser?.email ?: "",
-                onLogout = { viewModel.logout(); onLogout() },
+                firstName = currentUser?.firstName ?: "",
+                lastName  = currentUser?.lastName  ?: "",
+                email     = currentUser?.email     ?: "",
+                onLogout      = { viewModel.logout(); onLogout() },
+                onEditProfile = { navController.navigate(Screen.Profile.route) },
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -182,7 +186,6 @@ private fun DashboardTab(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // ── Banner salut ──────────────────────────────────────────────────
         item {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -212,7 +215,6 @@ private fun DashboardTab(
             }
         }
 
-        // ── Card sesiune adaptivă ──────────────────────────────────────────
         item {
             ElevatedCard(
                 modifier = Modifier.fillMaxWidth(),
@@ -235,7 +237,6 @@ private fun DashboardTab(
             }
         }
 
-        // ── Conținut dinamic pe baza state-ului ───────────────────────────
         when (val state = coursesState) {
             is CoursesUiState.Loading -> item {
                 LoadingShimmerList(itemCount = 3)
@@ -251,7 +252,6 @@ private fun DashboardTab(
             is CoursesUiState.Success -> {
                 val courses = state.courses
 
-                // "Continuă să înveți"
                 val inProgressCourse = courses
                     .filter { (it.progressPercent ?: 0.0) < 100.0 }
                     .maxByOrNull { it.progressPercent ?: 0.0 }
@@ -291,7 +291,6 @@ private fun DashboardTab(
                     }
                 }
 
-                // "Cursurile mele" — primele 3
                 if (courses.isNotEmpty()) {
                     item {
                         Row(
@@ -327,7 +326,6 @@ private fun DashboardTab(
                     }
                 }
 
-                // Statistici rapide
                 item {
                     Text(
                         text = "Statistici rapide",
@@ -581,7 +579,6 @@ private fun MyCourseCard(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tab 3: Explorează → refolosește PublicCoursesScreen
-// (randat direct în when block din StudentHomeScreen de mai sus)
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -594,6 +591,7 @@ private fun ProfileTab(
     lastName: String,
     email: String,
     onLogout: () -> Unit,
+    onEditProfile: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
@@ -616,6 +614,14 @@ private fun ProfileTab(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
+                }
+            }
+            item {
+                Button(
+                    onClick = onEditProfile,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Editează profil")
                 }
             }
             item {

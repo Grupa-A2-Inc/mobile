@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -52,7 +53,8 @@ import com.adaptive_tutor_mobile.presentation.components.ScoreCircle
 @Composable
 fun TestScreen(
     viewModel: TestViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToHistory: (testId: String) -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -65,7 +67,11 @@ fun TestScreen(
             topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
         ) { padding -> Box(Modifier.padding(padding)) { ErrorScreen(state.error!!, onRetry = onNavigateBack) } }
 
-        state.report != null -> TestResultScreen(state = state, onBack = onNavigateBack)
+        state.report != null -> TestResultScreen(
+            state = state,
+            onBack = onNavigateBack,
+            onHistoryClick = onNavigateToHistory
+        )
 
         state.questions.isNotEmpty() -> TestQuestionScreen(
             state = state,
@@ -257,7 +263,8 @@ fun QuestionChip(
 @Composable
 private fun TestResultScreen(
     state: TestUiState,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onHistoryClick: (String) -> Unit
 ) {
     val report = state.report!!
     val passed = report.passed == true
@@ -308,6 +315,19 @@ private fun TestResultScreen(
                     reportQuestion = rq,
                     original = state.questions.firstOrNull { it.questionId == rq.questionId }
                 )
+            }
+
+            item {
+                Button(
+                    onClick = { state.testId?.let { onHistoryClick(it) } },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                ) {
+                    Text("Toate încercările mele")
+                }
             }
 
             item {

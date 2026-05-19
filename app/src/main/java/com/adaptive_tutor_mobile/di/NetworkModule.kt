@@ -221,4 +221,14 @@ object NetworkModule {
     @Singleton
     fun provideRatingApi(retrofit: Retrofit): com.adaptive_tutor_mobile.data.remote.api.RatingApi =
         retrofit.create(com.adaptive_tutor_mobile.data.remote.api.RatingApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideStatsApi(retrofit: Retrofit): StatsApi =
+        retrofit.create(StatsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAttemptHistoryApi(retrofit: Retrofit): AttemptHistoryApi =
+        retrofit.create(AttemptHistoryApi::class.java)
 }

@@ -26,6 +26,7 @@ import com.adaptive_tutor_mobile.presentation.home.teacher.TeacherHomeScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveResultScreen
 import com.adaptive_tutor_mobile.presentation.adaptive.AdaptiveSessionScreen
 import com.adaptive_tutor_mobile.presentation.lesson.LessonScreen
+import com.adaptive_tutor_mobile.presentation.profile.ProfileScreen
 import com.adaptive_tutor_mobile.presentation.test.TestScreen
 import com.adaptive_tutor_mobile.presentation.stats.PersonalStatsScreen
 import com.adaptive_tutor_mobile.presentation.test.TestAttemptsScreen
@@ -202,6 +203,10 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             )
         ) {
             TestScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(onNavigateBack = { navController.navigateUp() })
         }
     }
 }

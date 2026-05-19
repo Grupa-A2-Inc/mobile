@@ -16,7 +16,7 @@ data class EnrolledCourse(
     val enrolledAt: String,             // ISO LocalDateTime
     val completedAt: String?            // ISO LocalDateTime sau null
 ) {
-    val isCompleted: Boolean get() = completedAt != null
+    val isCompleted: Boolean get() = !completedAt.isNullOrBlank()
 }
 
 fun EnrolledCourseDto.toDomain(): EnrolledCourse = EnrolledCourse(
@@ -25,7 +25,7 @@ fun EnrolledCourseDto.toDomain(): EnrolledCourse = EnrolledCourse(
     courseCategory  = courseCategory,
     progressPercent = progressPercent ?: 0.0,
     enrolledAt      = enrolledAt,
-    completedAt     = completedAt
+    completedAt     = completedAt?.takeIf { it.isNotBlank() }
 )
 
 fun CompletedCourseDto.toDomain(): EnrolledCourse = EnrolledCourse(

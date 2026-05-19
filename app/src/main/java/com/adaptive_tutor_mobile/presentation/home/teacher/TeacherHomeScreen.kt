@@ -9,9 +9,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 private data class ActionCard(val title: String, val subtitle: String, val icon: ImageVector)
 
 private val teacherCards = listOf(
-    ActionCard("Cursurile mele",  "GET /api/v1/courses/my-courses",             Icons.Filled.MenuBook),
+    ActionCard("Cursurile mele",  "GET /api/v1/courses/my-courses",             Icons.AutoMirrored.Filled.MenuBook),
     ActionCard("Curs nou",        "POST /api/v1/courses",                        Icons.Filled.AddCircle),
     ActionCard("Alerte active",   "GET /api/v1/professors/me/alerts",            Icons.Filled.NotificationsActive),
     ActionCard("Generare AI",     "POST /api/v1/lessons/{id}/ai/generate-test",  Icons.Filled.AutoAwesome)

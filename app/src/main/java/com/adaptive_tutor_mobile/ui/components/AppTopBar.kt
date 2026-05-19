@@ -47,25 +47,8 @@ fun AppTopBar(
 ) {
     CenterAlignedTopAppBar(
         modifier = modifier,
-        title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        },
-        navigationIcon = {
-            if (onBack != null) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = "Înapoi",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        },
+        title = { AppTopBarTitle(title = title) },
+        navigationIcon = { if (onBack != null) AppTopBarBackButton(onBack = onBack) },
         actions = actions,
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
@@ -75,4 +58,24 @@ fun AppTopBar(
             actionIconContentColor = MaterialTheme.colorScheme.onSurface
         )
     )
+}
+
+@Composable
+private fun AppTopBarTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface
+    )
+}
+
+@Composable
+private fun AppTopBarBackButton(onBack: () -> Unit) {
+    IconButton(onClick = onBack) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+            contentDescription = "Înapoi",
+            tint = MaterialTheme.colorScheme.onSurface)
+    }
 }

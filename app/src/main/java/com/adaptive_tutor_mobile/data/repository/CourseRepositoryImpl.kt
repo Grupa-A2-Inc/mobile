@@ -46,4 +46,17 @@ class CourseRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    override suspend fun unenrollFromCourse(courseId: String): Result<Unit> {
+        return try {
+            val response = enrollmentApi.unenrollFromCourse(courseId)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

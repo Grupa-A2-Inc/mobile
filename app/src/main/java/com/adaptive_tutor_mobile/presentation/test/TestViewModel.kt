@@ -20,6 +20,7 @@ import javax.inject.Inject
 data class TestUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
+    val testId: String? = null,
     val attemptId: String? = null,
     val questions: List<QuestionForStudentDto> = emptyList(),
     val currentIndex: Int = 0,
@@ -49,6 +50,7 @@ class TestViewModel @Inject constructor(
 
     init {
         val testId: String? = savedStateHandle["testId"]
+        _state.update { it.copy(testId = testId) }
         testId?.let { startTest(it) }
     }
 

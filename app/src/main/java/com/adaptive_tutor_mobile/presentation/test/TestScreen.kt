@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -91,7 +92,10 @@ fun TestScreen(
                     topBar = { AdaptiveTopBar("Test", onBack = onNavigateBack) }
                 ) { padding -> Box(Modifier.padding(padding)) { ErrorScreen(state.error!!, onRetry = onNavigateBack) } }
 
-                state.report != null -> TestResultScreen(state = state, onBack = onNavigateBack)
+                state.report != null -> TestResultScreen(
+                    state = state,
+                    onBack = onNavigateBack
+                )
 
                 state.questions.isNotEmpty() -> TestQuestionScreen(
                     state = state,

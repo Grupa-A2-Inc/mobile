@@ -25,9 +25,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
 import javax.inject.Singleton
 import com.adaptive_tutor_mobile.data.remote.api.AdaptiveApi
+import com.adaptive_tutor_mobile.data.remote.api.AttemptHistoryApi
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.api.TestApi
 import com.adaptive_tutor_mobile.data.remote.api.RatingApi
+import com.adaptive_tutor_mobile.data.remote.api.StatsApi
 import com.adaptive_tutor_mobile.data.remote.api.UserApi
 
 private const val BASE_URL = "https://api.adaptiveelearning.online/"
@@ -231,4 +233,14 @@ object NetworkModule {
     @Singleton
     fun provideUserApi(retrofit: Retrofit): UserApi =
         retrofit.create(UserApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideStatsApi(retrofit: Retrofit): StatsApi =
+        retrofit.create(StatsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAttemptHistoryApi(retrofit: Retrofit): AttemptHistoryApi =
+        retrofit.create(AttemptHistoryApi::class.java)
 }

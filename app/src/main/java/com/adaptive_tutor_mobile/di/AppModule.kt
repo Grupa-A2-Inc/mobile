@@ -20,7 +20,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.adaptive_tutor_mobile.data.repository.RatingRepositoryImpl
+import com.adaptive_tutor_mobile.data.repository.UserRepositoryImpl
 import com.adaptive_tutor_mobile.domain.repository.RatingRepository
+import com.adaptive_tutor_mobile.domain.repository.UserRepository
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -57,4 +59,8 @@ abstract class AppModule {
     @Binds
     @Singleton
     abstract fun bindRatingRepository(impl: com.adaptive_tutor_mobile.data.repository.RatingRepositoryImpl): com.adaptive_tutor_mobile.domain.repository.RatingRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
 }

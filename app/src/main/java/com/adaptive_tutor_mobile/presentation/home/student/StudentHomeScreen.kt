@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -529,9 +528,6 @@ private fun MyCoursesTab(
             AppTopBar(
                 title = "Cursurile mele",
                 actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Filled.Search, contentDescription = "Caută")
-                    }
                     TextButton(onClick = onExploreClick) {
                         Text("Explorează")
                     }

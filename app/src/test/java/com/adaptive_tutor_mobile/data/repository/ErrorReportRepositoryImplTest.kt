@@ -118,4 +118,26 @@ class ErrorReportRepositoryImplTest {
         assertTrue(result.isFailure)
         assertEquals("Eroare 500", result.exceptionOrNull()?.message)
     }
+
+    @Test
+    fun `error with json body parses error field when message absent`() = runTest {
+        val body = """{"error":"Question locked"}"""
+            .toResponseBody("application/json".toMediaType())
+        coEvery { api.reportError(any(), any()) } returns Response.error(403, body)
+
+        val result = repo.reportError(1, "ceva")
+
+        assertTrue(result.isFailure)
+        assertEquals("Question locked", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `network exception propagates as failure`() = runTest {
+        coEvery { api.reportError(any(), any()) } throws RuntimeException("network error")
+
+        val result = repo.reportError(1, "ceva")
+
+        assertTrue(result.isFailure)
+        assertEquals("network error", result.exceptionOrNull()?.message)
+    }
 }

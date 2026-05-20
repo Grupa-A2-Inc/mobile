@@ -6,7 +6,7 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 import retrofit2.http.Path
 
-interface ErrorReportApi {
+fun interface ErrorReportApi {
 
     /**
      * POST /api/v1/questions/{questionId}/error-reports

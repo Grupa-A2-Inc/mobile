@@ -12,7 +12,13 @@ class UserRepositoryImpl @Inject constructor(
     private val userApi: UserApi
 ) : UserRepository {
 
-    private fun parseError(code: Int, errorBody: String?, fallback: String): String {
+    companion object {
+        private const val ERR_UNAUTHORIZED = "Sesiune expirată, te rugăm să te autentifici din nou"
+        private const val ERR_FORBIDDEN    = "Acces interzis"
+        private const val ERR_NOT_FOUND    = "Utilizatorul nu a fost găsit"
+    }
+
+    private fun parseError(errorBody: String?, fallback: String): String {
         if (!errorBody.isNullOrBlank()) {
             return try {
                 val json = JsonParser.parseString(errorBody).asJsonObject
@@ -45,13 +51,13 @@ class UserRepositoryImpl @Inject constructor(
                 Result.success(mapDto(dto))
             } else {
                 val fallback = when (response.code()) {
-                    401  -> "Sesiune expirată, te rugăm să te autentifici din nou"
-                    403  -> "Acces interzis"
-                    404  -> "Utilizatorul nu a fost găsit"
+                    401  -> ERR_UNAUTHORIZED
+                    403  -> ERR_FORBIDDEN
+                    404  -> ERR_NOT_FOUND
                     else -> "Eroare la încărcarea profilului (${response.code()})"
                 }
                 Result.failure(
-                    Exception(parseError(response.code(), response.errorBody()?.string(), fallback))
+                    Exception(parseError(response.errorBody()?.string(), fallback))
                 )
             }
         } catch (e: Exception) {
@@ -93,14 +99,14 @@ class UserRepositoryImpl @Inject constructor(
             } else {
                 val fallback = when (response.code()) {
                     400  -> "Date invalide"
-                    401  -> "Sesiune expirată, te rugăm să te autentifici din nou"
-                    403  -> "Acces interzis"
-                    404  -> "Utilizatorul nu a fost găsit"
+                    401  -> ERR_UNAUTHORIZED
+                    403  -> ERR_FORBIDDEN
+                    404  -> ERR_NOT_FOUND
                     409  -> "Emailul este deja folosit de un alt cont"
                     else -> "Eroare la salvarea profilului (${response.code()})"
                 }
                 Result.failure(
-                    Exception(parseError(response.code(), response.errorBody()?.string(), fallback))
+                    Exception(parseError(response.errorBody()?.string(), fallback))
                 )
             }
         } catch (e: Exception) {
@@ -128,14 +134,14 @@ class UserRepositoryImpl @Inject constructor(
             } else {
                 val fallback = when (response.code()) {
                     400  -> "Parola curentă este incorectă"
-                    401  -> "Sesiune expirată, te rugăm să te autentifici din nou"
-                    403  -> "Acces interzis"
-                    404  -> "Utilizatorul nu a fost găsit"
+                    401  -> ERR_UNAUTHORIZED
+                    403  -> ERR_FORBIDDEN
+                    404  -> ERR_NOT_FOUND
                     422  -> "Parola nouă nu respectă cerințele de securitate"
                     else -> "Eroare la schimbarea parolei (${response.code()})"
                 }
                 Result.failure(
-                    Exception(parseError(response.code(), response.errorBody()?.string(), fallback))
+                    Exception(parseError(response.errorBody()?.string(), fallback))
                 )
             }
         } catch (e: Exception) {

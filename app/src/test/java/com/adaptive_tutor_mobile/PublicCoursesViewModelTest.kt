@@ -7,8 +7,13 @@ import com.adaptive_tutor_mobile.domain.usecase.courses.EnrollInCourseUseCase
 import com.adaptive_tutor_mobile.domain.usecase.courses.GetPublicCoursesUseCase
 import com.adaptive_tutor_mobile.domain.usecase.courses.UnenrollFromCourseUseCase
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesViewModel
+import com.adaptive_tutor_mobile.ProgressTestFixtures.enrolledDto
+import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
+import com.adaptive_tutor_mobile.data.remote.dto.PageDto
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
+import retrofit2.Response
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -17,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -267,5 +273,144 @@ class PublicCoursesViewModelTest {
         advanceUntilIdle()
 
         assertEquals("Eroare la înscriere", viewModel.errorMessage.value)
+    }
+
+    // ── unenroll ──────────────────────────────────────────────────────────────
+
+    @Test
+    fun `unenroll success sets unenrollSuccess message`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        coEvery { unenrollFromCourseUseCase("c1") } returns Result.success(Unit)
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+        viewModel.unenroll("c1")
+        advanceUntilIdle()
+
+        assertEquals("Dezabonat cu succes!", viewModel.unenrollSuccess.value)
+    }
+
+    @Test
+    fun `unenroll success removes courseId from enrolledCourseIds`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        whenever(enrollInCourseUseCase("c1")).thenReturn(Result.success(Unit))
+        coEvery { unenrollFromCourseUseCase("c1") } returns Result.success(Unit)
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+        viewModel.enroll("c1")
+        advanceUntilIdle()
+        assertTrue(viewModel.enrolledCourseIds.value.contains("c1"))
+
+        viewModel.unenroll("c1")
+        advanceUntilIdle()
+
+        assertFalse(viewModel.enrolledCourseIds.value.contains("c1"))
+    }
+
+    @Test
+    fun `unenroll failure with message sets errorMessage`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        coEvery { unenrollFromCourseUseCase("c1") } returns Result.failure(Exception("Eroare dezabonare"))
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+        viewModel.unenroll("c1")
+        advanceUntilIdle()
+
+        assertEquals("Eroare dezabonare", viewModel.errorMessage.value)
+    }
+
+    @Test
+    fun `unenroll failure with blank message uses fallback`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        coEvery { unenrollFromCourseUseCase("c1") } returns Result.failure(Exception())
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+        viewModel.unenroll("c1")
+        advanceUntilIdle()
+
+        assertEquals("Eroare la dezabonare", viewModel.errorMessage.value)
+    }
+
+    @Test
+    fun `clearUnenrollSuccess resets to null`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        coEvery { unenrollFromCourseUseCase("c1") } returns Result.success(Unit)
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, mockk(relaxed = true))
+        advanceUntilIdle()
+        viewModel.unenroll("c1")
+        advanceUntilIdle()
+        assertNotNull(viewModel.unenrollSuccess.value)
+
+        viewModel.clearUnenrollSuccess()
+
+        assertNull(viewModel.unenrollSuccess.value)
+    }
+
+    // ── enrolledCourses ───────────────────────────────────────────────────────
+
+    @Test
+    fun `enrolledCourses and enrolledCourseIds populated from progressApi`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        val progressApi = mockk<ProgressApi>()
+        coEvery { progressApi.getMyEnrolledCourses(any(), any(), any()) } returns Response.success(
+            PageDto(content = listOf(enrolledDto(courseId = "c1", title = "Math")))
+        )
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, progressApi)
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.enrolledCourses.value.size)
+        assertEquals("c1", viewModel.enrolledCourses.value[0].courseId)
+        assertTrue(viewModel.enrolledCourseIds.value.contains("c1"))
+    }
+
+    @Test
+    fun `unenroll removes course from enrolledCourses list`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        val progressApi = mockk<ProgressApi>()
+        coEvery { progressApi.getMyEnrolledCourses(any(), any(), any()) } returns Response.success(
+            PageDto(content = listOf(enrolledDto(courseId = "c1", title = "Math")))
+        )
+        coEvery { unenrollFromCourseUseCase("c1") } returns Result.success(Unit)
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, progressApi)
+        advanceUntilIdle()
+        assertEquals(1, viewModel.enrolledCourses.value.size)
+
+        viewModel.unenroll("c1")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.enrolledCourses.value.isEmpty())
+    }
+
+    @Test
+    fun `enrolledCourses empty when progressApi returns empty list`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        val progressApi = mockk<ProgressApi>()
+        coEvery { progressApi.getMyEnrolledCourses(any(), any(), any()) } returns Response.success(
+            PageDto(content = emptyList())
+        )
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, progressApi)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.enrolledCourses.value.isEmpty())
+        assertTrue(viewModel.enrolledCourseIds.value.isEmpty())
+    }
+
+    @Test
+    fun `enrolledCourses stays empty when progressApi fails`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        val progressApi = mockk<ProgressApi>()
+        coEvery { progressApi.getMyEnrolledCourses(any(), any(), any()) } throws RuntimeException("offline")
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, progressApi)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.enrolledCourses.value.isEmpty())
     }
 }

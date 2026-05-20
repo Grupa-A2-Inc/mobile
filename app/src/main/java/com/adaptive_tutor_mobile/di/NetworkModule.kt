@@ -5,6 +5,7 @@ import com.adaptive_tutor_mobile.data.remote.api.AuthApi
 import com.adaptive_tutor_mobile.data.remote.api.CourseDetailApi
 import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 import com.adaptive_tutor_mobile.data.remote.api.LessonApi
+import com.adaptive_tutor_mobile.data.remote.dto.CsrfResponse
 import com.adaptive_tutor_mobile.data.remote.dto.RefreshResponse
 import com.google.gson.Gson
 import dagger.Module
@@ -106,16 +107,49 @@ class TokenRefreshAuthenticator(
 
         return try {
             val plainClient = plainClientProvider()
-            val refreshRequest = Request.Builder()
+            val gson = Gson()
+
+            // 1. Try to read XSRF-TOKEN from existing cookies
+            val cookieString = CookieManager.getInstance().getCookie(BASE_URL)
+            var csrfToken: String? = cookieString
+                ?.split(";")
+                ?.map { it.trim() }
+                ?.firstOrNull { it.startsWith("XSRF-TOKEN=") }
+                ?.removePrefix("XSRF-TOKEN=")
+            var csrfHeaderName = "X-XSRF-TOKEN"
+
+            // 2. If no cookie, fetch from /api/v1/auth/csrf
+            if (csrfToken.isNullOrBlank()) {
+                val csrfRequest = Request.Builder()
+                    .url("${BASE_URL}api/v1/auth/csrf")
+                    .get()
+                    .build()
+                val csrfResponse = plainClient.newCall(csrfRequest).execute()
+                if (csrfResponse.isSuccessful) {
+                    val csrfDto = gson.fromJson(
+                        csrfResponse.body?.string(),
+                        CsrfResponse::class.java
+                    )
+                    csrfToken = csrfDto?.csrfToken
+                    csrfHeaderName = csrfDto?.headerName?.takeIf { it.isNotBlank() } ?: "X-XSRF-TOKEN"
+                }
+            }
+
+            // 3. POST /api/v1/auth/refresh with CSRF header
+            val refreshRequestBuilder = Request.Builder()
                 .url("${BASE_URL}api/v1/auth/refresh")
                 .post("".toRequestBody())
-                .build()
-            val refreshResponse = plainClient.newCall(refreshRequest).execute()
+            if (!csrfToken.isNullOrBlank()) {
+                refreshRequestBuilder.header(csrfHeaderName, csrfToken)
+            }
+            val refreshResponse = plainClient.newCall(refreshRequestBuilder.build()).execute()
+
             if (refreshResponse.isSuccessful) {
-                val body = refreshResponse.body?.string()
-                val gson = Gson()
-                val refreshDto = gson.fromJson(body, RefreshResponse::class.java)
-                val newToken = refreshDto.accessToken
+                val refreshDto = gson.fromJson(
+                    refreshResponse.body?.string(),
+                    RefreshResponse::class.java
+                )
+                val newToken = refreshDto?.accessToken
                 if (newToken != null) {
                     sessionStore.saveAccessToken(newToken)
                     response.request.newBuilder()

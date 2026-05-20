@@ -2,11 +2,11 @@ package com.adaptive_tutor_mobile.presentation.adaptive
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.adaptive_tutor_mobile.data.remote.dto.AttemptReportDTO
-import com.adaptive_tutor_mobile.data.remote.dto.SubmitAnswerDto
-import com.adaptive_tutor_mobile.data.remote.dto.SubmitRequestDto
+import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveAttemptReportDTO
+import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitAnswerDto
+import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitRequestDto
 import com.adaptive_tutor_mobile.domain.model.AdaptiveSession
-import com.adaptive_tutor_mobile.domain.repository.TestRepository
+import com.adaptive_tutor_mobile.domain.repository.AdaptiveRepository
 import com.adaptive_tutor_mobile.domain.usecase.StartAdaptiveSessionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,9 +18,9 @@ import javax.inject.Inject
 data class AdaptiveUiState(
     val session: AdaptiveSession? = null,
     val currentIndex: Int = 0,
-    val selectedAnswers: Map<Int, List<Int>> = emptyMap(),
-    val timeSpentSeconds: Map<Int, Double> = emptyMap(),
-    val result: AttemptReportDTO? = null,
+    val selectedAnswers: Map<String, List<Int>> = emptyMap(),
+    val timeSpentSeconds: Map<String, Double> = emptyMap(),
+    val result: AdaptiveAttemptReportDTO? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -28,7 +28,7 @@ data class AdaptiveUiState(
 @HiltViewModel
 class AdaptiveViewModel @Inject constructor(
     private val startAdaptiveSessionUseCase: StartAdaptiveSessionUseCase,
-    private val testRepository: TestRepository
+    private val adaptiveRepository: AdaptiveRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AdaptiveUiState())
@@ -52,7 +52,7 @@ class AdaptiveViewModel @Inject constructor(
         }
     }
 
-    fun selectAnswer(questionId: Int, optionId: Int, singleChoice: Boolean) {
+    fun selectAnswer(questionId: String, optionId: Int, singleChoice: Boolean) {
         val current = _uiState.value.selectedAnswers[questionId].orEmpty()
         val newSelection = if (singleChoice) listOf(optionId)
         else if (optionId in current) current - optionId
@@ -78,16 +78,19 @@ class AdaptiveViewModel @Inject constructor(
         saveCurrentQuestionTime()
         val session = _uiState.value.session ?: return
         val answers = session.questions.map { q ->
-            SubmitAnswerDto(
+            val selectedTexts = _uiState.value.selectedAnswers[q.questionId].orEmpty().mapNotNull { optionId ->
+                q.options?.find { it.optionId == optionId }?.text
+            }
+            AdaptiveSubmitAnswerDto(
                 questionId = q.questionId,
-                selectedOptionIds = _uiState.value.selectedAnswers[q.questionId].orEmpty(),
-                timeSpent = _uiState.value.timeSpentSeconds[q.questionId] ?: 0.0
+                selectedOptionIds = selectedTexts,
+                timeSpent = (_uiState.value.timeSpentSeconds[q.questionId] ?: 0.0).toInt()
             )
         }
-        val attemptId = session.attemptId ?: session.sessionId
+        val sessionId = session.sessionId
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            testRepository.submitAttempt(attemptId, SubmitRequestDto(answers))
+            adaptiveRepository.submitSession(sessionId, AdaptiveSubmitRequestDto(answers))
                 .onSuccess { result ->
                     _uiState.value = _uiState.value.copy(result = result, isLoading = false)
                 }

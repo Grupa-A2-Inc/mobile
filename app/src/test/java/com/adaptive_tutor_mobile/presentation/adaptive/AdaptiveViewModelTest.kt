@@ -1,10 +1,10 @@
 package com.adaptive_tutor_mobile.presentation.adaptive
 
-import com.adaptive_tutor_mobile.data.remote.dto.AttemptReportDTO
+import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveAttemptReportDTO
+import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForStudentDto
 import com.adaptive_tutor_mobile.data.remote.dto.OptionForStudentDto
-import com.adaptive_tutor_mobile.data.remote.dto.QuestionForStudentDto
 import com.adaptive_tutor_mobile.domain.model.AdaptiveSession
-import com.adaptive_tutor_mobile.domain.repository.TestRepository
+import com.adaptive_tutor_mobile.domain.repository.AdaptiveRepository
 import com.adaptive_tutor_mobile.domain.usecase.StartAdaptiveSessionUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import io.mockk.coEvery
@@ -28,13 +28,13 @@ class AdaptiveViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var startAdaptiveSessionUseCase: StartAdaptiveSessionUseCase
-    private lateinit var testRepository: TestRepository
+    private lateinit var adaptiveRepository: AdaptiveRepository
 
     private val sessionId = "session-abc"
     private val attemptId = "attempt-xyz"
 
-    private val sampleQuestion = QuestionForStudentDto(
-        questionId = 1,
+    private val sampleQuestion = AdaptiveQuestionForStudentDto(
+        questionId = "1",
         questionType = "SINGLE_CHOICE",
         content = "What is 1+1?",
         difficulty = 0.3,
@@ -51,7 +51,7 @@ class AdaptiveViewModelTest {
         questions = listOf(sampleQuestion)
     )
 
-    private val sampleReport = AttemptReportDTO(
+    private val sampleReport = AdaptiveAttemptReportDTO(
         attemptId = attemptId, score = 80.0, scorePercent = 80.0,
         passed = true, completedAt = null, questions = emptyList()
     )
@@ -59,10 +59,10 @@ class AdaptiveViewModelTest {
     @Before
     fun setup() {
         startAdaptiveSessionUseCase = mockk()
-        testRepository = mockk()
+        adaptiveRepository = mockk()
     }
 
-    private fun viewModel() = AdaptiveViewModel(startAdaptiveSessionUseCase, testRepository)
+    private fun viewModel() = AdaptiveViewModel(startAdaptiveSessionUseCase, adaptiveRepository)
 
     // ── startSession ──────────────────────────────────────────────────────────
 
@@ -127,10 +127,10 @@ class AdaptiveViewModelTest {
         vm.startSession(1, 2, 5)
         advanceUntilIdle()
 
-        vm.selectAnswer(questionId = 1, optionId = 0, singleChoice = true)
-        vm.selectAnswer(questionId = 1, optionId = 1, singleChoice = true)
+        vm.selectAnswer(questionId = "1", optionId = 0, singleChoice = true)
+        vm.selectAnswer(questionId = "1", optionId = 1, singleChoice = true)
 
-        assertEquals(listOf(1), vm.uiState.value.selectedAnswers[1])
+        assertEquals(listOf(1), vm.uiState.value.selectedAnswers["1"])
     }
 
     @Test
@@ -140,10 +140,10 @@ class AdaptiveViewModelTest {
         vm.startSession(1, 2, 5)
         advanceUntilIdle()
 
-        vm.selectAnswer(1, 0, false)
-        vm.selectAnswer(1, 1, false)
+        vm.selectAnswer("1", 0, false)
+        vm.selectAnswer("1", 1, false)
 
-        val selected = vm.uiState.value.selectedAnswers[1]!!
+        val selected = vm.uiState.value.selectedAnswers["1"]!!
         assertTrue(selected.contains(0))
         assertTrue(selected.contains(1))
     }
@@ -155,11 +155,11 @@ class AdaptiveViewModelTest {
         vm.startSession(1, 2, 5)
         advanceUntilIdle()
 
-        vm.selectAnswer(1, 0, false)
-        vm.selectAnswer(1, 1, false)
-        vm.selectAnswer(1, 0, false) // deselect
+        vm.selectAnswer("1", 0, false)
+        vm.selectAnswer("1", 1, false)
+        vm.selectAnswer("1", 0, false) // deselect
 
-        assertEquals(listOf(1), vm.uiState.value.selectedAnswers[1])
+        assertEquals(listOf(1), vm.uiState.value.selectedAnswers["1"])
     }
 
     // ── navigation ────────────────────────────────────────────────────────────
@@ -167,7 +167,7 @@ class AdaptiveViewModelTest {
     @Test
     fun `nextQuestion increments and prevQuestion decrements currentIndex`() = runTest {
         val twoQuestions = session().copy(
-            questions = listOf(sampleQuestion, sampleQuestion.copy(questionId = 2))
+            questions = listOf(sampleQuestion, sampleQuestion.copy(questionId = "2"))
         )
         coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns
             Result.success(twoQuestions)
@@ -199,10 +199,10 @@ class AdaptiveViewModelTest {
     // ── submitSession ─────────────────────────────────────────────────────────
 
     @Test
-    fun `submitSession uses attemptId when available`() = runTest {
+    fun `submitSession always uses sessionId`() = runTest {
         coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns
             Result.success(session(aid = attemptId))
-        coEvery { testRepository.submitAttempt(attemptId, any()) } returns
+        coEvery { adaptiveRepository.submitSession(sessionId, any()) } returns
             Result.success(sampleReport)
         val vm = viewModel()
         vm.startSession(1, 2, 5)
@@ -211,14 +211,14 @@ class AdaptiveViewModelTest {
         vm.submitSession()
         advanceUntilIdle()
 
-        coVerify { testRepository.submitAttempt(attemptId, any()) }
+        coVerify { adaptiveRepository.submitSession(sessionId, any()) }
     }
 
     @Test
-    fun `submitSession falls back to sessionId when attemptId is null`() = runTest {
+    fun `submitSession uses sessionId even when attemptId is null`() = runTest {
         coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns
             Result.success(session(aid = null))
-        coEvery { testRepository.submitAttempt(sessionId, any()) } returns
+        coEvery { adaptiveRepository.submitSession(sessionId, any()) } returns
             Result.success(sampleReport.copy(attemptId = sessionId))
         val vm = viewModel()
         vm.startSession(1, 2, 5)
@@ -227,13 +227,13 @@ class AdaptiveViewModelTest {
         vm.submitSession()
         advanceUntilIdle()
 
-        coVerify { testRepository.submitAttempt(sessionId, any()) }
+        coVerify { adaptiveRepository.submitSession(sessionId, any()) }
     }
 
     @Test
     fun `submitSession success sets result and clears loading`() = runTest {
         coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
-        coEvery { testRepository.submitAttempt(any(), any()) } returns Result.success(sampleReport)
+        coEvery { adaptiveRepository.submitSession(any(), any()) } returns Result.success(sampleReport)
         val vm = viewModel()
         vm.startSession(1, 2, 5)
         advanceUntilIdle()
@@ -249,7 +249,7 @@ class AdaptiveViewModelTest {
     @Test
     fun `submitSession failure sets errorMessage`() = runTest {
         coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
-        coEvery { testRepository.submitAttempt(any(), any()) } returns
+        coEvery { adaptiveRepository.submitSession(any(), any()) } returns
             Result.failure(RuntimeException("Submit error"))
         val vm = viewModel()
         vm.startSession(1, 2, 5)
@@ -269,7 +269,7 @@ class AdaptiveViewModelTest {
         vm.submitSession()
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { testRepository.submitAttempt(any(), any()) }
+        coVerify(exactly = 0) { adaptiveRepository.submitSession(any(), any()) }
         assertNull(vm.uiState.value.result)
     }
 
@@ -290,7 +290,7 @@ class AdaptiveViewModelTest {
     @Test
     fun `submitSession failure with null message uses default`() = runTest {
         coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
-        coEvery { testRepository.submitAttempt(any(), any()) } returns
+        coEvery { adaptiveRepository.submitSession(any(), any()) } returns
             Result.failure(RuntimeException())
         val vm = viewModel()
         vm.startSession(1, 2, 5)
@@ -312,7 +312,7 @@ class AdaptiveViewModelTest {
     @Test
     fun `submitSession sends all questions including unanswered`() = runTest {
         coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
-        coEvery { testRepository.submitAttempt(any(), any()) } returns Result.success(sampleReport)
+        coEvery { adaptiveRepository.submitSession(any(), any()) } returns Result.success(sampleReport)
         val vm = viewModel()
         vm.startSession(1, 2, 5)
         advanceUntilIdle()
@@ -321,9 +321,9 @@ class AdaptiveViewModelTest {
         advanceUntilIdle()
 
         coVerify {
-            testRepository.submitAttempt(
+            adaptiveRepository.submitSession(
                 any(),
-                match { req -> req.answers.size == 1 && req.answers[0].questionId == 1 }
+                match { req -> req.answers.size == 1 && req.answers[0].questionId == "1" }
             )
         }
     }

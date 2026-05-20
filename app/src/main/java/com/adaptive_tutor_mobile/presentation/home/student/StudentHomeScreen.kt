@@ -61,6 +61,7 @@ import com.adaptive_tutor_mobile.presentation.components.BottomNavItem
 import com.adaptive_tutor_mobile.presentation.components.CourseCard
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 import com.adaptive_tutor_mobile.presentation.navigation.Screen
+import com.adaptive_tutor_mobile.presentation.chat.ChatFab
 import com.adaptive_tutor_mobile.ui.components.AppTopBar
 import com.adaptive_tutor_mobile.ui.components.EmptyState
 import com.adaptive_tutor_mobile.ui.components.ErrorCard
@@ -105,6 +106,14 @@ fun StudentHomeScreen(
 
     var currentTab by rememberSaveable { mutableStateOf(TAB_HOME) }
 
+    // Mapare tab → pagina trimisă în contextul AI
+    val currentPageForAi = when (currentTab) {
+        TAB_MY_COURSES -> "enrolled-courses"
+        TAB_EXPLORE    -> "explore-courses"
+        TAB_PROFILE    -> "student-profile"
+        else           -> "student-dashboard"
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -130,6 +139,12 @@ fun StudentHomeScreen(
                         else         -> currentTab = tab
                     }
                 }
+            )
+        },
+        floatingActionButton = {
+            ChatFab(
+                currentPage = currentPageForAi,
+                userType = "student"
             )
         }
     ) { innerPadding ->

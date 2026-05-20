@@ -29,6 +29,7 @@ import com.adaptive_tutor_mobile.data.remote.api.AttemptHistoryApi
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.api.TestApi
 import com.adaptive_tutor_mobile.data.remote.api.RatingApi
+import com.adaptive_tutor_mobile.data.remote.api.ChatApi
 import com.adaptive_tutor_mobile.data.remote.api.StatsApi
 import com.adaptive_tutor_mobile.data.remote.api.UserApi
 
@@ -249,4 +250,9 @@ object NetworkModule {
     @Singleton
     fun provideAttemptHistoryApi(retrofit: Retrofit): AttemptHistoryApi =
         retrofit.create(AttemptHistoryApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideChatApi(retrofit: Retrofit): ChatApi =
+        retrofit.create(ChatApi::class.java)
 }

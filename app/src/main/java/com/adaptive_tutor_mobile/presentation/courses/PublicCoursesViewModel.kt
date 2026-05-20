@@ -58,16 +58,16 @@ class PublicCoursesViewModel @Inject constructor(
      * Încarcă lista cursurilor la care studentul e deja înscris,
      * ca să afișăm corect butonul „Înscris ✓" încă de la prima afișare.
      */
-    private fun loadEnrolledIds() {
+    fun loadEnrolledIds() {
         viewModelScope.launch {
-            try {
+            runCatching {
                 val response = progressApi.getMyEnrolledCourses(page = 0, size = 100)
                 if (response.isSuccessful) {
                     val courses = response.body()?.content ?: emptyList()
                     _enrolledCourses.value = courses
                     _enrolledCourseIds.value = courses.map { it.courseId }.toSet()
                 }
-            } catch (_: Exception) { }
+            }
         }
     }
 

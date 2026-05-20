@@ -13,18 +13,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -37,6 +38,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -312,12 +314,36 @@ private fun AdaptiveQuestionContent(
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     question.options.orEmpty().forEach { option ->
-                        FilterChip(
-                            selected = option.optionId in selectedAnswers,
+                        val isSelected = option.optionId in selectedAnswers
+                        Surface(
                             onClick = { onSelectAnswer(question.questionId, option.optionId, isSingle) },
-                            label = { Text(option.text) },
+                            shape = MaterialTheme.shapes.medium,
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                    else MaterialTheme.colorScheme.surfaceVariant,
                             modifier = Modifier.fillMaxWidth()
-                        )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (isSingle) {
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = { onSelectAnswer(question.questionId, option.optionId, true) }
+                                    )
+                                } else {
+                                    Checkbox(
+                                        checked = isSelected,
+                                        onCheckedChange = { onSelectAnswer(question.questionId, option.optionId, false) }
+                                    )
+                                }
+                                Text(
+                                    text = option.text,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
                     }
                 }
             }

@@ -277,4 +277,104 @@ class StudentViewModelTest {
 
         assertNull(viewModel.message.value)
     }
+
+    @Test
+    fun `currentPage and totalPages updated from response`() = runTest {
+        val page = PageDto<com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto>(
+            content = emptyList(), number = 0, totalPages = 3
+        )
+        whenever(progressApi.getMyEnrolledCourses(any(), any(), any())).thenReturn(Response.success(page))
+
+        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.currentPage.value)
+        assertEquals(3, viewModel.totalPages.value)
+    }
+
+    @Test
+    fun `nextPage loads next page when not at last`() = runTest {
+        val page0 = PageDto<com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto>(
+            content = emptyList(), number = 0, totalPages = 3
+        )
+        val page1 = PageDto<com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto>(
+            content = emptyList(), number = 1, totalPages = 3
+        )
+        whenever(progressApi.getMyEnrolledCourses(any(), any(), any()))
+            .thenReturn(Response.success(page0))
+            .thenReturn(Response.success(page1))
+
+        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        advanceUntilIdle()
+
+        viewModel.nextPage()
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.currentPage.value)
+    }
+
+    @Test
+    fun `nextPage does nothing when already at last page`() = runTest {
+        val page = PageDto<com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto>(
+            content = emptyList(), number = 2, totalPages = 3
+        )
+        whenever(progressApi.getMyEnrolledCourses(any(), any(), any())).thenReturn(Response.success(page))
+
+        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        advanceUntilIdle()
+
+        viewModel.nextPage()
+        advanceUntilIdle()
+
+        assertEquals(2, viewModel.currentPage.value)
+    }
+
+    @Test
+    fun `previousPage loads previous page when not at first`() = runTest {
+        val page1 = PageDto<com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto>(
+            content = emptyList(), number = 1, totalPages = 3
+        )
+        val page0 = PageDto<com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto>(
+            content = emptyList(), number = 0, totalPages = 3
+        )
+        whenever(progressApi.getMyEnrolledCourses(any(), any(), any()))
+            .thenReturn(Response.success(page1))
+            .thenReturn(Response.success(page0))
+
+        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        advanceUntilIdle()
+
+        viewModel.previousPage()
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.currentPage.value)
+    }
+
+    @Test
+    fun `previousPage does nothing when already at first page`() = runTest {
+        val page = PageDto<com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto>(
+            content = emptyList(), number = 0, totalPages = 3
+        )
+        whenever(progressApi.getMyEnrolledCourses(any(), any(), any())).thenReturn(Response.success(page))
+
+        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        advanceUntilIdle()
+
+        viewModel.previousPage()
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.currentPage.value)
+    }
+
+    @Test
+    fun `loadEnrolledCourses error sets error message with status code`() = runTest {
+        val body = "".toResponseBody("text/plain".toMediaType())
+        whenever(progressApi.getMyEnrolledCourses(any(), any(), any())).thenReturn(Response.error(503, body))
+
+        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        advanceUntilIdle()
+
+        val state = viewModel.coursesState.value as CoursesUiState.Error
+        assertEquals("Nu s-au putut încărca cursurile (cod 503)", state.message)
+    }
 }

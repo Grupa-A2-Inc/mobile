@@ -31,6 +31,10 @@ fun PublicCoursesScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(Unit) {
+        viewModel.loadEnrolledIds()
+    }
+
     LaunchedEffect(enrollSuccess) {
         enrollSuccess?.let {
             snackbarHostState.showSnackbar(it)

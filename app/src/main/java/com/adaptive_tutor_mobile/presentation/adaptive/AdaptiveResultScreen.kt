@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,6 +47,8 @@ fun AdaptiveResultScreen(
     val state by viewModel.uiState.collectAsState()
     val result = state.result
     val questions = state.session?.questions.orEmpty()
+
+    BackHandler { onBackToHome() }
 
     LaunchedEffect(result) {
         if (result == null) {

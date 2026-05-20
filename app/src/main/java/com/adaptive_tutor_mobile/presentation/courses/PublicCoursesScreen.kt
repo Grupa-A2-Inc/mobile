@@ -3,7 +3,8 @@ package com.adaptive_tutor_mobile.presentation.courses
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -118,23 +119,21 @@ fun PublicCoursesScreen(
                                                     Text("Înscrie-te")
                                                 }
                                             } else {
-                                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                                    OutlinedButton(
-                                                        onClick = { viewModel.unenroll(course.id) },
-                                                        colors = ButtonDefaults.outlinedButtonColors(
-                                                            contentColor = MaterialTheme.colorScheme.error
-                                                        ),
-                                                        border = BorderStroke(
-                                                            1.dp, MaterialTheme.colorScheme.error
-                                                        )
-                                                    ) {
-                                                        Text("Dezabonare")
-                                                    }
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                ) {
                                                     Text(
                                                         text = "Înscris ✓",
-                                                        color = MaterialTheme.colorScheme.primary,
-                                                        modifier = Modifier.align(Alignment.CenterVertically)
+                                                        color = MaterialTheme.colorScheme.primary
                                                     )
+                                                    IconButton(onClick = { viewModel.unenroll(course.id) }) {
+                                                        Icon(
+                                                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                                            contentDescription = "Dezabonează-te",
+                                                            tint = MaterialTheme.colorScheme.error
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }

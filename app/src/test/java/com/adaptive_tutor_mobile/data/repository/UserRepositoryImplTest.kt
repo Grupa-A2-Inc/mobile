@@ -10,6 +10,8 @@ import org.junit.Test
 import retrofit2.Response
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 
 class UserRepositoryImplTest {
 
@@ -119,5 +121,170 @@ class UserRepositoryImplTest {
 
         assertTrue(result.isFailure)
         assertEquals("password failed", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getProfile returns failure with parsed error message from json`() = runTest {
+        val body = """{"message":"utilizator negăsit"}"""
+            .toResponseBody("application/json".toMediaType())
+        coEvery { api.getUserById(userId) } returns Response.error(404, body)
+
+        val result = repository.getProfile(userId)
+
+        assertTrue(result.isFailure)
+        assertEquals("utilizator negăsit", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getProfile returns failure with error field from json`() = runTest {
+        val body = """{"error":"not found"}"""
+            .toResponseBody("application/json".toMediaType())
+        coEvery { api.getUserById(userId) } returns Response.error(404, body)
+
+        val result = repository.getProfile(userId)
+
+        assertTrue(result.isFailure)
+        assertEquals("not found", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getProfile returns failure on 401`() = runTest {
+        coEvery { api.getUserById(userId) } returns Response.error(401, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.getProfile(userId)
+
+        assertTrue(result.isFailure)
+        assertEquals("Sesiune expirată, te rugăm să te autentifici din nou", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getProfile returns failure on 403`() = runTest {
+        coEvery { api.getUserById(userId) } returns Response.error(403, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.getProfile(userId)
+
+        assertTrue(result.isFailure)
+        assertEquals("Acces interzis", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getProfile returns failure on unknown code`() = runTest {
+        coEvery { api.getUserById(userId) } returns Response.error(500, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.getProfile(userId)
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull()?.message?.contains("500") == true)
+    }
+
+    @Test
+    fun `getProfile returns failure when body is null`() = runTest {
+        coEvery { api.getUserById(userId) } returns Response.success(null)
+
+        val result = repository.getProfile(userId)
+
+        assertTrue(result.isFailure)
+        assertEquals("Răspuns gol de la server", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `updateProfile returns fallback profile when body is null`() = runTest {
+        coEvery { api.updateUser(userId, any()) } returns Response.success(null)
+
+        val result = repository.updateProfile(userId, "ada@example.com", "Ada", "Lovelace", null)
+
+        assertTrue(result.isSuccess)
+        assertEquals(userId, result.getOrNull()?.id)
+        assertEquals("Ada", result.getOrNull()?.firstName)
+    }
+
+    @Test
+    fun `updateProfile returns failure on 401`() = runTest {
+        coEvery { api.updateUser(userId, any()) } returns Response.error(401, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.updateProfile(userId, "ada@example.com", "Ada", "Lovelace", null)
+
+        assertTrue(result.isFailure)
+        assertEquals("Sesiune expirată, te rugăm să te autentifici din nou", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `updateProfile returns failure on 403`() = runTest {
+        coEvery { api.updateUser(userId, any()) } returns Response.error(403, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.updateProfile(userId, "ada@example.com", "Ada", "Lovelace", null)
+
+        assertTrue(result.isFailure)
+        assertEquals("Acces interzis", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `updateProfile returns failure on 404`() = runTest {
+        coEvery { api.updateUser(userId, any()) } returns Response.error(404, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.updateProfile(userId, "ada@example.com", "Ada", "Lovelace", null)
+
+        assertTrue(result.isFailure)
+        assertEquals("Utilizatorul nu a fost găsit", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `updateProfile returns failure on 409`() = runTest {
+        coEvery { api.updateUser(userId, any()) } returns Response.error(409, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.updateProfile(userId, "ada@example.com", "Ada", "Lovelace", null)
+
+        assertTrue(result.isFailure)
+        assertEquals("Emailul este deja folosit de un alt cont", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `changePassword returns failure on 400`() = runTest {
+        coEvery { api.changePassword(userId, any()) } returns Response.error(400, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.changePassword(userId, "old", "new", "new")
+
+        assertTrue(result.isFailure)
+        assertEquals("Parola curentă este incorectă", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `changePassword returns failure on 401`() = runTest {
+        coEvery { api.changePassword(userId, any()) } returns Response.error(401, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.changePassword(userId, "old", "new", "new")
+
+        assertTrue(result.isFailure)
+        assertEquals("Sesiune expirată, te rugăm să te autentifici din nou", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `changePassword returns failure on 404`() = runTest {
+        coEvery { api.changePassword(userId, any()) } returns Response.error(404, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.changePassword(userId, "old", "new", "new")
+
+        assertTrue(result.isFailure)
+        assertEquals("Utilizatorul nu a fost găsit", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `changePassword returns failure on 422`() = runTest {
+        coEvery { api.changePassword(userId, any()) } returns Response.error(422, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.changePassword(userId, "old", "new", "new")
+
+        assertTrue(result.isFailure)
+        assertEquals("Parola nouă nu respectă cerințele de securitate", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `changePassword returns failure on unknown code`() = runTest {
+        coEvery { api.changePassword(userId, any()) } returns Response.error(500, "".toResponseBody("application/json".toMediaType()))
+
+        val result = repository.changePassword(userId, "old", "new", "new")
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull()?.message?.contains("500") == true)
     }
 }

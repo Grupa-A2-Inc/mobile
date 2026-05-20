@@ -277,4 +277,28 @@ class ProgressRepositoryImplTest {
 
         assertTrue(result.isFailure)
     }
+
+    @Test
+    fun `getEnrolledCourses parses error field when message absent`() = runTest {
+        val body = """{"error":"Unauthorized"}"""
+            .toResponseBody("application/json".toMediaType())
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.error(401, body)
+
+        val result = repository.getEnrolledCourses()
+
+        assertTrue(result.isFailure)
+        assertEquals("Unauthorized", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `getCompletedCourses unknown code uses generic message`() = runTest {
+        coEvery { progressApi.getCompletedCourses() } returns Response.error(
+            500, "".toResponseBody("application/json".toMediaType())
+        )
+
+        val result = repository.getCompletedCourses()
+
+        assertTrue(result.isFailure)
+        assertEquals("Eroare 500", result.exceptionOrNull()?.message)
+    }
 }

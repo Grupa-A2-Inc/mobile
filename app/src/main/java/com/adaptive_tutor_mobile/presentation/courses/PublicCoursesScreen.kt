@@ -3,6 +3,7 @@ package com.adaptive_tutor_mobile.presentation.courses
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +23,7 @@ fun PublicCoursesScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val enrollSuccess by viewModel.enrollSuccess.collectAsState()
+    val unenrollSuccess by viewModel.unenrollSuccess.collectAsState()
     val enrolledCourseIds by viewModel.enrolledCourseIds.collectAsState()
     val currentPage by viewModel.currentPage.collectAsState()
     val totalPages by viewModel.totalPages.collectAsState()
@@ -32,6 +34,13 @@ fun PublicCoursesScreen(
         enrollSuccess?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearEnrollSuccess()
+        }
+    }
+
+    LaunchedEffect(unenrollSuccess) {
+        unenrollSuccess?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearUnenrollSuccess()
         }
     }
 
@@ -76,8 +85,12 @@ fun PublicCoursesScreen(
                             modifier = Modifier.weight(1f)
                         ) {
                             items(courses) { course ->
+                                val isEnrolled = enrolledCourseIds.contains(course.id)
                                 Card(
-                                    onClick = { navController.navigate("course_detail/${course.id}") },
+                                    onClick = {
+                                        if (isEnrolled) navController.navigate("course_detail/${course.id}")
+                                    },
+                                    enabled = isEnrolled,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Column(
@@ -100,15 +113,29 @@ fun PublicCoursesScreen(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.End
                                         ) {
-                                            if (!enrolledCourseIds.contains(course.id)) {
+                                            if (!isEnrolled) {
                                                 Button(onClick = { viewModel.enroll(course.id) }) {
                                                     Text("Înscrie-te")
                                                 }
                                             } else {
-                                                Text(
-                                                    text = "Înscris ✓",
-                                                    color = MaterialTheme.colorScheme.primary
-                                                )
+                                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                    OutlinedButton(
+                                                        onClick = { viewModel.unenroll(course.id) },
+                                                        colors = ButtonDefaults.outlinedButtonColors(
+                                                            contentColor = MaterialTheme.colorScheme.error
+                                                        ),
+                                                        border = BorderStroke(
+                                                            1.dp, MaterialTheme.colorScheme.error
+                                                        )
+                                                    ) {
+                                                        Text("Dezabonare")
+                                                    }
+                                                    Text(
+                                                        text = "Înscris ✓",
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.align(Alignment.CenterVertically)
+                                                    )
+                                                }
                                             }
                                         }
                                     }

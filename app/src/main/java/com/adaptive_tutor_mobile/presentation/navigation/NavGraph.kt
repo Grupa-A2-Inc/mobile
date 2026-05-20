@@ -214,7 +214,15 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen(onNavigateBack = { navController.navigateUp() })
+            ProfileScreen(
+                onNavigateBack = { navController.navigateUp() },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(

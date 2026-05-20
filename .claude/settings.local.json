@@ -13,7 +13,9 @@
       "Bash(xargs grep -l \"profile\" -i)",
       "Bash(./gradlew compileDebugKotlin)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\teodo\\\\Desktop\\\\Proiect IP\\\\mobile\" -Recurse -Directory)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "PowerShell(cd \"c:\\\\Users\\\\teodo\\\\Desktop\\\\Proiect IP\\\\mobile\"; .\\\\gradlew testDebugUnitTest 2>&1 | Where-Object { $_ -match \"ThemeTest|Caused by|java\\\\.lang\\\\.\" } | Select-Object -First 20)",
+      "Bash(.\\\\gradlew compileDebugKotlin)"
     ]
   }
 }

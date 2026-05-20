@@ -12,10 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Search
@@ -25,12 +26,16 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -49,6 +54,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
+import com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto
 import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.components.AdaptiveBottomBar
 import com.adaptive_tutor_mobile.presentation.components.BottomNavItem
@@ -75,7 +81,7 @@ private const val TAB_PROFILE    = "student_tab_profile"
 
 private val bottomNavItems = listOf(
     BottomNavItem(TAB_HOME,       Icons.Filled.Home,      "Acasă"),
-    BottomNavItem(TAB_MY_COURSES, Icons.Filled.MenuBook,  "Cursuri"),
+    BottomNavItem(TAB_MY_COURSES, Icons.AutoMirrored.Filled.MenuBook,  "Cursuri"),
     BottomNavItem(TAB_EXPLORE,    Icons.Filled.Explore,   "Explorează"),
     BottomNavItem(TAB_ADAPTIVE,   Icons.Filled.Psychology,"Adaptiv"),
     BottomNavItem(TAB_PROFILE,    Icons.Filled.Person,    "Profil")
@@ -341,7 +347,7 @@ private fun DashboardTab(
                 if (courses.isEmpty()) {
                     item {
                         EmptyState(
-                            icon = Icons.Filled.MenuBook,
+                            icon = Icons.AutoMirrored.Filled.MenuBook,
                             title = "Niciun curs",
                             subtitle = "Nu ești înscris la niciun curs încă.",
                             actionText = "Explorează cursuri",
@@ -393,8 +399,22 @@ private fun MyCoursesTab(
     modifier: Modifier = Modifier
 ) {
     val coursesState by studentViewModel.coursesState.collectAsState()
+    val message by studentViewModel.message.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var pendingUnenrollCourse by remember { mutableStateOf<EnrolledCourseDto?>(null) }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    LaunchedEffect(message) {
+        message?.let {
+            snackbarHostState.showSnackbar(it)
+            studentViewModel.clearMessage()
+        }
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
         AppTopBar(
             title = "Cursurile mele",
             actions = {
@@ -419,7 +439,7 @@ private fun MyCoursesTab(
                 val courses = state.courses
                 if (courses.isEmpty()) {
                     EmptyState(
-                        icon = Icons.Filled.MenuBook,
+                        icon = Icons.AutoMirrored.Filled.MenuBook,
                         title = "Niciun curs",
                         subtitle = "Nu ești înscris la niciun curs încă.\nExplorează cursuri disponibile!",
                         actionText = "Explorează",
@@ -434,19 +454,123 @@ private fun MyCoursesTab(
                             items = courses,
                             key = { it.courseId }
                         ) { course ->
-                            CourseCard(
-                                title = course.courseTitle,
-                                description = null,
-                                category = course.courseCategory,
-                                progressPercent = course.progressPercent,
+                            MyCourseCard(
+                                course = course,
                                 onClick = {
                                     navController.navigate(
                                         Screen.CourseDetail.createRoute(course.courseId)
                                     )
-                                }
+                                },
+                                onUnenrollClick = { pendingUnenrollCourse = course }
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+
+        pendingUnenrollCourse?.let { course ->
+            AlertDialog(
+                onDismissRequest = { pendingUnenrollCourse = null },
+                title = { Text("Confirmă dezabonarea") },
+                text = {
+                    Text(
+                        "Ești sigur că vrei să te dezabonezi din ${course.courseTitle}? " +
+                            "Progresul tău va fi pierdut."
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            studentViewModel.unenroll(course.courseId)
+                            pendingUnenrollCourse = null
+                        }
+                    ) {
+                        Text("Dezabonează")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingUnenrollCourse = null }) {
+                        Text("Anulează")
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun MyCourseCard(
+    course: EnrolledCourseDto,
+    onClick: () -> Unit,
+    onUnenrollClick: () -> Unit
+) {
+    ElevatedCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 16.dp, end = 8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = course.courseTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2
+                    )
+                    if (!course.courseCategory.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = course.courseCategory,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                if (course.completedAt.isNullOrBlank()) {
+                    IconButton(onClick = onUnenrollClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Dezabonează-te",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+                course.progressPercent?.let { progress ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Progres",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = "${progress.toInt()}%",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { (progress / 100.0).toFloat().coerceIn(0f, 1f) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp),
+                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                    )
                 }
             }
         }

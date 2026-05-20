@@ -21,6 +21,7 @@ turbine = "1.1.0"
 kotlinTest = "1.9.22"
 mockitoKotlin = "5.2.1"
 archCore = "2.2.0"
+robolectric = "4.12.2"
 androidxJunit = "1.1.5"
 espresso = "3.5.1"
 
@@ -59,5 +60,6 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlinTest" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
 arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCore" }
+robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }

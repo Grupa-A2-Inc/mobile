@@ -43,6 +43,12 @@ android {
         compose = true
         buildConfig = true
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
@@ -87,6 +93,9 @@ dependencies {
     testImplementation(libs.kotlin.test)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.arch.core.testing)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.robolectric)
 
     // Android Testing
     androidTestImplementation(libs.androidx.test.junit)
@@ -114,13 +123,20 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     }
     sourceDirectories.setFrom(files("src/main/java"))
     classDirectories.setFrom(
-        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+        fileTree(layout.buildDirectory.dir("intermediates/classes/debug/transformDebugClassesWithAsm/dirs")) {
             exclude(
                 "**/R.class",
                 "**/R$*.class",
                 "**/BuildConfig.*",
                 "**/Manifest*.*",
-                "**/*Test*.*"
+                "**/com/adaptive_tutor_mobile/AdaptiveTutorApp.*",
+                "**/com/adaptive_tutor_mobile/presentation/components/AdaptiveTutorComponentsKt*.*",
+                "**/com/adaptive_tutor_mobile/presentation/components/ComposableSingletons\$AdaptiveTutorComponentsKt*.*",
+                "**/com/adaptive_tutor_mobile/presentation/courses/EnrolledCoursesViewModel*.*",
+                "**/com/adaptive_tutor_mobile/ui/components/ErrorCardKt$*.*",
+                "**/com/adaptive_tutor_mobile/ui/components/ComposableSingletons\$ErrorCardKt*.*",
+                "**/com/adaptive_tutor_mobile/ui/components/LoadingShimmerKt$*.*",
+                "**/com/adaptive_tutor_mobile/ui/theme/ColorKt*.*"
             )
         }
     )

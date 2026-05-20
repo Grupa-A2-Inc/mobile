@@ -106,6 +106,37 @@ class CourseRepositoryImplTest {
     }
 
     @Test
+    fun `unenrollFromCourse returns success`() = runTest {
+        whenever(enrollmentApi.unenrollFromCourse("course1")).thenReturn(
+            Response.success(Unit)
+        )
+
+        val result = repository.unenrollFromCourse("course1")
+
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `unenrollFromCourse returns failure on error response`() = runTest {
+        whenever(enrollmentApi.unenrollFromCourse("course1")).thenReturn(
+            Response.error(404, okhttp3.ResponseBody.create(null, ""))
+        )
+
+        val result = repository.unenrollFromCourse("course1")
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `unenrollFromCourse returns failure on exception`() = runTest {
+        whenever(enrollmentApi.unenrollFromCourse("course1")).thenThrow(RuntimeException("Network error"))
+
+        val result = repository.unenrollFromCourse("course1")
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
     fun `getPublicCourses maps all fields correctly`() = runTest {
         val dto = ResponseCourseDto(
             id = "1",

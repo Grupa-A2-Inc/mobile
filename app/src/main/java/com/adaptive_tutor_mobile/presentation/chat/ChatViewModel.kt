@@ -42,6 +42,7 @@ class ChatViewModel @Inject constructor(
 
     private companion object {
         const val LOADING_MSG_ID = "msg_loading_placeholder"
+        const val MAX_MESSAGES   = 8
     }
 
     /**
@@ -78,7 +79,7 @@ class ChatViewModel @Inject constructor(
                 )
 
                 if (response.isSuccessful) {
-                    val aiText = response.body()?.response
+                    val aiText = response.body()?.answer
                         ?.takeIf { it.isNotBlank() }
                         ?: "Nu am primit un răspuns valid de la server."
 
@@ -118,8 +119,10 @@ class ChatViewModel @Inject constructor(
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private fun replaceLoadingWith(msg: ChatMessage) {
-        _messages.value = _messages.value
+        val updated = _messages.value
             .filterNot { it.id == LOADING_MSG_ID }
             .plus(msg)
+        // Păstrează maxim MAX_MESSAGES mesaje — cel mai vechi dispare primul
+        _messages.value = if (updated.size > MAX_MESSAGES) updated.takeLast(MAX_MESSAGES) else updated
     }
 }

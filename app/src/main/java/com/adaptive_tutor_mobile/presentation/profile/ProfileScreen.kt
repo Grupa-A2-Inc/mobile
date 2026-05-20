@@ -73,7 +73,6 @@ fun ProfileScreen(
     // Câmpuri editabile — se resetează când vin datele din API
     var firstName by rememberSaveable(profile) { mutableStateOf(profile?.firstName ?: "") }
     var lastName  by rememberSaveable(profile) { mutableStateOf(profile?.lastName  ?: "") }
-    var city      by rememberSaveable(profile) { mutableStateOf(profile?.city      ?: "") }
 
     // Câmpuri parolă
     var currentPassword    by rememberSaveable { mutableStateOf("") }
@@ -168,14 +167,6 @@ fun ProfileScreen(
                             value = lastName,
                             onValueChange = { lastName = it },
                             label = { Text("Nume") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
-
-                        OutlinedTextField(
-                            value = city,
-                            onValueChange = { city = it },
-                            label = { Text("Oraș") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )

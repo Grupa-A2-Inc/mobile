@@ -23,5 +23,6 @@ data class ChatRequest(
 // ── Response model ────────────────────────────────────────────────────────────
 
 data class ChatResponse(
-    val response: String
+    val answer: String,
+    val chatbot: String? = null
 )

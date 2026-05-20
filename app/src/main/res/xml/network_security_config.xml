@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Permite HTTP (cleartext) doar pentru serverul AI care nu are HTTPS -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">ai.adaptiveelearning.online</domain>
+    </domain-config>
+</network-security-config>

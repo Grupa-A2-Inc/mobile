@@ -33,7 +33,8 @@ import com.adaptive_tutor_mobile.data.remote.api.ChatApi
 import com.adaptive_tutor_mobile.data.remote.api.StatsApi
 import com.adaptive_tutor_mobile.data.remote.api.UserApi
 
-private const val BASE_URL = "https://api.adaptiveelearning.online/"
+private const val BASE_URL    = "https://api.adaptiveelearning.online/"
+private const val AI_BASE_URL = "http://ai.adaptiveelearning.online/"
 
 // ── WebKit-backed CookieJar ───────────────────────────────────────────────────
 
@@ -67,13 +68,14 @@ class AuthInterceptor(private val sessionStore: SessionStore) : Interceptor {
         "/api/v1/auth/refresh",
         "/api/v1/auth/password-reset/request",
         "/api/v1/auth/password-reset/confirm",
-        "/api/v1/auth/set-password"
+        "/api/v1/auth/set-password",
+        "/ai/"  // AI service uses X-API-KEY, not Bearer token
     )
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val req = chain.request()
         val path = req.url.encodedPath
-        if (skipPaths.any { path.endsWith(it) }) {
+        if (skipPaths.any { path.contains(it) }) {
             return chain.proceed(req)
         }
         val token = sessionStore.getAccessToken()
@@ -93,7 +95,8 @@ class TokenRefreshAuthenticator(
 
     private val skipPaths = listOf(
         "auth/login", "auth/register", "auth/refresh",
-        "auth/password-reset"
+        "auth/password-reset",
+        "ai/"  // AI service — uses X-API-KEY, not Bearer; 401 here must NOT trigger session logout
     )
 
     override fun authenticate(route: okhttp3.Route?, response: Response): Request? {
@@ -251,8 +254,30 @@ object NetworkModule {
     fun provideAttemptHistoryApi(retrofit: Retrofit): AttemptHistoryApi =
         retrofit.create(AttemptHistoryApi::class.java)
 
+    // ── AI service — domeniu separat, fără Bearer auth ────────────────────────
     @Provides
     @Singleton
-    fun provideChatApi(retrofit: Retrofit): ChatApi =
+    @Named("ai")
+    fun provideAiOkHttpClient(logging: HttpLoggingInterceptor): OkHttpClient =
+        OkHttpClient.Builder()
+            .connectTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .readTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .writeTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .addInterceptor(logging)
+            .build()
+
+    @Provides
+    @Singleton
+    @Named("ai")
+    fun provideAiRetrofit(@Named("ai") client: OkHttpClient): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(AI_BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideChatApi(@Named("ai") retrofit: Retrofit): ChatApi =
         retrofit.create(ChatApi::class.java)
 }

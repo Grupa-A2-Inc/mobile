@@ -349,13 +349,16 @@ private fun DashboardTab(
                     )
                 }
                 item {
+                    val finalizate = courses.count { it.completedAt != null }
+                    val avgProgress = if (courses.isEmpty()) "—"
+                        else "${courses.map { it.progressPercent ?: 0.0 }.average().toInt()}%"
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        StatCard("Cursuri înscrise", courses.size.toString(), Modifier.weight(1f))
-                        StatCard("Lecții citite", "—", Modifier.weight(1f))
-                        StatCard("Teste promovate", "0", Modifier.weight(1f))
+                        StatCard("Înscris la", courses.size.toString(), Modifier.weight(1f))
+                        StatCard("Finalizate", finalizate.toString(), Modifier.weight(1f))
+                        StatCard("Progres mediu", avgProgress, Modifier.weight(1f))
                     }
                 }
 

@@ -1,7 +1,7 @@
 package com.adaptive_tutor_mobile
 
-import com.adaptive_tutor_mobile.domain.repository.RatingRepository
-import com.adaptive_tutor_mobile.domain.usecase.SubmitLessonRatingUseCase
+import com.adaptive_tutor_mobile.domain.repository.lesson.RatingRepository
+import com.adaptive_tutor_mobile.domain.usecase.lesson.SubmitLessonRatingUseCase
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Test

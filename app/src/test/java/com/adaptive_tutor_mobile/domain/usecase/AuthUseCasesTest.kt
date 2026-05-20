@@ -1,9 +1,13 @@
 package com.adaptive_tutor_mobile.domain.usecase
 
 import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
-import com.adaptive_tutor_mobile.domain.model.User
-import com.adaptive_tutor_mobile.domain.model.UserRole
-import com.adaptive_tutor_mobile.domain.repository.AuthRepository
+import com.adaptive_tutor_mobile.domain.model.auth.User
+import com.adaptive_tutor_mobile.domain.model.auth.UserRole
+import com.adaptive_tutor_mobile.domain.repository.auth.AuthRepository
+import com.adaptive_tutor_mobile.domain.usecase.auth.ForgotPasswordUseCase
+import com.adaptive_tutor_mobile.domain.usecase.auth.LoginUseCase
+import com.adaptive_tutor_mobile.domain.usecase.auth.LogoutUseCase
+import com.adaptive_tutor_mobile.domain.usecase.auth.RegisterUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

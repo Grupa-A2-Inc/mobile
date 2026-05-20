@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.adaptive_tutor_mobile.domain.model.AttemptHistory
+import com.adaptive_tutor_mobile.domain.model.test.AttemptHistory
 import com.adaptive_tutor_mobile.presentation.components.StatusChip
 
 @OptIn(ExperimentalMaterial3Api::class)

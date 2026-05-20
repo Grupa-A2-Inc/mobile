@@ -3,9 +3,9 @@ package com.adaptive_tutor_mobile.presentation.courses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
-import com.adaptive_tutor_mobile.domain.model.Course
-import com.adaptive_tutor_mobile.domain.usecase.EnrollInCourseUseCase
-import com.adaptive_tutor_mobile.domain.usecase.GetPublicCoursesUseCase
+import com.adaptive_tutor_mobile.domain.model.courses.Course
+import com.adaptive_tutor_mobile.domain.usecase.courses.EnrollInCourseUseCase
+import com.adaptive_tutor_mobile.domain.usecase.courses.GetPublicCoursesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

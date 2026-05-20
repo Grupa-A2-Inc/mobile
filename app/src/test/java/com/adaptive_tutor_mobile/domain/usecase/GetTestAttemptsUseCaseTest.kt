@@ -1,8 +1,9 @@
 package com.adaptive_tutor_mobile.domain.usecase
 
-import com.adaptive_tutor_mobile.domain.model.AttemptHistory
-import com.adaptive_tutor_mobile.domain.model.BestAttempt
-import com.adaptive_tutor_mobile.domain.repository.AttemptHistoryRepository
+import com.adaptive_tutor_mobile.domain.model.test.AttemptHistory
+import com.adaptive_tutor_mobile.domain.model.test.BestAttempt
+import com.adaptive_tutor_mobile.domain.repository.test.AttemptHistoryRepository
+import com.adaptive_tutor_mobile.domain.usecase.test.GetTestAttemptsUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest

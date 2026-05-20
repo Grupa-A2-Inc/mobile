@@ -7,7 +7,7 @@ import com.adaptive_tutor_mobile.data.remote.dto.LoginRequest
 import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
 import com.adaptive_tutor_mobile.data.remote.dto.UserDataResponse
 import com.adaptive_tutor_mobile.di.SessionStore
-import com.adaptive_tutor_mobile.domain.model.User
+import com.adaptive_tutor_mobile.domain.model.auth.User
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

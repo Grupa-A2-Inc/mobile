@@ -30,16 +30,17 @@ class UserDtosTest {
     @Test
     fun `UpdateUserDto copy keeps data class behavior`() {
         val dto = UpdateUserDto(
+            email = "alan@example.com",
             firstName = "Alan",
             lastName = "Turing",
-            city = null
+            organizationId = null
         )
-        val updated = dto.copy(city = "Manchester")
+        val updated = dto.copy(email = "alan2@example.com")
 
         assertEquals("Alan", updated.firstName)
         assertEquals("Turing", updated.lastName)
-        assertEquals("Manchester", updated.city)
-        assertNull(dto.city)
+        assertEquals("alan2@example.com", updated.email)
+        assertNull(dto.organizationId)
     }
 
     @Test
@@ -47,11 +48,11 @@ class UserDtosTest {
         val dto = ChangePasswordDto(
             currentPassword = "old-secret",
             newPassword = "new-secret",
-            confirmPassword = "new-secret"
+            newPasswordConfirm = "new-secret"
         )
 
         assertEquals("old-secret", dto.currentPassword)
         assertEquals("new-secret", dto.newPassword)
-        assertEquals("new-secret", dto.confirmPassword)
+        assertEquals("new-secret", dto.newPasswordConfirm)
     }
 }

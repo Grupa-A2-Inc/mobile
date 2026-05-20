@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto
-import com.adaptive_tutor_mobile.domain.usecase.UnenrollFromCourseUseCase
+import com.adaptive_tutor_mobile.domain.usecase.courses.UnenrollFromCourseUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

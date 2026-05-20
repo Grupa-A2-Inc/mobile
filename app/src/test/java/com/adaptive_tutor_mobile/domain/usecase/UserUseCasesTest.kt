@@ -1,7 +1,10 @@
 package com.adaptive_tutor_mobile.domain.usecase
 
-import com.adaptive_tutor_mobile.domain.model.UserProfile
-import com.adaptive_tutor_mobile.domain.repository.UserRepository
+import com.adaptive_tutor_mobile.domain.model.profile.UserProfile
+import com.adaptive_tutor_mobile.domain.repository.profile.UserRepository
+import com.adaptive_tutor_mobile.domain.usecase.profile.ChangePasswordUseCase
+import com.adaptive_tutor_mobile.domain.usecase.profile.GetUserProfileUseCase
+import com.adaptive_tutor_mobile.domain.usecase.profile.UpdateUserProfileUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

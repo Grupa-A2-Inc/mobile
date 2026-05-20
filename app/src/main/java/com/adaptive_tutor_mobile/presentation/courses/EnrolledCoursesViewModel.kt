@@ -2,9 +2,9 @@ package com.adaptive_tutor_mobile.presentation.courses
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.adaptive_tutor_mobile.domain.model.EnrolledCourse
-import com.adaptive_tutor_mobile.domain.usecase.GetEnrolledCoursesUseCase
-import com.adaptive_tutor_mobile.domain.usecase.UnenrollFromCourseUseCase
+import com.adaptive_tutor_mobile.domain.model.courses.EnrolledCourse
+import com.adaptive_tutor_mobile.domain.usecase.courses.GetEnrolledCoursesUseCase
+import com.adaptive_tutor_mobile.domain.usecase.courses.UnenrollFromCourseUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -1,8 +1,8 @@
 package com.adaptive_tutor_mobile.presentation.courses
 
 import app.cash.turbine.test
-import com.adaptive_tutor_mobile.domain.usecase.GetEnrolledCoursesUseCase
-import com.adaptive_tutor_mobile.domain.usecase.UnenrollFromCourseUseCase
+import com.adaptive_tutor_mobile.domain.usecase.courses.GetEnrolledCoursesUseCase
+import com.adaptive_tutor_mobile.domain.usecase.courses.UnenrollFromCourseUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import com.adaptive_tutor_mobile.ProgressTestFixtures.domainCourse
 import io.mockk.coEvery

@@ -1,9 +1,9 @@
 package com.adaptive_tutor_mobile.data.repository
 
 import com.adaptive_tutor_mobile.data.remote.api.AttemptHistoryApi
-import com.adaptive_tutor_mobile.domain.model.AttemptHistory
-import com.adaptive_tutor_mobile.domain.model.BestAttempt
-import com.adaptive_tutor_mobile.domain.repository.AttemptHistoryRepository
+import com.adaptive_tutor_mobile.domain.model.test.AttemptHistory
+import com.adaptive_tutor_mobile.domain.model.test.BestAttempt
+import com.adaptive_tutor_mobile.domain.repository.test.AttemptHistoryRepository
 import javax.inject.Inject
 
 class AttemptHistoryRepositoryImpl @Inject constructor(

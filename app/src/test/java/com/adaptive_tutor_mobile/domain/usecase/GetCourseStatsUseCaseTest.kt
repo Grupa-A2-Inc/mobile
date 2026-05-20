@@ -1,7 +1,8 @@
 package com.adaptive_tutor_mobile.domain.usecase
 
-import com.adaptive_tutor_mobile.domain.model.CourseStats
-import com.adaptive_tutor_mobile.domain.repository.StatsRepository
+import com.adaptive_tutor_mobile.domain.model.stats.CourseStats
+import com.adaptive_tutor_mobile.domain.repository.stats.StatsRepository
+import com.adaptive_tutor_mobile.domain.usecase.stats.GetCourseStatsUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest

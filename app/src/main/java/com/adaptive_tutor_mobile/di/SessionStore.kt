@@ -10,8 +10,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.adaptive_tutor_mobile.domain.model.User
-import com.adaptive_tutor_mobile.domain.model.UserRole
+import com.adaptive_tutor_mobile.domain.model.auth.User
+import com.adaptive_tutor_mobile.domain.model.auth.UserRole
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow

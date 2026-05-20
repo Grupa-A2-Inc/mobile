@@ -1,5 +1,13 @@
 package com.adaptive_tutor_mobile.domain.model
 
+import com.adaptive_tutor_mobile.domain.model.lesson.LessonDetail
+import com.adaptive_tutor_mobile.domain.model.lesson.LessonResource
+import com.adaptive_tutor_mobile.domain.model.test.AttemptResult
+import com.adaptive_tutor_mobile.domain.model.test.Option
+import com.adaptive_tutor_mobile.domain.model.test.Question
+import com.adaptive_tutor_mobile.domain.model.test.QuestionResult
+import com.adaptive_tutor_mobile.domain.model.test.QuestionType
+import com.adaptive_tutor_mobile.domain.model.test.TestAttempt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

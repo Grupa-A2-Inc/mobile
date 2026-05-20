@@ -43,7 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.adaptive_tutor_mobile.domain.model.EnrolledCourse
+import com.adaptive_tutor_mobile.domain.model.courses.EnrolledCourse
 import com.adaptive_tutor_mobile.presentation.components.EmptyScreen
 import com.adaptive_tutor_mobile.presentation.components.ErrorScreen
 import com.adaptive_tutor_mobile.presentation.components.LoadingScreen

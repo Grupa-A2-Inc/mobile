@@ -1,7 +1,18 @@
 package com.adaptive_tutor_mobile.di
 
 import com.adaptive_tutor_mobile.data.repository.*
-import com.adaptive_tutor_mobile.domain.repository.*
+import com.adaptive_tutor_mobile.domain.repository.auth.AuthRepository
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseRepository
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseDetailRepository
+import com.adaptive_tutor_mobile.domain.repository.lesson.LessonRepository
+import com.adaptive_tutor_mobile.domain.repository.lesson.RatingRepository
+import com.adaptive_tutor_mobile.domain.repository.test.TestRepository
+import com.adaptive_tutor_mobile.domain.repository.test.AttemptHistoryRepository
+import com.adaptive_tutor_mobile.domain.repository.test.ErrorReportRepository
+import com.adaptive_tutor_mobile.domain.repository.adaptive.AdaptiveRepository
+import com.adaptive_tutor_mobile.domain.repository.profile.UserRepository
+import com.adaptive_tutor_mobile.domain.repository.stats.ProgressRepository
+import com.adaptive_tutor_mobile.domain.repository.stats.StatsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

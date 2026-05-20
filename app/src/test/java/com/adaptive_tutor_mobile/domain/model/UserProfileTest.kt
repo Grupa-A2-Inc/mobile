@@ -1,5 +1,6 @@
 package com.adaptive_tutor_mobile.domain.model
 
+import com.adaptive_tutor_mobile.domain.model.profile.UserProfile
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import org.junit.Test

@@ -11,7 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.adaptive_tutor_mobile.di.SessionStore
-import com.adaptive_tutor_mobile.domain.model.UserRole
+import com.adaptive_tutor_mobile.domain.model.auth.UserRole
 import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.auth.ForgotPasswordScreen
 import com.adaptive_tutor_mobile.presentation.auth.LoginScreen

@@ -1,10 +1,10 @@
 package com.adaptive_tutor_mobile
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.adaptive_tutor_mobile.domain.model.Course
-import com.adaptive_tutor_mobile.domain.model.PagedCourses
-import com.adaptive_tutor_mobile.domain.usecase.EnrollInCourseUseCase
-import com.adaptive_tutor_mobile.domain.usecase.GetPublicCoursesUseCase
+import com.adaptive_tutor_mobile.domain.model.courses.Course
+import com.adaptive_tutor_mobile.domain.model.courses.PagedCourses
+import com.adaptive_tutor_mobile.domain.usecase.courses.EnrollInCourseUseCase
+import com.adaptive_tutor_mobile.domain.usecase.courses.GetPublicCoursesUseCase
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesViewModel
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers

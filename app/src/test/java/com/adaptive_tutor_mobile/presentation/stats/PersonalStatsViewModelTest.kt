@@ -2,8 +2,8 @@ package com.adaptive_tutor_mobile.presentation.stats
 
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import com.adaptive_tutor_mobile.domain.model.CourseStats
-import com.adaptive_tutor_mobile.domain.usecase.GetCourseStatsUseCase
+import com.adaptive_tutor_mobile.domain.model.stats.CourseStats
+import com.adaptive_tutor_mobile.domain.usecase.stats.GetCourseStatsUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.mockk

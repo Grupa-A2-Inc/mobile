@@ -16,8 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.adaptive_tutor_mobile.domain.model.AttemptSummary
-import com.adaptive_tutor_mobile.domain.model.CourseStats
+import com.adaptive_tutor_mobile.domain.model.stats.AttemptSummary
+import com.adaptive_tutor_mobile.domain.model.stats.CourseStats
 import com.adaptive_tutor_mobile.presentation.components.ScoreCircle
 import com.adaptive_tutor_mobile.presentation.components.StatusChip
 

@@ -2,7 +2,7 @@ package com.adaptive_tutor_mobile.data.repository
 
 import com.adaptive_tutor_mobile.data.remote.api.ErrorReportApi
 import com.adaptive_tutor_mobile.data.remote.dto.ErrorReportRequestDto
-import com.adaptive_tutor_mobile.domain.repository.ErrorReportRepository
+import com.adaptive_tutor_mobile.domain.repository.test.ErrorReportRepository
 import com.google.gson.JsonParser
 import javax.inject.Inject
 import javax.inject.Singleton

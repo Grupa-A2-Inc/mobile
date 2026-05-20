@@ -1,6 +1,7 @@
 package com.adaptive_tutor_mobile.domain.usecase
 
-import com.adaptive_tutor_mobile.domain.repository.ErrorReportRepository
+import com.adaptive_tutor_mobile.domain.repository.test.ErrorReportRepository
+import com.adaptive_tutor_mobile.domain.usecase.test.ReportQuestionErrorUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

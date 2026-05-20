@@ -5,9 +5,9 @@ import com.adaptive_tutor_mobile.data.remote.dto.ForgotPasswordRequest
 import com.adaptive_tutor_mobile.data.remote.dto.LoginRequest
 import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
 import com.adaptive_tutor_mobile.di.SessionStore
-import com.adaptive_tutor_mobile.domain.model.User
-import com.adaptive_tutor_mobile.domain.model.toDomain
-import com.adaptive_tutor_mobile.domain.repository.AuthRepository
+import com.adaptive_tutor_mobile.domain.model.auth.User
+import com.adaptive_tutor_mobile.domain.model.auth.toDomain
+import com.adaptive_tutor_mobile.domain.repository.auth.AuthRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 

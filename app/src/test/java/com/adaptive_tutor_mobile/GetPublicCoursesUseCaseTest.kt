@@ -1,9 +1,9 @@
 package com.adaptive_tutor_mobile
 
-import com.adaptive_tutor_mobile.domain.model.Course
-import com.adaptive_tutor_mobile.domain.model.PagedCourses
-import com.adaptive_tutor_mobile.domain.repository.CourseRepository
-import com.adaptive_tutor_mobile.domain.usecase.GetPublicCoursesUseCase
+import com.adaptive_tutor_mobile.domain.model.courses.Course
+import com.adaptive_tutor_mobile.domain.model.courses.PagedCourses
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseRepository
+import com.adaptive_tutor_mobile.domain.usecase.courses.GetPublicCoursesUseCase
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

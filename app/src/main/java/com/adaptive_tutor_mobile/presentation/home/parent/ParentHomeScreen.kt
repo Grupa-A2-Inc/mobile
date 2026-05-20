@@ -66,7 +66,7 @@ fun ParentHomeScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+            columns = GridCells.Adaptive(minSize = 180.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)

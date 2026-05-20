@@ -3,6 +3,7 @@ package com.adaptive_tutor_mobile.presentation.courses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
+import com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto
 import com.adaptive_tutor_mobile.domain.model.courses.Course
 import com.adaptive_tutor_mobile.domain.usecase.courses.EnrollInCourseUseCase
 import com.adaptive_tutor_mobile.domain.usecase.courses.GetPublicCoursesUseCase
@@ -39,6 +40,9 @@ class PublicCoursesViewModel @Inject constructor(
     private val _enrolledCourseIds = MutableStateFlow<Set<String>>(emptySet())
     val enrolledCourseIds: StateFlow<Set<String>> = _enrolledCourseIds
 
+    private val _enrolledCourses = MutableStateFlow<List<EnrolledCourseDto>>(emptyList())
+    val enrolledCourses: StateFlow<List<EnrolledCourseDto>> = _enrolledCourses
+
     private val _currentPage = MutableStateFlow(0)
     val currentPage: StateFlow<Int> = _currentPage
 
@@ -57,15 +61,13 @@ class PublicCoursesViewModel @Inject constructor(
     private fun loadEnrolledIds() {
         viewModelScope.launch {
             try {
-                val response = progressApi.getMyEnrolledCourses()
+                val response = progressApi.getMyEnrolledCourses(page = 0, size = 100)
                 if (response.isSuccessful) {
-                    val ids = response.body()?.content?.map { it.courseId }?.toSet() ?: emptySet()
-                    _enrolledCourseIds.value = ids
+                    val courses = response.body()?.content ?: emptyList()
+                    _enrolledCourses.value = courses
+                    _enrolledCourseIds.value = courses.map { it.courseId }.toSet()
                 }
-            } catch (_: Exception) {
-                // best-effort: dacă pică, UI-ul rămâne cu set gol
-                // backend-ul oricum va răspunde cu 409 dacă userul apasă „Înscrie-te"
-            }
+            } catch (_: Exception) { }
         }
     }
 
@@ -102,6 +104,7 @@ class PublicCoursesViewModel @Inject constructor(
             result.onSuccess {
                 _enrollSuccess.value = "Înscris cu succes!"
                 _enrolledCourseIds.value = _enrolledCourseIds.value + courseId
+                loadEnrolledIds()
                 loadCourses(_currentPage.value)
             }
             result.onFailure { e ->
@@ -109,6 +112,7 @@ class PublicCoursesViewModel @Inject constructor(
                 _errorMessage.value = when {
                     msg.contains("already enrolled", ignoreCase = true) || msg.contains("409") -> {
                         _enrolledCourseIds.value = _enrolledCourseIds.value + courseId
+                        loadEnrolledIds()
                         "Ești deja înscris la acest curs"
                     }
                     else -> msg.ifBlank { "Eroare la înscriere" }
@@ -123,6 +127,7 @@ class PublicCoursesViewModel @Inject constructor(
             result.onSuccess {
                 _unenrollSuccess.value = "Dezabonat cu succes!"
                 _enrolledCourseIds.value = _enrolledCourseIds.value - courseId
+                _enrolledCourses.value = _enrolledCourses.value.filterNot { it.courseId == courseId }
             }
             result.onFailure { e ->
                 _errorMessage.value = e.message?.takeIf { it.isNotBlank() } ?: "Eroare la dezabonare"

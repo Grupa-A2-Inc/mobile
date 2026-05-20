@@ -327,4 +327,117 @@ class AdaptiveViewModelTest {
             )
         }
     }
+
+    // ── time tracking ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `timeSpentSeconds updated after navigating away from question`() = runTest {
+        val twoQ = session().copy(
+            questions = listOf(sampleQuestion, sampleQuestion.copy(questionId = "2"))
+        )
+        coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(twoQ)
+        val vm = viewModel()
+        vm.startSession(1, 2, 5)
+        advanceUntilIdle()
+
+        vm.nextQuestion()
+
+        val time = vm.uiState.value.timeSpentSeconds["1"]
+        assertTrue(time != null && time >= 0.0)
+    }
+
+    @Test
+    fun `timeSpentSeconds accumulates across multiple visits`() = runTest {
+        val twoQ = session().copy(
+            questions = listOf(sampleQuestion, sampleQuestion.copy(questionId = "2"))
+        )
+        coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(twoQ)
+        val vm = viewModel()
+        vm.startSession(1, 2, 5)
+        advanceUntilIdle()
+
+        vm.nextQuestion()
+        val firstVisit = vm.uiState.value.timeSpentSeconds["1"] ?: 0.0
+
+        vm.prevQuestion()
+        vm.nextQuestion()
+
+        val secondVisit = vm.uiState.value.timeSpentSeconds["1"] ?: 0.0
+        assertTrue(secondVisit >= firstVisit)
+    }
+
+    @Test
+    fun `timeSpentSeconds included in submit request`() = runTest {
+        coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
+        coEvery { adaptiveRepository.submitSession(any(), any()) } returns Result.success(sampleReport)
+        val vm = viewModel()
+        vm.startSession(1, 2, 5)
+        advanceUntilIdle()
+
+        vm.submitSession()
+        advanceUntilIdle()
+
+        coVerify {
+            adaptiveRepository.submitSession(
+                any(),
+                match { req -> (req.answers[0].timeSpent ?: -1) >= 0 }
+            )
+        }
+    }
+
+    @Test
+    fun `nextQuestion at last question stays on last question`() = runTest {
+        coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
+        val vm = viewModel()
+        vm.startSession(1, 2, 5)
+        advanceUntilIdle()
+
+        vm.nextQuestion()
+
+        assertEquals(0, vm.uiState.value.currentIndex)
+    }
+
+    @Test
+    fun `prevQuestion at first question stays on first question`() = runTest {
+        coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
+        val vm = viewModel()
+        vm.startSession(1, 2, 5)
+        advanceUntilIdle()
+
+        vm.prevQuestion()
+
+        assertEquals(0, vm.uiState.value.currentIndex)
+    }
+
+    @Test
+    fun `selectAnswer on unknown questionId creates new entry`() = runTest {
+        coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
+        val vm = viewModel()
+        vm.startSession(1, 2, 5)
+        advanceUntilIdle()
+
+        vm.selectAnswer("unknown-q", 5, false)
+
+        assertEquals(listOf(5), vm.uiState.value.selectedAnswers["unknown-q"])
+    }
+
+    @Test
+    fun `submitSession maps selected option texts correctly`() = runTest {
+        coEvery { startAdaptiveSessionUseCase(any(), any(), any()) } returns Result.success(session())
+        coEvery { adaptiveRepository.submitSession(any(), any()) } returns Result.success(sampleReport)
+        val vm = viewModel()
+        vm.startSession(1, 2, 5)
+        advanceUntilIdle()
+
+        vm.selectAnswer("1", 1, true)
+        vm.submitSession()
+        advanceUntilIdle()
+
+        coVerify {
+            adaptiveRepository.submitSession(
+                any(),
+                match { req -> req.answers[0].selectedOptionIds == listOf("2") }
+            )
+        }
+    }
 }

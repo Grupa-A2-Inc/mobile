@@ -1,8 +1,11 @@
 package com.adaptive_tutor_mobile.data.repository
 
 import com.adaptive_tutor_mobile.data.remote.api.AdaptiveApi
+import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveAttemptReportDTO
 import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveExerciseStudentDto
+import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO
 import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveStartResponseDto
+import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitRequestDto
 import com.adaptive_tutor_mobile.data.remote.dto.OptionForStudentDto
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
@@ -219,98 +222,153 @@ class AdaptiveRepositoryImplTest {
         assertEquals(null, session.questions[0].options)
     }
 
-    @Test
-    fun `submitSession returns success with scorePercent greater than 1`() = runTest {
-        val report = com.adaptive_tutor_mobile.data.remote.dto.AdaptiveAttemptReportDTO(
-            attemptId = "a1",
-            score = 80.0,
-            scorePercent = 80.0,
-            passed = true,
-            completedAt = null,
-            questions = listOf(
-                com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO(questionId = "1", correct = true),
-                com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO(questionId = "2", correct = false)
-            )
-        )
-        whenever(api.submitSession(any(), any())).thenReturn(Response.success(report))
+    // ── submitSession ─────────────────────────────────────────────────────────
 
-        val result = repository.submitSession("s1", com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitRequestDto(emptyList()))
+    private fun reportDto(
+        scorePercent: Double? = 80.0,
+        passed: Boolean? = true,
+        questions: List<AdaptiveQuestionForAttemptReportDTO> = emptyList()
+    ) = AdaptiveAttemptReportDTO(
+        attemptId = "a1",
+        score = null,
+        scorePercent = scorePercent,
+        passed = passed,
+        completedAt = null,
+        questions = questions
+    )
+
+    private val submitRequest = AdaptiveSubmitRequestDto(answers = emptyList())
+
+    @Test
+    fun `submitSession scorePercent greater than 1 used as-is`() = runTest {
+        whenever(api.submitSession(any(), any())).thenReturn(Response.success(reportDto(scorePercent = 85.0)))
+
+        val result = repository.submitSession("s1", submitRequest)
 
         assertTrue(result.isSuccess)
-        assertEquals(80.0, result.getOrNull()?.scorePercent)
+        assertEquals(85.0, result.getOrThrow().scorePercent)
     }
 
     @Test
-    fun `submitSession calculates percent when scorePercent is null`() = runTest {
-        val report = com.adaptive_tutor_mobile.data.remote.dto.AdaptiveAttemptReportDTO(
-            attemptId = "a1",
-            score = null,
-            scorePercent = null,
-            passed = null,
-            completedAt = null,
-            questions = listOf(
-                com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO(questionId = "1", correct = true),
-                com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO(questionId = "2", correct = true),
-                com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO(questionId = "3", correct = false)
-            )
-        )
-        whenever(api.submitSession(any(), any())).thenReturn(Response.success(report))
+    fun `submitSession scorePercent between 0 and 1 multiplied by 100`() = runTest {
+        whenever(api.submitSession(any(), any())).thenReturn(Response.success(reportDto(scorePercent = 0.85)))
 
-        val result = repository.submitSession("s1", com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitRequestDto(emptyList()))
+        val result = repository.submitSession("s1", submitRequest)
 
         assertTrue(result.isSuccess)
-        assertTrue(result.getOrNull()?.passed == true)
+        assertEquals(85.0, result.getOrThrow().scorePercent)
     }
 
     @Test
-    fun `submitSession returns failure on 400`() = runTest {
+    fun `submitSession null scorePercent calculated from correct questions`() = runTest {
+        val questions = listOf(
+            AdaptiveQuestionForAttemptReportDTO(questionId = "q1", correct = true),
+            AdaptiveQuestionForAttemptReportDTO(questionId = "q2", correct = true),
+            AdaptiveQuestionForAttemptReportDTO(questionId = "q3", correct = false)
+        )
+        whenever(api.submitSession(any(), any()))
+            .thenReturn(Response.success(reportDto(scorePercent = null, passed = null, questions = questions)))
+
+        val result = repository.submitSession("s1", submitRequest)
+
+        assertTrue(result.isSuccess)
+        val pct = result.getOrThrow().scorePercent!!
+        assertTrue(pct > 66.0 && pct < 67.0)
+        assertEquals(true, result.getOrThrow().passed)
+    }
+
+    @Test
+    fun `submitSession null scorePercent empty questions gives 0 percent and fails`() = runTest {
+        whenever(api.submitSession(any(), any()))
+            .thenReturn(Response.success(reportDto(scorePercent = null, passed = null, questions = emptyList())))
+
+        val result = repository.submitSession("s1", submitRequest)
+
+        assertTrue(result.isSuccess)
+        assertEquals(0.0, result.getOrThrow().scorePercent)
+        assertEquals(false, result.getOrThrow().passed)
+    }
+
+    @Test
+    fun `submitSession passed null derived as false when percent below 50`() = runTest {
+        val questions = listOf(
+            AdaptiveQuestionForAttemptReportDTO(questionId = "q1", correct = true),
+            AdaptiveQuestionForAttemptReportDTO(questionId = "q2", correct = false),
+            AdaptiveQuestionForAttemptReportDTO(questionId = "q3", correct = false)
+        )
+        whenever(api.submitSession(any(), any()))
+            .thenReturn(Response.success(reportDto(scorePercent = null, passed = null, questions = questions)))
+
+        val result = repository.submitSession("s1", submitRequest)
+
+        assertTrue(result.isSuccess)
+        assertEquals(false, result.getOrThrow().passed)
+    }
+
+    @Test
+    fun `submitSession passed not null used as-is even if percent disagrees`() = runTest {
+        whenever(api.submitSession(any(), any()))
+            .thenReturn(Response.success(reportDto(scorePercent = 20.0, passed = true)))
+
+        val result = repository.submitSession("s1", submitRequest)
+
+        assertTrue(result.isSuccess)
+        assertEquals(true, result.getOrThrow().passed)
+    }
+
+    @Test
+    fun `submitSession null body returns failure`() = runTest {
+        @Suppress("UNCHECKED_CAST")
+        whenever(api.submitSession(any(), any()))
+            .thenReturn(Response.success(null) as retrofit2.Response<AdaptiveAttemptReportDTO>)
+
+        val result = repository.submitSession("s1", submitRequest)
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `submitSession error response returns failure with parsed message`() = runTest {
+        val body = """{"message":"session expired"}"""
+            .toResponseBody("application/json".toMediaType())
+        whenever(api.submitSession(any(), any())).thenReturn(Response.error(401, body))
+
+        val result = repository.submitSession("s1", submitRequest)
+
+        assertTrue(result.isFailure)
+        assertEquals("session expired", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `submitSession network exception returns failure`() = runTest {
+        whenever(api.submitSession(any(), any())).thenThrow(RuntimeException("timeout"))
+
+        val result = repository.submitSession("s1", submitRequest)
+
+        assertTrue(result.isFailure)
+        assertEquals("timeout", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun `submitSession 400 error blank body uses generic message`() = runTest {
         whenever(api.submitSession(any(), any())).thenReturn(
             Response.error(400, "".toResponseBody("application/json".toMediaType()))
         )
 
-        val result = repository.submitSession("s1", com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitRequestDto(emptyList()))
+        val result = repository.submitSession("s1", submitRequest)
 
         assertTrue(result.isFailure)
         assertEquals("Date invalide pentru sesiunea adaptivă", result.exceptionOrNull()?.message)
     }
 
     @Test
-    fun `submitSession calculates passed false when percent less than 50`() = runTest {
-        val report = com.adaptive_tutor_mobile.data.remote.dto.AdaptiveAttemptReportDTO(
-            attemptId = "a1",
-            score = null,
-            scorePercent = null,
-            passed = null,
-            completedAt = null,
-            questions = listOf(
-                com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO(questionId = "1", correct = false),
-                com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO(questionId = "2", correct = false),
-                com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO(questionId = "3", correct = true)
-            )
-        )
-        whenever(api.submitSession(any(), any())).thenReturn(Response.success(report))
+    fun `submitSession error body with error field parsed correctly`() = runTest {
+        val body = """{"error":"Forbidden"}""".toResponseBody("application/json".toMediaType())
+        whenever(api.submitSession(any(), any())).thenReturn(Response.error(403, body))
 
-        val result = repository.submitSession("s1", com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitRequestDto(emptyList()))
+        val result = repository.submitSession("s1", submitRequest)
 
-        assertTrue(result.isSuccess)
-        assertTrue(result.getOrNull()?.passed == false)
-    }
-
-    @Test
-    fun `submitSession scorePercent less than 1 gets multiplied by 100`() = runTest {
-        val report = com.adaptive_tutor_mobile.data.remote.dto.AdaptiveAttemptReportDTO(
-            attemptId = "a1",
-            score = null,
-            scorePercent = 0.75,
-            passed = null,
-            completedAt = null,
-            questions = emptyList()
-        )
-        whenever(api.submitSession(any(), any())).thenReturn(Response.success(report))
-
-        val result = repository.submitSession("s1", com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitRequestDto(emptyList()))
-
-        assertTrue(result.isSuccess)
-        assertEquals(75.0, result.getOrNull()?.scorePercent)
+        assertTrue(result.isFailure)
+        assertEquals("Forbidden", result.exceptionOrNull()?.message)
     }
 }

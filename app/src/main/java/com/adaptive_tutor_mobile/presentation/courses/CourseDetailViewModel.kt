@@ -3,8 +3,8 @@ package com.adaptive_tutor_mobile.presentation.courses
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.adaptive_tutor_mobile.domain.model.CourseDetail
-import com.adaptive_tutor_mobile.domain.usecase.GetCourseFullViewUseCase
+import com.adaptive_tutor_mobile.domain.model.courses.CourseDetail
+import com.adaptive_tutor_mobile.domain.usecase.courses.GetCourseFullViewUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

@@ -4,8 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import com.adaptive_tutor_mobile.data.remote.dto.StartAttemptResponseDto
-import com.adaptive_tutor_mobile.domain.repository.TestRepository
-import com.adaptive_tutor_mobile.domain.usecase.ReportQuestionErrorUseCase
+import com.adaptive_tutor_mobile.domain.repository.test.TestRepository
+import com.adaptive_tutor_mobile.domain.usecase.test.ReportQuestionErrorUseCase
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

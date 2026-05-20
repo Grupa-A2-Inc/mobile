@@ -4,7 +4,7 @@ import com.adaptive_tutor_mobile.data.remote.api.TestApi
 import com.adaptive_tutor_mobile.data.remote.dto.AttemptReportDTO
 import com.adaptive_tutor_mobile.data.remote.dto.StartAttemptResponseDto
 import com.adaptive_tutor_mobile.data.remote.dto.SubmitRequestDto
-import com.adaptive_tutor_mobile.domain.repository.TestRepository
+import com.adaptive_tutor_mobile.domain.repository.test.TestRepository
 import javax.inject.Inject
 
 class TestRepositoryImpl @Inject constructor(

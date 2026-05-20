@@ -13,7 +13,7 @@ class TestDtosCoverageTest {
         val questionRequest = QuestionRequestDto("SINGLE_CHOICE", "Question", 0.6, listOf(optionRequest))
         val optionResponse = OptionResponseDto(1L, "Answer", 1, true)
         val questionResponse = QuestionResponseDto(2L, "MULTI_CHOICE", "Question", 0.8, listOf(optionResponse))
-        val status = AttemptStatusDTO("attempt-1", 2, 90.0, 90.0, true, "2026-01-01T00:00:00Z", "DONE")
+        val status = AttemptStatusDto("attempt-1", 2, 90.0, 90.0, true, "2026-01-01T00:00:00Z", "DONE")
 
         assertEquals("Title", testEdit.title)
         assertEquals("Answer", optionRequest.text)

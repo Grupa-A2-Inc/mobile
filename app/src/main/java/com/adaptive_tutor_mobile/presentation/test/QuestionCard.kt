@@ -6,8 +6,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.adaptive_tutor_mobile.domain.model.Question
-import com.adaptive_tutor_mobile.domain.model.QuestionType
+import com.adaptive_tutor_mobile.domain.model.test.Question
+import com.adaptive_tutor_mobile.domain.model.test.QuestionType
 
 @Composable
 fun QuestionCard(

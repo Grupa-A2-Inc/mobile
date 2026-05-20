@@ -1,5 +1,7 @@
 package com.adaptive_tutor_mobile.domain.model
 
+import com.adaptive_tutor_mobile.domain.model.courses.EnrolledCourse
+import com.adaptive_tutor_mobile.domain.model.courses.toDomain
 import com.adaptive_tutor_mobile.ProgressTestFixtures.completedDto
 import com.adaptive_tutor_mobile.ProgressTestFixtures.domainCourse
 import com.adaptive_tutor_mobile.ProgressTestFixtures.enrolledDto

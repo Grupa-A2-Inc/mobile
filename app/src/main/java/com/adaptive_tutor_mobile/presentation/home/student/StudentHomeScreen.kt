@@ -61,6 +61,7 @@ import com.adaptive_tutor_mobile.presentation.components.BottomNavItem
 import com.adaptive_tutor_mobile.presentation.components.CourseCard
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 import com.adaptive_tutor_mobile.presentation.navigation.Screen
+import com.adaptive_tutor_mobile.presentation.chat.ChatFab
 import com.adaptive_tutor_mobile.ui.components.AppTopBar
 import com.adaptive_tutor_mobile.ui.components.EmptyState
 import com.adaptive_tutor_mobile.ui.components.ErrorCard
@@ -105,6 +106,14 @@ fun StudentHomeScreen(
 
     var currentTab by rememberSaveable { mutableStateOf(TAB_HOME) }
 
+    // Mapare tab → pagina trimisă în contextul AI
+    val currentPageForAi = when (currentTab) {
+        TAB_MY_COURSES -> "enrolled-courses"
+        TAB_EXPLORE    -> "explore-courses"
+        TAB_PROFILE    -> "student-profile"
+        else           -> "student-dashboard"
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -127,9 +136,20 @@ fun StudentHomeScreen(
                     when (tab) {
                         TAB_ADAPTIVE -> onAdaptiveClick()
                         TAB_PROFILE  -> navController.navigate(Screen.Profile.route)
-                        else         -> currentTab = tab
+                        else -> {
+                            currentTab = tab
+                            if (tab == TAB_HOME || tab == TAB_MY_COURSES) {
+                                studentViewModel.loadEnrolledCourses(0)
+                            }
+                        }
                     }
                 }
+            )
+        },
+        floatingActionButton = {
+            ChatFab(
+                currentPage = currentPageForAi,
+                userType = "student"
             )
         }
     ) { innerPadding ->
@@ -334,13 +354,18 @@ private fun DashboardTab(
                     )
                 }
                 item {
+                    val finalizate = courses.count {
+                        (it.progressPercent ?: 0.0) >= 100.0 || !it.completedAt.isNullOrBlank()
+                    }
+                    val avgProgress = if (courses.isEmpty()) "—"
+                        else "${courses.map { it.progressPercent ?: 0.0 }.average().toInt()}%"
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        StatCard("Cursuri înscrise", courses.size.toString(), Modifier.weight(1f))
-                        StatCard("Lecții citite", "—", Modifier.weight(1f))
-                        StatCard("Teste promovate", "0", Modifier.weight(1f))
+                        StatCard("Înscris la", courses.size.toString(), Modifier.weight(1f))
+                        StatCard("Finalizate", finalizate.toString(), Modifier.weight(1f))
+                        StatCard("Progres mediu", avgProgress, Modifier.weight(1f))
                     }
                 }
 
@@ -400,6 +425,8 @@ private fun MyCoursesTab(
 ) {
     val coursesState by studentViewModel.coursesState.collectAsState()
     val message by studentViewModel.message.collectAsState()
+    val currentPage by studentViewModel.currentPage.collectAsState()
+    val totalPages by studentViewModel.totalPages.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingUnenrollCourse by remember { mutableStateOf<EnrolledCourseDto?>(null) }
 
@@ -412,27 +439,31 @@ private fun MyCoursesTab(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            AppTopBar(
+                title = "Cursurile mele",
+                actions = {
+                    IconButton(onClick = {}) {
+                        Icon(Icons.Filled.Search, contentDescription = "Caută")
+                    }
+                    TextButton(onClick = onExploreClick) {
+                        Text("Explorează")
+                    }
+                }
+            )
+        }
     ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-        AppTopBar(
-            title = "Cursurile mele",
-            actions = {
-                IconButton(onClick = {}) {
-                    Icon(Icons.Filled.Search, contentDescription = "Caută")
-                }
-                TextButton(onClick = onExploreClick) {
-                    Text("Explorează")
-                }
-            }
-        )
-
         when (val state = coursesState) {
-            is CoursesUiState.Loading -> LoadingShimmerList(itemCount = 5)
+            is CoursesUiState.Loading -> LoadingShimmerList(
+                itemCount = 5,
+                modifier = Modifier.padding(innerPadding)
+            )
 
             is CoursesUiState.Error -> ErrorCard(
                 message = state.message,
-                onRetry = { studentViewModel.loadEnrolledCourses() }
+                onRetry = { studentViewModel.loadEnrolledCourses() },
+                modifier = Modifier.padding(innerPadding)
             )
 
             is CoursesUiState.Success -> {
@@ -443,32 +474,54 @@ private fun MyCoursesTab(
                         title = "Niciun curs",
                         subtitle = "Nu ești înscris la niciun curs încă.\nExplorează cursuri disponibile!",
                         actionText = "Explorează",
-                        onAction = onExploreClick
+                        onAction = onExploreClick,
+                        modifier = Modifier.padding(innerPadding)
                     )
                 } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(
-                            items = courses,
-                            key = { it.courseId }
-                        ) { course ->
-                            MyCourseCard(
-                                course = course,
-                                onClick = {
-                                    navController.navigate(
-                                        Screen.CourseDetail.createRoute(course.courseId)
-                                    )
-                                },
-                                onUnenrollClick = { pendingUnenrollCourse = course }
-                            )
+                    Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            items(
+                                items = courses,
+                                key = { it.courseId }
+                            ) { course ->
+                                MyCourseCard(
+                                    course = course,
+                                    onClick = {
+                                        navController.navigate(
+                                            Screen.CourseDetail.createRoute(course.courseId)
+                                        )
+                                    },
+                                    onUnenrollClick = { pendingUnenrollCourse = course }
+                                )
+                            }
+                        }
+                        if (totalPages > 1) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Button(
+                                    onClick = { studentViewModel.previousPage() },
+                                    enabled = currentPage > 0
+                                ) { Text("← Înapoi") }
+                                Text("${currentPage + 1} / $totalPages")
+                                Button(
+                                    onClick = { studentViewModel.nextPage() },
+                                    enabled = currentPage < totalPages - 1
+                                ) { Text("Înainte →") }
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
         pendingUnenrollCourse?.let { course ->
             AlertDialog(

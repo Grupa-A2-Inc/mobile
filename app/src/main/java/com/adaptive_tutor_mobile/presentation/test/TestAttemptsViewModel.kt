@@ -3,9 +3,9 @@ package com.adaptive_tutor_mobile.presentation.test
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.adaptive_tutor_mobile.domain.model.AttemptHistory
-import com.adaptive_tutor_mobile.domain.model.BestAttempt
-import com.adaptive_tutor_mobile.domain.usecase.GetTestAttemptsUseCase
+import com.adaptive_tutor_mobile.domain.model.test.AttemptHistory
+import com.adaptive_tutor_mobile.domain.model.test.BestAttempt
+import com.adaptive_tutor_mobile.domain.usecase.test.GetTestAttemptsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

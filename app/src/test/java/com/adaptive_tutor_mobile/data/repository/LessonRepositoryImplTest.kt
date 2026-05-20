@@ -3,9 +3,9 @@ package com.adaptive_tutor_mobile.data.repository
 import com.adaptive_tutor_mobile.data.remote.api.LessonApi
 import com.adaptive_tutor_mobile.data.remote.dto.ResponseLessonResourceDto
 import com.adaptive_tutor_mobile.data.remote.dto.TestEntityDto
-import com.adaptive_tutor_mobile.domain.model.LessonSummary
-import com.adaptive_tutor_mobile.domain.model.LessonWithContent
-import com.adaptive_tutor_mobile.domain.repository.CourseDetailRepository
+import com.adaptive_tutor_mobile.domain.model.courses.LessonSummary
+import com.adaptive_tutor_mobile.domain.model.lesson.LessonWithContent
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseDetailRepository
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody

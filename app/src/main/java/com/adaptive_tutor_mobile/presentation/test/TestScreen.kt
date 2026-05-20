@@ -57,7 +57,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.adaptive_tutor_mobile.data.remote.dto.QuestionForAttemptReportDTO
 import com.adaptive_tutor_mobile.data.remote.dto.QuestionForStudentDto
-import com.adaptive_tutor_mobile.domain.usecase.ReportQuestionErrorUseCase
+import com.adaptive_tutor_mobile.domain.usecase.test.ReportQuestionErrorUseCase
 import com.adaptive_tutor_mobile.presentation.components.AdaptiveTopBar
 import com.adaptive_tutor_mobile.presentation.components.ErrorScreen
 import com.adaptive_tutor_mobile.presentation.components.LoadingScreen

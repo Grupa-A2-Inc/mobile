@@ -1,5 +1,6 @@
 package com.adaptive_tutor_mobile.presentation.profile
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,11 +16,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -46,6 +49,7 @@ import com.adaptive_tutor_mobile.ui.components.LoadingShimmerList
 @Composable
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
+    onLogout: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -69,7 +73,6 @@ fun ProfileScreen(
     // Câmpuri editabile — se resetează când vin datele din API
     var firstName by rememberSaveable(profile) { mutableStateOf(profile?.firstName ?: "") }
     var lastName  by rememberSaveable(profile) { mutableStateOf(profile?.lastName  ?: "") }
-    var city      by rememberSaveable(profile) { mutableStateOf(profile?.city      ?: "") }
 
     // Câmpuri parolă
     var currentPassword    by rememberSaveable { mutableStateOf("") }
@@ -164,14 +167,6 @@ fun ProfileScreen(
                             value = lastName,
                             onValueChange = { lastName = it },
                             label = { Text("Nume") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
-
-                        OutlinedTextField(
-                            value = city,
-                            onValueChange = { city = it },
-                            label = { Text("Oraș") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )
@@ -317,6 +312,22 @@ fun ProfileScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // ── Deconectare ───────────────────────────────────────────────────
+            item {
+                OutlinedButton(
+                    onClick = onLogout,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    border = BorderStroke(
+                        1.dp, MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Deconectare")
                 }
             }
         }

@@ -1,10 +1,10 @@
 package com.adaptive_tutor_mobile.data.repository
 
 import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
-import com.adaptive_tutor_mobile.domain.model.Course
-import com.adaptive_tutor_mobile.domain.repository.CourseRepository
+import com.adaptive_tutor_mobile.domain.model.courses.Course
+import com.adaptive_tutor_mobile.domain.model.courses.PagedCourses
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseRepository
 import javax.inject.Inject
-import com.adaptive_tutor_mobile.domain.model.PagedCourses
 
 class CourseRepositoryImpl @Inject constructor(
     private val enrollmentApi: EnrollmentApi

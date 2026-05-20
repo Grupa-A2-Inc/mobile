@@ -185,7 +185,7 @@ fun LessonScreen(
 
 @Composable
 private fun RatingSection(
-    ratingSummary: com.adaptive_tutor_mobile.domain.model.RatingSummary?,
+    ratingSummary: com.adaptive_tutor_mobile.domain.model.lesson.RatingSummary?,
     hasRated: Boolean,
     onRateClick: () -> Unit
 ) {

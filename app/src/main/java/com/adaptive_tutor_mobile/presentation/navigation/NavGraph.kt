@@ -11,7 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.adaptive_tutor_mobile.di.SessionStore
-import com.adaptive_tutor_mobile.domain.model.UserRole
+import com.adaptive_tutor_mobile.domain.model.auth.UserRole
 import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.auth.ForgotPasswordScreen
 import com.adaptive_tutor_mobile.presentation.auth.LoginScreen
@@ -214,7 +214,15 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen(onNavigateBack = { navController.navigateUp() })
+            ProfileScreen(
+                onNavigateBack = { navController.navigateUp() },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable(

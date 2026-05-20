@@ -3,10 +3,10 @@ package com.adaptive_tutor_mobile.presentation.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adaptive_tutor_mobile.di.SessionStore
-import com.adaptive_tutor_mobile.domain.model.UserProfile
-import com.adaptive_tutor_mobile.domain.usecase.ChangePasswordUseCase
-import com.adaptive_tutor_mobile.domain.usecase.GetUserProfileUseCase
-import com.adaptive_tutor_mobile.domain.usecase.UpdateUserProfileUseCase
+import com.adaptive_tutor_mobile.domain.model.profile.UserProfile
+import com.adaptive_tutor_mobile.domain.usecase.profile.ChangePasswordUseCase
+import com.adaptive_tutor_mobile.domain.usecase.profile.GetUserProfileUseCase
+import com.adaptive_tutor_mobile.domain.usecase.profile.UpdateUserProfileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

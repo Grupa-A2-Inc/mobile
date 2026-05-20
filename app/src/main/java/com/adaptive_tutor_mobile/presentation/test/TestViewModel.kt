@@ -7,8 +7,8 @@ import com.adaptive_tutor_mobile.data.remote.dto.AttemptReportDTO
 import com.adaptive_tutor_mobile.data.remote.dto.QuestionForStudentDto
 import com.adaptive_tutor_mobile.data.remote.dto.SubmitAnswerDto
 import com.adaptive_tutor_mobile.data.remote.dto.SubmitRequestDto
-import com.adaptive_tutor_mobile.domain.repository.TestRepository
-import com.adaptive_tutor_mobile.domain.usecase.ReportQuestionErrorUseCase
+import com.adaptive_tutor_mobile.domain.repository.test.TestRepository
+import com.adaptive_tutor_mobile.domain.usecase.test.ReportQuestionErrorUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

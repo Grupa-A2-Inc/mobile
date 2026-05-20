@@ -3,6 +3,8 @@ package com.adaptive_tutor_mobile.presentation.courses
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +24,7 @@ fun PublicCoursesScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val enrollSuccess by viewModel.enrollSuccess.collectAsState()
+    val unenrollSuccess by viewModel.unenrollSuccess.collectAsState()
     val enrolledCourseIds by viewModel.enrolledCourseIds.collectAsState()
     val currentPage by viewModel.currentPage.collectAsState()
     val totalPages by viewModel.totalPages.collectAsState()
@@ -32,6 +35,13 @@ fun PublicCoursesScreen(
         enrollSuccess?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearEnrollSuccess()
+        }
+    }
+
+    LaunchedEffect(unenrollSuccess) {
+        unenrollSuccess?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearUnenrollSuccess()
         }
     }
 
@@ -76,8 +86,12 @@ fun PublicCoursesScreen(
                             modifier = Modifier.weight(1f)
                         ) {
                             items(courses) { course ->
+                                val isEnrolled = enrolledCourseIds.contains(course.id)
                                 Card(
-                                    onClick = { navController.navigate("course_detail/${course.id}") },
+                                    onClick = {
+                                        if (isEnrolled) navController.navigate("course_detail/${course.id}")
+                                    },
+                                    enabled = isEnrolled,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Column(
@@ -100,15 +114,27 @@ fun PublicCoursesScreen(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.End
                                         ) {
-                                            if (!enrolledCourseIds.contains(course.id)) {
+                                            if (!isEnrolled) {
                                                 Button(onClick = { viewModel.enroll(course.id) }) {
                                                     Text("Înscrie-te")
                                                 }
                                             } else {
-                                                Text(
-                                                    text = "Înscris ✓",
-                                                    color = MaterialTheme.colorScheme.primary
-                                                )
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "Înscris ✓",
+                                                        color = MaterialTheme.colorScheme.primary
+                                                    )
+                                                    IconButton(onClick = { viewModel.unenroll(course.id) }) {
+                                                        Icon(
+                                                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                                            contentDescription = "Dezabonează-te",
+                                                            tint = MaterialTheme.colorScheme.error
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     }

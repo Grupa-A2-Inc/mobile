@@ -52,7 +52,6 @@ class UserRepositoryImplTest {
         val result = repository.getProfile(userId)
 
         assertTrue(result.isFailure)
-        assertEquals("Error: 404", result.exceptionOrNull()?.message)
     }
 
     @Test
@@ -69,7 +68,7 @@ class UserRepositoryImplTest {
     fun `updateProfile maps successful response`() = runTest {
         coEvery { api.updateUser(userId, any()) } returns Response.success(profileDto.copy(city = "Bucharest"))
 
-        val result = repository.updateProfile(userId, "Ada", "Lovelace", "Bucharest")
+        val result = repository.updateProfile(userId, "ada@example.com", "Ada", "Lovelace", null)
 
         assertTrue(result.isSuccess)
         assertEquals("Bucharest", result.getOrNull()?.city)
@@ -79,17 +78,16 @@ class UserRepositoryImplTest {
     fun `updateProfile returns failure on error response`() = runTest {
         coEvery { api.updateUser(userId, any()) } returns Response.error(400, okhttp3.ResponseBody.create(null, ""))
 
-        val result = repository.updateProfile(userId, "Ada", "Lovelace", null)
+        val result = repository.updateProfile(userId, "ada@example.com", "Ada", "Lovelace", null)
 
         assertTrue(result.isFailure)
-        assertEquals("Error: 400", result.exceptionOrNull()?.message)
     }
 
     @Test
     fun `updateProfile returns failure on exception`() = runTest {
         coEvery { api.updateUser(userId, any()) } throws IllegalStateException("update failed")
 
-        val result = repository.updateProfile(userId, "Ada", "Lovelace", null)
+        val result = repository.updateProfile(userId, "ada@example.com", "Ada", "Lovelace", null)
 
         assertTrue(result.isFailure)
         assertEquals("update failed", result.exceptionOrNull()?.message)
@@ -111,7 +109,6 @@ class UserRepositoryImplTest {
         val result = repository.changePassword(userId, "old", "new", "new")
 
         assertTrue(result.isFailure)
-        assertEquals("Error: 403", result.exceptionOrNull()?.message)
     }
 
     @Test

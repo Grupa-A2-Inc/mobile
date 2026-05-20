@@ -2,10 +2,10 @@ package com.adaptive_tutor_mobile.presentation.test
 
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
-import com.adaptive_tutor_mobile.domain.model.AttemptHistory
-import com.adaptive_tutor_mobile.domain.model.BestAttempt
-import com.adaptive_tutor_mobile.domain.usecase.GetTestAttemptsUseCase
-import com.adaptive_tutor_mobile.domain.usecase.TestAttemptsResult
+import com.adaptive_tutor_mobile.domain.model.test.AttemptHistory
+import com.adaptive_tutor_mobile.domain.model.test.BestAttempt
+import com.adaptive_tutor_mobile.domain.usecase.test.GetTestAttemptsUseCase
+import com.adaptive_tutor_mobile.domain.usecase.test.TestAttemptsResult
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.mockk

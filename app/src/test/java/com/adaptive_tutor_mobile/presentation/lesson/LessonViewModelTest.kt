@@ -1,10 +1,10 @@
 package com.adaptive_tutor_mobile.presentation.lesson
 
 import androidx.lifecycle.SavedStateHandle
-import com.adaptive_tutor_mobile.domain.model.LessonDetail
-import com.adaptive_tutor_mobile.domain.model.LessonResource
-import com.adaptive_tutor_mobile.domain.repository.LessonRepository
-import com.adaptive_tutor_mobile.domain.usecase.GetLessonDetailUseCase
+import com.adaptive_tutor_mobile.domain.model.lesson.LessonDetail
+import com.adaptive_tutor_mobile.domain.model.lesson.LessonResource
+import com.adaptive_tutor_mobile.domain.repository.lesson.LessonRepository
+import com.adaptive_tutor_mobile.domain.usecase.lesson.GetLessonDetailUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -27,8 +27,8 @@ class LessonViewModelTest {
 
     private val getLessonDetailUseCase: GetLessonDetailUseCase = mock()
     private val lessonRepository: LessonRepository = mock()
-    private val submitLessonRatingUseCase: com.adaptive_tutor_mobile.domain.usecase.SubmitLessonRatingUseCase = mock()
-    private val ratingRepository: com.adaptive_tutor_mobile.domain.repository.RatingRepository = mock()
+    private val submitLessonRatingUseCase: com.adaptive_tutor_mobile.domain.usecase.lesson.SubmitLessonRatingUseCase = mock()
+    private val ratingRepository: com.adaptive_tutor_mobile.domain.repository.lesson.RatingRepository = mock()
 
     @Test
     fun `loadLesson success updates state and checks test`() = runTest {
@@ -165,7 +165,7 @@ class LessonViewModelTest {
     fun `submitRating sets hasRated to true on success`() = runTest {
         whenever(submitLessonRatingUseCase("l1", 5, null)).thenReturn(Result.success(Unit))
         whenever(ratingRepository.getRatingSummary("l1")).thenReturn(
-            Result.success(com.adaptive_tutor_mobile.domain.model.RatingSummary(5.0f, 1))
+            Result.success(com.adaptive_tutor_mobile.domain.model.lesson.RatingSummary(5.0f, 1))
         )
 
         val viewModel = LessonViewModel(

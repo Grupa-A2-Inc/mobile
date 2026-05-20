@@ -4,11 +4,11 @@ import com.adaptive_tutor_mobile.data.remote.api.CourseDetailApi
 import com.adaptive_tutor_mobile.data.remote.dto.ChapterFullViewDTO
 import com.adaptive_tutor_mobile.data.remote.dto.LessonFullViewDTO
 import com.adaptive_tutor_mobile.data.remote.dto.ResponseCourseFullViewDto
-import com.adaptive_tutor_mobile.domain.model.Chapter
-import com.adaptive_tutor_mobile.domain.model.CourseDetail
-import com.adaptive_tutor_mobile.domain.model.LessonSummary
-import com.adaptive_tutor_mobile.domain.model.LessonWithContent
-import com.adaptive_tutor_mobile.domain.repository.CourseDetailRepository
+import com.adaptive_tutor_mobile.domain.model.courses.Chapter
+import com.adaptive_tutor_mobile.domain.model.courses.CourseDetail
+import com.adaptive_tutor_mobile.domain.model.courses.LessonSummary
+import com.adaptive_tutor_mobile.domain.model.lesson.LessonWithContent
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseDetailRepository
 import javax.inject.Inject
 
 class CourseDetailRepositoryImpl @Inject constructor(

@@ -2,12 +2,12 @@ package com.adaptive_tutor_mobile.presentation.profile
 
 import app.cash.turbine.test
 import com.adaptive_tutor_mobile.di.SessionStore
-import com.adaptive_tutor_mobile.domain.model.User
-import com.adaptive_tutor_mobile.domain.model.UserProfile
-import com.adaptive_tutor_mobile.domain.model.UserRole
-import com.adaptive_tutor_mobile.domain.usecase.ChangePasswordUseCase
-import com.adaptive_tutor_mobile.domain.usecase.GetUserProfileUseCase
-import com.adaptive_tutor_mobile.domain.usecase.UpdateUserProfileUseCase
+import com.adaptive_tutor_mobile.domain.model.auth.User
+import com.adaptive_tutor_mobile.domain.model.profile.UserProfile
+import com.adaptive_tutor_mobile.domain.model.auth.UserRole
+import com.adaptive_tutor_mobile.domain.usecase.profile.ChangePasswordUseCase
+import com.adaptive_tutor_mobile.domain.usecase.profile.GetUserProfileUseCase
+import com.adaptive_tutor_mobile.domain.usecase.profile.UpdateUserProfileUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify

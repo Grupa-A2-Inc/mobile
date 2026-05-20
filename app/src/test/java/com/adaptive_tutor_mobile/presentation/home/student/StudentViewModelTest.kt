@@ -3,8 +3,8 @@ package com.adaptive_tutor_mobile.presentation.home.student
 import com.adaptive_tutor_mobile.ProgressTestFixtures.enrolledDto
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.dto.PageDto
-import com.adaptive_tutor_mobile.domain.repository.CourseRepository
-import com.adaptive_tutor_mobile.domain.usecase.UnenrollFromCourseUseCase
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseRepository
+import com.adaptive_tutor_mobile.domain.usecase.courses.UnenrollFromCourseUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.mockk

@@ -26,9 +26,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.adaptive_tutor_mobile.domain.model.Chapter
-import com.adaptive_tutor_mobile.domain.model.CourseDetail
-import com.adaptive_tutor_mobile.domain.model.LessonSummary
+import com.adaptive_tutor_mobile.domain.model.courses.Chapter
+import com.adaptive_tutor_mobile.domain.model.courses.CourseDetail
+import com.adaptive_tutor_mobile.domain.model.courses.LessonSummary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

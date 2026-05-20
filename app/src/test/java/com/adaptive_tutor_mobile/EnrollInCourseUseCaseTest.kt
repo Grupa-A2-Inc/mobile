@@ -1,7 +1,7 @@
 package com.adaptive_tutor_mobile
 
-import com.adaptive_tutor_mobile.domain.repository.CourseRepository
-import com.adaptive_tutor_mobile.domain.usecase.EnrollInCourseUseCase
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseRepository
+import com.adaptive_tutor_mobile.domain.usecase.courses.EnrollInCourseUseCase
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Test

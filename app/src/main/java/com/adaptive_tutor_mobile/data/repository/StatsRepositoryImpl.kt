@@ -1,9 +1,9 @@
 package com.adaptive_tutor_mobile.data.repository
 
 import com.adaptive_tutor_mobile.data.remote.api.StatsApi
-import com.adaptive_tutor_mobile.domain.model.AttemptSummary
-import com.adaptive_tutor_mobile.domain.model.CourseStats
-import com.adaptive_tutor_mobile.domain.repository.StatsRepository
+import com.adaptive_tutor_mobile.domain.model.stats.AttemptSummary
+import com.adaptive_tutor_mobile.domain.model.stats.CourseStats
+import com.adaptive_tutor_mobile.domain.repository.stats.StatsRepository
 import javax.inject.Inject
 
 class StatsRepositoryImpl @Inject constructor(

@@ -3,7 +3,7 @@ import com.adaptive_tutor_mobile.data.remote.dto.CompletedCourseDto
 import com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto
 import com.adaptive_tutor_mobile.data.remote.dto.LessonStatusDto
 import com.adaptive_tutor_mobile.data.remote.dto.ProgressWithLessonListDto
-import com.adaptive_tutor_mobile.domain.model.EnrolledCourse
+import com.adaptive_tutor_mobile.domain.model.courses.EnrolledCourse
 
 object ProgressTestFixtures {
     fun enrolledDto(

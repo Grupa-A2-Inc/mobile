@@ -3,9 +3,9 @@ package com.adaptive_tutor_mobile.presentation.adaptive
 import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveAttemptReportDTO
 import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForStudentDto
 import com.adaptive_tutor_mobile.data.remote.dto.OptionForStudentDto
-import com.adaptive_tutor_mobile.domain.model.AdaptiveSession
-import com.adaptive_tutor_mobile.domain.repository.AdaptiveRepository
-import com.adaptive_tutor_mobile.domain.usecase.StartAdaptiveSessionUseCase
+import com.adaptive_tutor_mobile.domain.model.adaptive.AdaptiveSession
+import com.adaptive_tutor_mobile.domain.repository.adaptive.AdaptiveRepository
+import com.adaptive_tutor_mobile.domain.usecase.adaptive.StartAdaptiveSessionUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify

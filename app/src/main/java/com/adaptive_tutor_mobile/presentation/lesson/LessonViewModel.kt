@@ -3,9 +3,9 @@ package com.adaptive_tutor_mobile.presentation.lesson
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.adaptive_tutor_mobile.domain.model.LessonDetail
-import com.adaptive_tutor_mobile.domain.repository.LessonRepository
-import com.adaptive_tutor_mobile.domain.usecase.GetLessonDetailUseCase
+import com.adaptive_tutor_mobile.domain.model.lesson.LessonDetail
+import com.adaptive_tutor_mobile.domain.repository.lesson.LessonRepository
+import com.adaptive_tutor_mobile.domain.usecase.lesson.GetLessonDetailUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.adaptive_tutor_mobile.domain.model.RatingSummary
-import com.adaptive_tutor_mobile.domain.usecase.SubmitLessonRatingUseCase
+import com.adaptive_tutor_mobile.domain.model.lesson.RatingSummary
+import com.adaptive_tutor_mobile.domain.usecase.lesson.SubmitLessonRatingUseCase
 
 data class LessonState(
     val lesson: LessonDetail? = null,
@@ -32,7 +32,7 @@ class LessonViewModel @Inject constructor(
     private val getLessonDetailUseCase: GetLessonDetailUseCase,
     private val lessonRepository: LessonRepository,
     private val submitLessonRatingUseCase: SubmitLessonRatingUseCase,
-    private val ratingRepository: com.adaptive_tutor_mobile.domain.repository.RatingRepository,
+    private val ratingRepository: com.adaptive_tutor_mobile.domain.repository.lesson.RatingRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 

@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveAttemptReportDTO
 import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitAnswerDto
 import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveSubmitRequestDto
-import com.adaptive_tutor_mobile.domain.model.AdaptiveSession
-import com.adaptive_tutor_mobile.domain.repository.AdaptiveRepository
-import com.adaptive_tutor_mobile.domain.usecase.StartAdaptiveSessionUseCase
+import com.adaptive_tutor_mobile.domain.model.adaptive.AdaptiveSession
+import com.adaptive_tutor_mobile.domain.repository.adaptive.AdaptiveRepository
+import com.adaptive_tutor_mobile.domain.usecase.adaptive.StartAdaptiveSessionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

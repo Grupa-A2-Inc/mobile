@@ -9,9 +9,9 @@ import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
-import com.adaptive_tutor_mobile.domain.model.Option
-import com.adaptive_tutor_mobile.domain.model.Question
-import com.adaptive_tutor_mobile.domain.model.QuestionType
+import com.adaptive_tutor_mobile.domain.model.test.Option
+import com.adaptive_tutor_mobile.domain.model.test.Question
+import com.adaptive_tutor_mobile.domain.model.test.QuestionType
 import kotlin.test.assertEquals
 import org.junit.Rule
 import org.junit.Test

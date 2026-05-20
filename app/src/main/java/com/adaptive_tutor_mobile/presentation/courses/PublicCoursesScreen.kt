@@ -3,8 +3,6 @@ package com.adaptive_tutor_mobile.presentation.courses
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -85,56 +83,43 @@ fun PublicCoursesScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            items(courses) { course ->
-                                val isEnrolled = enrolledCourseIds.contains(course.id)
+                            items(courses.filter { !enrolledCourseIds.contains(it.id) }) { course ->
                                 Card(
-                                    onClick = {
-                                        if (isEnrolled) navController.navigate("course_detail/${course.id}")
-                                    },
-                                    enabled = isEnrolled,
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    )
                                 ) {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(16.dp)
+                                            .padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
                                         Text(
                                             text = course.title,
-                                            style = MaterialTheme.typography.titleMedium
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = MaterialTheme.colorScheme.primary
                                         )
                                         course.category?.let {
-                                            Text(text = it, style = MaterialTheme.typography.bodySmall)
+                                            Text(text = it, style = MaterialTheme.typography.bodyMedium)
                                         }
                                         course.description?.let {
-                                            Text(text = it, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = it,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 2
+                                            )
                                         }
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.End
                                         ) {
-                                            if (!isEnrolled) {
-                                                Button(onClick = { viewModel.enroll(course.id) }) {
-                                                    Text("Înscrie-te")
-                                                }
-                                            } else {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                                ) {
-                                                    Text(
-                                                        text = "Înscris ✓",
-                                                        color = MaterialTheme.colorScheme.primary
-                                                    )
-                                                    IconButton(onClick = { viewModel.unenroll(course.id) }) {
-                                                        Icon(
-                                                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                                                            contentDescription = "Dezabonează-te",
-                                                            tint = MaterialTheme.colorScheme.error
-                                                        )
-                                                    }
-                                                }
+                                            Button(onClick = { viewModel.enroll(course.id) }) {
+                                                Text("Înscrie-te")
                                             }
                                         }
                                     }

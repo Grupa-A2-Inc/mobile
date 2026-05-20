@@ -102,6 +102,7 @@ class PublicCoursesViewModel @Inject constructor(
             result.onSuccess {
                 _enrollSuccess.value = "Înscris cu succes!"
                 _enrolledCourseIds.value = _enrolledCourseIds.value + courseId
+                loadCourses(_currentPage.value)
             }
             result.onFailure { e ->
                 val msg = e.message.orEmpty()

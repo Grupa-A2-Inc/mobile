@@ -3,6 +3,16 @@
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
+      <trusted-artifacts>
+         <!-- BOM and parent POM files are metadata-only (no executable code).
+              CI may resolve newer versions not present in the local-generated
+              checksums, so we trust these well-known publishers by group+name. -->
+         <trust group="com.google.guava" name="guava-parent"/>
+         <trust group="org.junit" name="junit-bom"/>
+         <trust group="org.jetbrains.kotlinx" name="kotlinx-coroutines-bom"/>
+         <trust group="org.jetbrains.kotlin" name="kotlin-bom"/>
+         <trust group="com.google.android.gms" name="play-services-base-licenses"/>
+      </trusted-artifacts>
    </configuration>
    <components>
       <component group="androidx.activity" name="activity" version="1.5.1">

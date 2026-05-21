@@ -1,10 +1,10 @@
 package com.adaptive_tutor_mobile.data.repository
 
 import com.adaptive_tutor_mobile.data.remote.api.LessonApi
-import com.adaptive_tutor_mobile.domain.model.LessonDetail
-import com.adaptive_tutor_mobile.domain.model.LessonResource
-import com.adaptive_tutor_mobile.domain.repository.CourseDetailRepository
-import com.adaptive_tutor_mobile.domain.repository.LessonRepository
+import com.adaptive_tutor_mobile.domain.model.lesson.LessonDetail
+import com.adaptive_tutor_mobile.domain.model.lesson.LessonResource
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseDetailRepository
+import com.adaptive_tutor_mobile.domain.repository.lesson.LessonRepository
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
 

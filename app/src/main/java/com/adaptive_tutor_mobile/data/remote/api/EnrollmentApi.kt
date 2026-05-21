@@ -2,8 +2,8 @@ package com.adaptive_tutor_mobile.data.remote.api
 
 import com.adaptive_tutor_mobile.data.remote.dto.EnrollmentDto
 import com.adaptive_tutor_mobile.data.remote.dto.PageResponseCourseDto
-import com.adaptive_tutor_mobile.data.remote.dto.ResponseCourseDto
 import retrofit2.Response
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -21,4 +21,9 @@ interface EnrollmentApi {
     suspend fun enrollInCourse(
         @Path("courseId") courseId: String
     ): Response<EnrollmentDto>
+
+    @DELETE("api/v1/courses/{courseId}/unenroll")
+    suspend fun unenrollFromCourse(
+        @Path("courseId") courseId: String
+    ): Response<Unit>
 }

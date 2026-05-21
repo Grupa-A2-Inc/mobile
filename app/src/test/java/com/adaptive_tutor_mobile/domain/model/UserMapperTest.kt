@@ -1,5 +1,7 @@
 package com.adaptive_tutor_mobile.domain.model
 
+import com.adaptive_tutor_mobile.domain.model.auth.UserRole
+import com.adaptive_tutor_mobile.domain.model.auth.toDomain
 import com.adaptive_tutor_mobile.data.remote.dto.UserDataResponse
 import org.junit.Test
 import kotlin.test.assertEquals

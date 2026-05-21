@@ -1,24 +1,29 @@
 package com.adaptive_tutor_mobile.presentation.home.student
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -26,20 +31,27 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,37 +59,48 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.navigation.NavController
+import com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto
 import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.components.AdaptiveBottomBar
-import com.adaptive_tutor_mobile.presentation.components.AdaptiveTopBar
 import com.adaptive_tutor_mobile.presentation.components.BottomNavItem
 import com.adaptive_tutor_mobile.presentation.components.CourseCard
-import com.adaptive_tutor_mobile.presentation.components.EmptyScreen
-import com.adaptive_tutor_mobile.presentation.components.ErrorScreen
-import com.adaptive_tutor_mobile.presentation.components.LoadingScreen
+import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
+import com.adaptive_tutor_mobile.presentation.navigation.Screen
+import com.adaptive_tutor_mobile.presentation.chat.ChatBottomSheet
+import com.adaptive_tutor_mobile.presentation.chat.ChatViewModel
+import com.adaptive_tutor_mobile.ui.components.AppTopBar
+import com.adaptive_tutor_mobile.ui.components.EmptyState
+import com.adaptive_tutor_mobile.ui.components.ErrorCard
+import com.adaptive_tutor_mobile.ui.components.LoadingShimmerList
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.navigation.NavController
-import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
-import com.adaptive_tutor_mobile.presentation.navigation.Screen
 
-private const val TAB_HOME = "student_tab_home"
+// ─────────────────────────────────────────────────────────────────────────────
+// Tab-uri bottom nav
+// ─────────────────────────────────────────────────────────────────────────────
+
+private const val TAB_HOME       = "student_tab_home"
 private const val TAB_MY_COURSES = "student_tab_my_courses"
-private const val TAB_EXPLORE = "student_tab_explore"
-private const val TAB_ADAPTIVE = "student_tab_adaptive"
-private const val TAB_PROFILE = "student_tab_profile"
+private const val TAB_CHAT       = "student_tab_chat"
+private const val TAB_EXPLORE    = "student_tab_explore"
+private const val TAB_ADAPTIVE   = "student_tab_adaptive"
+private const val TAB_PROFILE    = "student_tab_profile"
 
 private val bottomNavItems = listOf(
-    BottomNavItem(TAB_HOME, Icons.Filled.Home, "Acasă"),
-    BottomNavItem(TAB_MY_COURSES, Icons.Filled.MenuBook, "Cursuri"),
-    BottomNavItem(TAB_EXPLORE, Icons.Filled.Explore, "Explorează"),
-    BottomNavItem(TAB_ADAPTIVE, Icons.Filled.Psychology, "Adaptiv"),
-    BottomNavItem(TAB_PROFILE, Icons.Filled.Person, "Profil")
+    BottomNavItem(TAB_HOME,       Icons.Filled.Home,                    "Acasă"),
+    BottomNavItem(TAB_MY_COURSES, Icons.AutoMirrored.Filled.MenuBook,   "Cursuri"),
+    BottomNavItem(TAB_CHAT,       Icons.Filled.SupportAgent,            "AI"),
+    BottomNavItem(TAB_ADAPTIVE,   Icons.Filled.Psychology,              "Adaptiv"),
+    BottomNavItem(TAB_PROFILE,    Icons.Filled.Person,                  "Profil")
 )
 
-@Composable
+// ─────────────────────────────────────────────────────────────────────────────
+// StudentHomeScreen
+// ─────────────────────────────────────────────────────────────────────────────
 
+@Composable
 fun StudentHomeScreen(
     viewModel: AuthViewModel,
     onAdaptiveClick: () -> Unit,
@@ -86,65 +109,162 @@ fun StudentHomeScreen(
     onNavigateToEnrolledCourses: () -> Unit = {}
 ) {
     val studentViewModel: StudentViewModel = hiltViewModel()
+    val chatViewModel: ChatViewModel = hiltViewModel()
     val currentUser by viewModel.currentUser.collectAsState()
     val firstName = currentUser?.firstName ?: "Student"
 
-    var currentTab by remember { mutableStateOf(TAB_HOME) }
+    var currentTab by rememberSaveable { mutableStateOf(TAB_HOME) }
+    var showChatSheet by remember { mutableStateOf(false) }
+
+    // Mapare tab → pagina trimisă în contextul AI
+    val currentPageForAi = when (currentTab) {
+        TAB_MY_COURSES -> "enrolled-courses"
+        TAB_EXPLORE    -> "explore-courses"
+        TAB_PROFILE    -> "student-profile"
+        else           -> "student-dashboard"
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 studentViewModel.loadEnrolledCourses()
+                // ── Reîncarcă userul din SessionStore după revenire din ProfileScreen ──
+                viewModel.refreshUser()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    Scaffold(
-        bottomBar = {
-            AdaptiveBottomBar(
-                items = bottomNavItems,
-                currentRoute = currentTab,
-                onItemClick = { tab ->
-                    if (tab == TAB_ADAPTIVE) onAdaptiveClick()
-                    else currentTab = tab
+    val isTablet = LocalConfiguration.current.screenWidthDp >= 600
+
+    val onTabSelected = { tab: String ->
+        when (tab) {
+            TAB_CHAT     -> showChatSheet = true
+            TAB_ADAPTIVE -> onAdaptiveClick()
+            TAB_PROFILE  -> navController.navigate(Screen.Profile.route)
+            else -> {
+                currentTab = tab
+                if (tab == TAB_HOME || tab == TAB_MY_COURSES) {
+                    studentViewModel.loadEnrolledCourses(0)
                 }
-            )
+            }
         }
-    ) { innerPadding ->
-        when (currentTab) {
-            TAB_HOME -> DashboardTab(
-                firstName = firstName,
-                studentViewModel = studentViewModel,
-                onAdaptiveClick = onAdaptiveClick,
-                navController = navController,
-                onSeeAllCourses = onNavigateToEnrolledCourses,
-                modifier = Modifier.padding(innerPadding)
-            )
-            TAB_MY_COURSES -> MyCoursesTab(
-                studentViewModel = studentViewModel,
-                navController = navController,
-                onExploreClick = { currentTab = TAB_EXPLORE },
-                modifier = Modifier.padding(innerPadding)
-            )
-            TAB_EXPLORE -> PublicCoursesScreen(
-                navController = navController,
-                modifier = Modifier.padding(innerPadding)
-            )
-            TAB_PROFILE -> ProfileTab(
-                firstName = firstName,
-                lastName = currentUser?.lastName ?: "",
-                email = currentUser?.email ?: "",
-                onLogout = { viewModel.logout(); onLogout() },
-                modifier = Modifier.padding(innerPadding)
-            )
+    }
+
+    if (showChatSheet) {
+        ChatBottomSheet(
+            viewModel = chatViewModel,
+            currentPage = currentPageForAi,
+            userType = "student",
+            onDismiss = { showChatSheet = false }
+        )
+    }
+
+    if (isTablet) {
+        Scaffold { innerPadding ->
+            Row(Modifier.fillMaxSize().padding(innerPadding)) {
+                NavigationRail(
+                    modifier = Modifier.fillMaxHeight(),
+                    containerColor = MaterialTheme.colorScheme.surface
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        bottomNavItems.forEach { item ->
+                            NavigationRailItem(
+                                selected = currentTab == item.route,
+                                onClick = { onTabSelected(item.route) },
+                                icon = { Icon(item.icon, contentDescription = item.label) },
+                                label = { Text(item.label, style = MaterialTheme.typography.labelSmall) }
+                            )
+                        }
+                    }
+                }
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    Box(modifier = Modifier.widthIn(max = 840.dp).fillMaxHeight()) {
+                        when (currentTab) {
+                            TAB_HOME -> DashboardTab(
+                                firstName = firstName,
+                                studentViewModel = studentViewModel,
+                                onAdaptiveClick = onAdaptiveClick,
+                                navController = navController,
+                                onSeeAllCourses = { currentTab = TAB_MY_COURSES },
+                                modifier = Modifier
+                            )
+                            TAB_MY_COURSES -> MyCoursesTab(
+                                studentViewModel = studentViewModel,
+                                navController = navController,
+                                onExploreClick = { currentTab = TAB_EXPLORE },
+                                modifier = Modifier
+                            )
+                            TAB_EXPLORE -> PublicCoursesScreen(
+                                navController = navController,
+                                modifier = Modifier
+                            )
+                            TAB_PROFILE -> ProfileTab(
+                                firstName = currentUser?.firstName ?: "",
+                                lastName  = currentUser?.lastName  ?: "",
+                                email     = currentUser?.email     ?: "",
+                                onLogout      = { viewModel.logout(); onLogout() },
+                                onEditProfile = { navController.navigate(Screen.Profile.route) },
+                                modifier = Modifier
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        Scaffold(
+            bottomBar = {
+                AdaptiveBottomBar(
+                    items = bottomNavItems,
+                    currentRoute = currentTab,
+                    onItemClick = onTabSelected
+                )
+            }
+        ) { innerPadding ->
+            when (currentTab) {
+                TAB_HOME -> DashboardTab(
+                    firstName = firstName,
+                    studentViewModel = studentViewModel,
+                    onAdaptiveClick = onAdaptiveClick,
+                    navController = navController,
+                    onSeeAllCourses = { currentTab = TAB_MY_COURSES },
+                    modifier = Modifier.padding(innerPadding)
+                )
+                TAB_MY_COURSES -> MyCoursesTab(
+                    studentViewModel = studentViewModel,
+                    navController = navController,
+                    onExploreClick = { currentTab = TAB_EXPLORE },
+                    modifier = Modifier.padding(innerPadding)
+                )
+                TAB_EXPLORE -> PublicCoursesScreen(
+                    navController = navController,
+                    modifier = Modifier.padding(innerPadding)
+                )
+                TAB_PROFILE -> ProfileTab(
+                    firstName = currentUser?.firstName ?: "",
+                    lastName  = currentUser?.lastName  ?: "",
+                    email     = currentUser?.email     ?: "",
+                    onLogout      = { viewModel.logout(); onLogout() },
+                    onEditProfile = { navController.navigate(Screen.Profile.route) },
+                    modifier = Modifier.padding(innerPadding)
+                )
+            }
         }
     }
 }
 
-// ── Tab 1: Dashboard ──────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Tab 1: Dashboard
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun DashboardTab(
@@ -196,7 +316,11 @@ private fun DashboardTab(
         item {
             ElevatedCard(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = onAdaptiveClick
+                onClick = onAdaptiveClick,
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
@@ -215,17 +339,20 @@ private fun DashboardTab(
         }
 
         when (val state = coursesState) {
-            is CoursesUiState.Loading -> item { LoadingScreen() }
+            is CoursesUiState.Loading -> item {
+                LoadingShimmerList(itemCount = 3)
+            }
+
             is CoursesUiState.Error -> item {
-                ErrorScreen(
+                ErrorCard(
                     message = state.message,
                     onRetry = { studentViewModel.loadEnrolledCourses() }
                 )
             }
+
             is CoursesUiState.Success -> {
                 val courses = state.courses
 
-                // "Continuă să înveți" — course with highest progress < 100
                 val inProgressCourse = courses
                     .filter { (it.progressPercent ?: 0.0) < 100.0 }
                     .maxByOrNull { it.progressPercent ?: 0.0 }
@@ -246,12 +373,16 @@ private fun DashboardTab(
                                 category = inProgressCourse.courseCategory,
                                 progressPercent = inProgressCourse.progressPercent,
                                 onClick = {
-                                    navController.navigate(Screen.CourseDetail.createRoute(inProgressCourse.courseId))
+                                    navController.navigate(
+                                        Screen.CourseDetail.createRoute(inProgressCourse.courseId)
+                                    )
                                 }
                             )
                             Button(
                                 onClick = {
-                                    navController.navigate(Screen.CourseDetail.createRoute(inProgressCourse.courseId))
+                                    navController.navigate(
+                                        Screen.CourseDetail.createRoute(inProgressCourse.courseId)
+                                    )
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -261,7 +392,6 @@ private fun DashboardTab(
                     }
                 }
 
-                // "Cursurile mele" — first 3
                 if (courses.isNotEmpty()) {
                     item {
                         Row(
@@ -281,7 +411,7 @@ private fun DashboardTab(
                     }
                     items(
                         items = courses.take(3),
-                        key = { course -> course.courseId }
+                        key = { it.courseId }
                     ) { course ->
                         CourseCard(
                             title = course.courseTitle,
@@ -289,13 +419,14 @@ private fun DashboardTab(
                             category = course.courseCategory,
                             progressPercent = course.progressPercent,
                             onClick = {
-                                navController.navigate(Screen.CourseDetail.createRoute(course.courseId))
+                                navController.navigate(
+                                    Screen.CourseDetail.createRoute(course.courseId)
+                                )
                             }
                         )
                     }
                 }
 
-                // "Statistici rapide"
                 item {
                     Text(
                         text = "Statistici rapide",
@@ -304,21 +435,29 @@ private fun DashboardTab(
                     )
                 }
                 item {
+                    val finalizate = courses.count {
+                        (it.progressPercent ?: 0.0) >= 100.0 || !it.completedAt.isNullOrBlank()
+                    }
+                    val avgProgress = if (courses.isEmpty()) "—"
+                        else "${courses.map { it.progressPercent ?: 0.0 }.average().toInt()}%"
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        StatCard("Cursuri înscrise", courses.size.toString(), Modifier.weight(1f))
-                        StatCard("Lecții citite", "—", Modifier.weight(1f))
-                        StatCard("Teste promovate", "0", Modifier.weight(1f))
+                        StatCard("Înscris la", courses.size.toString(), Modifier.weight(1f))
+                        StatCard("Finalizate", finalizate.toString(), Modifier.weight(1f))
+                        StatCard("Progres mediu", avgProgress, Modifier.weight(1f))
                     }
                 }
 
                 if (courses.isEmpty()) {
                     item {
-                        EmptyScreen(
-                            message = "Nu ești înscris la niciun curs încă.",
-                            icon = Icons.Filled.MenuBook
+                        EmptyState(
+                            icon = Icons.AutoMirrored.Filled.MenuBook,
+                            title = "Niciun curs",
+                            subtitle = "Nu ești înscris la niciun curs încă.",
+                            actionText = "Explorează cursuri",
+                            onAction = { onSeeAllCourses() }
                         )
                     }
                 }
@@ -329,7 +468,13 @@ private fun DashboardTab(
 
 @Composable
 private fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    ElevatedCard(modifier = modifier) {
+    ElevatedCard(
+        modifier = modifier,
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
         Column(
             modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -350,7 +495,9 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
     }
 }
 
-// ── Tab 2: Cursurile mele ─────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Tab 2: Cursurile mele
+// ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -361,73 +508,217 @@ private fun MyCoursesTab(
     modifier: Modifier = Modifier
 ) {
     val coursesState by studentViewModel.coursesState.collectAsState()
+    val message by studentViewModel.message.collectAsState()
+    val currentPage by studentViewModel.currentPage.collectAsState()
+    val totalPages by studentViewModel.totalPages.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var pendingUnenrollCourse by remember { mutableStateOf<EnrolledCourseDto?>(null) }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        AdaptiveTopBar(
-            title = "Cursurile mele",
-            actions = {
-                IconButton(onClick = {}) {
-                    Icon(Icons.Filled.Search, contentDescription = "Caută")
-                }
-                TextButton(onClick = onExploreClick) {
-                    Text("Explorează")
-                }
-            }
-        )
+    LaunchedEffect(message) {
+        message?.let {
+            snackbarHostState.showSnackbar(it)
+            studentViewModel.clearMessage()
+        }
+    }
 
-        when (val state = coursesState) {
-            is CoursesUiState.Loading -> LoadingScreen()
-            is CoursesUiState.Error -> ErrorScreen(
-                message = state.message,
-                onRetry = { studentViewModel.loadEnrolledCourses() }
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            AppTopBar(
+                title = "Cursurile mele",
+                actions = {
+                    TextButton(onClick = onExploreClick) {
+                        Text("Explorează")
+                    }
+                }
             )
+        }
+    ) { innerPadding ->
+        when (val state = coursesState) {
+            is CoursesUiState.Loading -> LoadingShimmerList(
+                itemCount = 5,
+                modifier = Modifier.padding(innerPadding)
+            )
+
+            is CoursesUiState.Error -> ErrorCard(
+                message = state.message,
+                onRetry = { studentViewModel.loadEnrolledCourses() },
+                modifier = Modifier.padding(innerPadding)
+            )
+
             is CoursesUiState.Success -> {
                 val courses = state.courses
                 if (courses.isEmpty()) {
-                    EmptyScreen(
-                        message = "Nu ești înscris la niciun curs.\nExplorează cursuri disponibile!",
-                        icon = Icons.Filled.MenuBook
+                    EmptyState(
+                        icon = Icons.AutoMirrored.Filled.MenuBook,
+                        title = "Niciun curs",
+                        subtitle = "Nu ești înscris la niciun curs încă.\nExplorează cursuri disponibile!",
+                        actionText = "Explorează",
+                        onAction = onExploreClick,
+                        modifier = Modifier.padding(innerPadding)
                     )
                 } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(
-                            items = courses,
-                            key = { course -> course.courseId }
-                        ) { course ->
-                            CourseCard(
-                                title = course.courseTitle,
-                                description = null,
-                                category = course.courseCategory,
-                                progressPercent = course.progressPercent,
-                                onClick = {
-                                    navController.navigate(Screen.CourseDetail.createRoute(course.courseId))
-                                }
-                            )
+                    Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            items(
+                                items = courses,
+                                key = { it.courseId }
+                            ) { course ->
+                                MyCourseCard(
+                                    course = course,
+                                    onClick = {
+                                        navController.navigate(
+                                            Screen.CourseDetail.createRoute(course.courseId)
+                                        )
+                                    },
+                                    onUnenrollClick = { pendingUnenrollCourse = course }
+                                )
+                            }
+                        }
+                        if (totalPages > 1) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Button(
+                                    onClick = { studentViewModel.previousPage() },
+                                    enabled = currentPage > 0
+                                ) { Text("← Înapoi") }
+                                Text("${currentPage + 1} / $totalPages")
+                                Button(
+                                    onClick = { studentViewModel.nextPage() },
+                                    enabled = currentPage < totalPages - 1
+                                ) { Text("Înainte →") }
+                            }
                         }
                     }
+                }
+            }
+        }
+
+        pendingUnenrollCourse?.let { course ->
+            AlertDialog(
+                onDismissRequest = { pendingUnenrollCourse = null },
+                title = { Text("Confirmă dezabonarea") },
+                text = {
+                    Text(
+                        "Ești sigur că vrei să te dezabonezi din ${course.courseTitle}? " +
+                            "Progresul tău va fi pierdut."
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            studentViewModel.unenroll(course.courseId)
+                            pendingUnenrollCourse = null
+                        }
+                    ) {
+                        Text("Dezabonează")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingUnenrollCourse = null }) {
+                        Text("Anulează")
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun MyCourseCard(
+    course: EnrolledCourseDto,
+    onClick: () -> Unit,
+    onUnenrollClick: () -> Unit
+) {
+    ElevatedCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 16.dp, end = 8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = course.courseTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2
+                    )
+                    if (!course.courseCategory.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = course.courseCategory,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                IconButton(onClick = onUnenrollClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = "Dezabonează-te",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
+            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+                course.progressPercent?.let { progress ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Progres",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = "${progress.toInt()}%",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { (progress / 100.0).toFloat().coerceIn(0f, 1f) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp),
+                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                    )
                 }
             }
         }
     }
 }
 
-// ── Tab 3: Explorează ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Tab 3: Explorează → refolosește PublicCoursesScreen
+// ─────────────────────────────────────────────────────────────────────────────
 
-@Composable
-private fun ExploreTab(modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxSize()) {
-        AdaptiveTopBar(title = "Explorează cursuri")
-        EmptyScreen(
-            message = "Cursuri publice — în curând",
-            icon = Icons.Filled.Explore
-        )
-    }
-}
-
-// ── Tab 4: Profil ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Tab 4: Profil
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun ProfileTab(
@@ -435,10 +726,11 @@ private fun ProfileTab(
     lastName: String,
     email: String,
     onLogout: () -> Unit,
+    onEditProfile: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        AdaptiveTopBar(title = "Profil")
+        AppTopBar(title = "Profil")
         LazyColumn(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -460,6 +752,14 @@ private fun ProfileTab(
                 }
             }
             item {
+                Button(
+                    onClick = onEditProfile,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Editează profil")
+                }
+            }
+            item {
                 OutlinedButton(
                     onClick = onLogout,
                     modifier = Modifier.fillMaxWidth()
@@ -471,4 +771,3 @@ private fun ProfileTab(
         }
     }
 }
-

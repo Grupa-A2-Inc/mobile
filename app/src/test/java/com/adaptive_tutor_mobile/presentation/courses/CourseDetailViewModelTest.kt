@@ -1,10 +1,10 @@
 package com.adaptive_tutor_mobile.presentation.courses
 
 import androidx.lifecycle.SavedStateHandle
-import com.adaptive_tutor_mobile.domain.model.Chapter
-import com.adaptive_tutor_mobile.domain.model.CourseDetail
-import com.adaptive_tutor_mobile.domain.model.LessonSummary
-import com.adaptive_tutor_mobile.domain.usecase.GetCourseFullViewUseCase
+import com.adaptive_tutor_mobile.domain.model.courses.Chapter
+import com.adaptive_tutor_mobile.domain.model.courses.CourseDetail
+import com.adaptive_tutor_mobile.domain.model.courses.LessonSummary
+import com.adaptive_tutor_mobile.domain.usecase.courses.GetCourseFullViewUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest

@@ -2,6 +2,7 @@ package com.adaptive_tutor_mobile.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -9,8 +10,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.adaptive_tutor_mobile.domain.model.User
-import com.adaptive_tutor_mobile.domain.model.UserRole
+import com.adaptive_tutor_mobile.domain.model.auth.User
+import com.adaptive_tutor_mobile.domain.model.auth.UserRole
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,29 +26,71 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @Singleton
 class SessionStore @Inject constructor(@ApplicationContext private val context: Context) {
 
+    private val prefsLock = Any()
+    @Volatile
+    private var encryptedPrefs: SharedPreferences? = null
+
     // ── Encrypted SharedPreferences for token ─────────────────────────────────
 
-    private val encryptedPrefs: SharedPreferences by lazy {
+    private fun createEncryptedPrefs(): SharedPreferences {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
-        EncryptedSharedPreferences.create(
+        return EncryptedSharedPreferences.create(
             context,
-            "secure_prefs",
+            SECURE_PREFS_NAME,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
     }
 
-    fun saveAccessToken(token: String) {
-        encryptedPrefs.edit().putString(KEY_ACCESS_TOKEN, token).apply()
+    private fun getEncryptedPrefs(): SharedPreferences? {
+        encryptedPrefs?.let { return it }
+
+        synchronized(prefsLock) {
+            encryptedPrefs?.let { return it }
+
+            return runCatching { createEncryptedPrefs() }
+                .recoverCatching {
+                    Log.w(TAG, "Encrypted prefs unavailable, clearing secure storage", it)
+                    resetEncryptedStorage()
+                    createEncryptedPrefs()
+                }
+                .onSuccess { encryptedPrefs = it }
+                .onFailure { Log.e(TAG, "Failed to initialize encrypted prefs", it) }
+                .getOrNull()
+        }
     }
 
-    fun getAccessToken(): String? = encryptedPrefs.getString(KEY_ACCESS_TOKEN, null)
+    private fun resetEncryptedStorage() {
+        encryptedPrefs = null
+        context.deleteSharedPreferences(SECURE_PREFS_NAME)
+    }
+
+    fun saveAccessToken(token: String) {
+        runCatching {
+            getEncryptedPrefs()?.edit()?.putString(KEY_ACCESS_TOKEN, token)?.apply()
+        }.onFailure {
+            Log.e(TAG, "Failed to save access token", it)
+            resetEncryptedStorage()
+        }
+    }
+
+    fun getAccessToken(): String? = runCatching {
+        getEncryptedPrefs()?.getString(KEY_ACCESS_TOKEN, null)
+    }.onFailure {
+        Log.e(TAG, "Failed to read access token", it)
+        resetEncryptedStorage()
+    }.getOrNull()
 
     fun clearTokens() {
-        encryptedPrefs.edit().remove(KEY_ACCESS_TOKEN).apply()
+        runCatching {
+            getEncryptedPrefs()?.edit()?.remove(KEY_ACCESS_TOKEN)?.apply()
+        }.onFailure {
+            Log.e(TAG, "Failed to clear access token", it)
+            resetEncryptedStorage()
+        }
     }
 
     // ── DataStore for user data ────────────────────────────────────────────────
@@ -103,6 +146,8 @@ class SessionStore @Inject constructor(@ApplicationContext private val context: 
     // ── Keys ─────────────────────────────────────────────────────────────────
 
     companion object {
+        private const val TAG = "SessionStore"
+        private const val SECURE_PREFS_NAME = "secure_prefs"
         private const val KEY_ACCESS_TOKEN = "access_token"
         private val USER_ID      = stringPreferencesKey("user_id")
         private val USER_FIRST   = stringPreferencesKey("user_first_name")

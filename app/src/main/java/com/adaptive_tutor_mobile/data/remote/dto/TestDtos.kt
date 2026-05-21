@@ -115,12 +115,3 @@ data class QuestionForAttemptReportDTO(
     val correct: Boolean = false
 )
 
-data class AttemptStatusDTO(
-    val attemptID: String,
-    val attemptNumber: Int,
-    val score: Double?,
-    val scorePercent: Double?,
-    val passed: Boolean?,
-    val startedAt: String,
-    val status: String
-)

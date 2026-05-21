@@ -1,10 +1,10 @@
 package com.adaptive_tutor_mobile.data.repository
 
 import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
-import com.adaptive_tutor_mobile.domain.model.Course
-import com.adaptive_tutor_mobile.domain.repository.CourseRepository
+import com.adaptive_tutor_mobile.domain.model.courses.Course
+import com.adaptive_tutor_mobile.domain.model.courses.PagedCourses
+import com.adaptive_tutor_mobile.domain.repository.courses.CourseRepository
 import javax.inject.Inject
-import com.adaptive_tutor_mobile.domain.model.PagedCourses
 
 class CourseRepositoryImpl @Inject constructor(
     private val enrollmentApi: EnrollmentApi
@@ -37,6 +37,19 @@ class CourseRepositoryImpl @Inject constructor(
     override suspend fun enrollInCourse(courseId: String): Result<Unit> {
         return try {
             val response = enrollmentApi.enrollInCourse(courseId)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Error: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun unenrollFromCourse(courseId: String): Result<Unit> {
+        return try {
+            val response = enrollmentApi.unenrollFromCourse(courseId)
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {

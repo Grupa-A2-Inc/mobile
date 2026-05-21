@@ -13,11 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ElevatedCard
@@ -26,16 +27,23 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.adaptive_tutor_mobile.domain.model.EnrolledCourse
+import com.adaptive_tutor_mobile.domain.model.courses.EnrolledCourse
 import com.adaptive_tutor_mobile.presentation.components.EmptyScreen
 import com.adaptive_tutor_mobile.presentation.components.ErrorScreen
 import com.adaptive_tutor_mobile.presentation.components.LoadingScreen
@@ -53,8 +61,27 @@ fun EnrolledCoursesScreen(
     viewModel: EnrolledCoursesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+    val unenrollSuccess by viewModel.unenrollSuccess.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var pendingUnenrollCourse by remember { mutableStateOf<EnrolledCourse?>(null) }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearErrorMessage()
+        }
+    }
+
+    LaunchedEffect(unenrollSuccess) {
+        unenrollSuccess?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearUnenrollSuccess()
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Cursurile mele") },
@@ -79,7 +106,7 @@ fun EnrolledCoursesScreen(
                     if (state.courses.isEmpty()) {
                         EmptyScreen(
                             message = "Nu ești înscris la niciun curs încă.\nExplorează cursurile disponibile!",
-                            icon = Icons.Filled.MenuBook
+                            icon = Icons.AutoMirrored.Filled.MenuBook
                         )
                     } else {
                         LazyColumn(
@@ -92,7 +119,8 @@ fun EnrolledCoursesScreen(
                             ) { course ->
                                 EnrolledCourseCard(
                                     course = course,
-                                    onClick = { onCourseClick(course.courseId) }
+                                    onClick = { onCourseClick(course.courseId) },
+                                    onUnenrollClick = { pendingUnenrollCourse = course }
                                 )
                             }
                         }
@@ -101,12 +129,41 @@ fun EnrolledCoursesScreen(
             }
         }
     }
+
+    pendingUnenrollCourse?.let { course ->
+        AlertDialog(
+            onDismissRequest = { pendingUnenrollCourse = null },
+            title = { Text("Confirmă dezabonarea") },
+            text = {
+                Text(
+                    "Ești sigur că vrei să te dezabonezi din ${course.courseTitle}? " +
+                        "Progresul tău va fi pierdut."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.unenroll(course.courseId)
+                        pendingUnenrollCourse = null
+                    }
+                ) {
+                    Text("Dezabonează")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingUnenrollCourse = null }) {
+                    Text("Anulează")
+                }
+            }
+        )
+    }
 }
 
 @Composable
 private fun EnrolledCourseCard(
     course: EnrolledCourse,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onUnenrollClick: () -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier
@@ -145,6 +202,14 @@ private fun EnrolledCourseCard(
                             leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     )
+                } else {
+                    IconButton(onClick = onUnenrollClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Dezabonează-te",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
 

@@ -9,9 +9,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.ChildCare
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,7 +37,7 @@ private data class ActionCard(val title: String, val subtitle: String, val icon:
 
 private val parentCards = listOf(
     ActionCard("Copiii mei",      "GET /api/v1/parents/{id}/students",        Icons.Filled.ChildCare),
-    ActionCard("Progres copii",   "GET /api/v1/students/{id}/courses-progress",Icons.Filled.TrendingUp),
+    ActionCard("Progres copii",   "GET /api/v1/students/{id}/courses-progress",Icons.AutoMirrored.Filled.TrendingUp),
     ActionCard("Profilul meu",    "GET /api/v1/users/{id}",                   Icons.Filled.Person)
 )
 
@@ -66,7 +66,7 @@ fun ParentHomeScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
+            columns = GridCells.Adaptive(minSize = 180.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)

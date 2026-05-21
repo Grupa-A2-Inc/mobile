@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
 import com.adaptive_tutor_mobile.di.SessionStore
-import com.adaptive_tutor_mobile.domain.model.User
-import com.adaptive_tutor_mobile.domain.usecase.ForgotPasswordUseCase
-import com.adaptive_tutor_mobile.domain.usecase.LoginUseCase
-import com.adaptive_tutor_mobile.domain.usecase.LogoutUseCase
-import com.adaptive_tutor_mobile.domain.usecase.RegisterUseCase
+import com.adaptive_tutor_mobile.domain.model.auth.User
+import com.adaptive_tutor_mobile.domain.usecase.auth.ForgotPasswordUseCase
+import com.adaptive_tutor_mobile.domain.usecase.auth.LoginUseCase
+import com.adaptive_tutor_mobile.domain.usecase.auth.LogoutUseCase
+import com.adaptive_tutor_mobile.domain.usecase.auth.RegisterUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -91,5 +91,11 @@ class AuthViewModel @Inject constructor(
 
     fun resetState() {
         _uiState.value = AuthUiState.Idle
+    }
+
+    fun refreshUser() {
+        viewModelScope.launch {
+            _currentUser.value = sessionStore.getUser()
+        }
     }
 }

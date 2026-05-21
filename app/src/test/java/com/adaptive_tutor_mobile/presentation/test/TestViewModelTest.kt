@@ -7,7 +7,8 @@ import com.adaptive_tutor_mobile.data.remote.dto.QuestionForStudentDto
 import com.adaptive_tutor_mobile.data.remote.dto.StartAttemptResponseDto
 import com.adaptive_tutor_mobile.data.remote.dto.SubmitRequestDto
 import com.adaptive_tutor_mobile.data.remote.dto.TestInfoForAttemptDto
-import com.adaptive_tutor_mobile.domain.repository.TestRepository
+import com.adaptive_tutor_mobile.domain.repository.test.TestRepository
+import com.adaptive_tutor_mobile.domain.usecase.test.ReportQuestionErrorUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -29,6 +30,7 @@ class TestViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var repository: TestRepository
+    private lateinit var reportUseCase: ReportQuestionErrorUseCase
 
     private val testId = "test-uuid-123"
     private val attemptId = "attempt-uuid-456"
@@ -58,10 +60,12 @@ class TestViewModelTest {
     @Before
     fun setup() {
         repository = mockk()
+        reportUseCase = mockk(relaxed = true)
     }
 
     private fun viewModel(id: String? = testId) = TestViewModel(
         repository = repository,
+        reportQuestionErrorUseCase = reportUseCase,
         savedStateHandle = SavedStateHandle(
             if (id != null) mapOf("testId" to id) else emptyMap()
         )
@@ -95,7 +99,7 @@ class TestViewModelTest {
     @Test
     fun `startTest failure sets error and clears loading`() = runTest {
         coEvery { repository.startTest(testId) } returns
-            Result.failure(RuntimeException("Network error"))
+                Result.failure(RuntimeException("Network error"))
 
         val vm = viewModel()
         advanceUntilIdle()
@@ -108,7 +112,7 @@ class TestViewModelTest {
     @Test
     fun `startTest failure with null message falls back to generic message`() = runTest {
         coEvery { repository.startTest(testId) } returns
-            Result.failure(RuntimeException())
+                Result.failure(RuntimeException())
 
         val vm = viewModel()
         advanceUntilIdle()
@@ -238,7 +242,7 @@ class TestViewModelTest {
     @Test
     fun `submitTest with null attemptId does nothing`() = runTest {
         coEvery { repository.startTest(testId) } returns
-            Result.failure(RuntimeException("fail"))
+                Result.failure(RuntimeException("fail"))
         val vm = viewModel()
         advanceUntilIdle()
 
@@ -271,7 +275,7 @@ class TestViewModelTest {
     fun `submitTest failure sets error`() = runTest {
         coEvery { repository.startTest(testId) } returns Result.success(sampleStartResponse)
         coEvery { repository.submitAttempt(attemptId, any()) } returns
-            Result.failure(RuntimeException("Submit failed"))
+                Result.failure(RuntimeException("Submit failed"))
 
         val vm = viewModel()
         advanceUntilIdle()
@@ -301,9 +305,9 @@ class TestViewModelTest {
                 attemptId,
                 match { req: SubmitRequestDto ->
                     req.answers.size == 1 &&
-                    req.answers[0].questionId == 1 &&
-                    req.answers[0].selectedOptionIds == listOf(11) &&
-                    req.answers[0].timeSpent != null
+                            req.answers[0].questionId == 1 &&
+                            req.answers[0].selectedOptionIds == listOf(11) &&
+                            req.answers[0].timeSpent != null
                 }
             )
         }

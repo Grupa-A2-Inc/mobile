@@ -8,18 +8,23 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adaptive_tutor_mobile.di.SessionStore
+import com.adaptive_tutor_mobile.di.SessionStoreEntryPoint
 import com.adaptive_tutor_mobile.presentation.navigation.AppNavGraph
 import com.adaptive_tutor_mobile.presentation.navigation.Screen
 import com.adaptive_tutor_mobile.ui.theme.AdaptiveTutorTheme
 import com.adaptive_tutor_mobile.ui.theme.ThemeViewModel
+import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var sessionStore: SessionStore
+    private val sessionStore: SessionStore by lazy(LazyThreadSafetyMode.NONE) {
+        EntryPointAccessors.fromApplication(
+            applicationContext,
+            SessionStoreEntryPoint::class.java
+        ).sessionStore()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -55,3 +55,8 @@ data class UserDataResponse(
 data class RefreshResponse(
     val accessToken: String?
 )
+
+data class CsrfResponse(
+    val csrfToken: String?,
+    val headerName: String?
+)

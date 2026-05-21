@@ -5,6 +5,7 @@ import com.adaptive_tutor_mobile.data.remote.api.AuthApi
 import com.adaptive_tutor_mobile.data.remote.api.CourseDetailApi
 import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 import com.adaptive_tutor_mobile.data.remote.api.LessonApi
+import com.adaptive_tutor_mobile.data.remote.dto.CsrfResponse
 import com.adaptive_tutor_mobile.data.remote.dto.RefreshResponse
 import com.google.gson.Gson
 import dagger.Module
@@ -25,10 +26,16 @@ import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
 import javax.inject.Singleton
 import com.adaptive_tutor_mobile.data.remote.api.AdaptiveApi
+import com.adaptive_tutor_mobile.data.remote.api.AttemptHistoryApi
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.api.TestApi
+import com.adaptive_tutor_mobile.data.remote.api.RatingApi
+import com.adaptive_tutor_mobile.data.remote.api.ChatApi
+import com.adaptive_tutor_mobile.data.remote.api.StatsApi
+import com.adaptive_tutor_mobile.data.remote.api.UserApi
 
-private const val BASE_URL = "https://api.adaptiveelearning.online/"
+private const val BASE_URL    = "https://api.adaptiveelearning.online/"
+private const val AI_BASE_URL = "http://ai.adaptiveelearning.online/"
 
 // ── WebKit-backed CookieJar ───────────────────────────────────────────────────
 
@@ -62,13 +69,14 @@ class AuthInterceptor(private val sessionStore: SessionStore) : Interceptor {
         "/api/v1/auth/refresh",
         "/api/v1/auth/password-reset/request",
         "/api/v1/auth/password-reset/confirm",
-        "/api/v1/auth/set-password"
+        "/api/v1/auth/set-password",
+        "/ai/"  // AI service uses X-API-KEY, not Bearer token
     )
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val req = chain.request()
         val path = req.url.encodedPath
-        if (skipPaths.any { path.endsWith(it) }) {
+        if (skipPaths.any { path.contains(it) }) {
             return chain.proceed(req)
         }
         val token = sessionStore.getAccessToken()
@@ -86,22 +94,62 @@ class TokenRefreshAuthenticator(
     private val plainClientProvider: () -> OkHttpClient
 ) : okhttp3.Authenticator {
 
+    private val skipPaths = listOf(
+        "auth/login", "auth/register", "auth/refresh",
+        "auth/password-reset",
+        "ai/"  // AI service — uses X-API-KEY, not Bearer; 401 here must NOT trigger session logout
+    )
+
     override fun authenticate(route: okhttp3.Route?, response: Response): Request? {
-        if (response.request.url.encodedPath.contains("auth/refresh")) return null
+        val path = response.request.url.encodedPath
+        if (skipPaths.any { path.contains(it) }) return null
         if (response.code != 401) return null
 
         return try {
             val plainClient = plainClientProvider()
-            val refreshRequest = Request.Builder()
+            val gson = Gson()
+
+            // 1. Try to read XSRF-TOKEN from existing cookies
+            val cookieString = CookieManager.getInstance().getCookie(BASE_URL)
+            var csrfToken: String? = cookieString
+                ?.split(";")
+                ?.map { it.trim() }
+                ?.firstOrNull { it.startsWith("XSRF-TOKEN=") }
+                ?.removePrefix("XSRF-TOKEN=")
+            var csrfHeaderName = "X-XSRF-TOKEN"
+
+            // 2. If no cookie, fetch from /api/v1/auth/csrf
+            if (csrfToken.isNullOrBlank()) {
+                val csrfRequest = Request.Builder()
+                    .url("${BASE_URL}api/v1/auth/csrf")
+                    .get()
+                    .build()
+                val csrfResponse = plainClient.newCall(csrfRequest).execute()
+                if (csrfResponse.isSuccessful) {
+                    val csrfDto = gson.fromJson(
+                        csrfResponse.body?.string(),
+                        CsrfResponse::class.java
+                    )
+                    csrfToken = csrfDto?.csrfToken
+                    csrfHeaderName = csrfDto?.headerName?.takeIf { it.isNotBlank() } ?: "X-XSRF-TOKEN"
+                }
+            }
+
+            // 3. POST /api/v1/auth/refresh with CSRF header
+            val refreshRequestBuilder = Request.Builder()
                 .url("${BASE_URL}api/v1/auth/refresh")
                 .post("".toRequestBody())
-                .build()
-            val refreshResponse = plainClient.newCall(refreshRequest).execute()
+            if (!csrfToken.isNullOrBlank()) {
+                refreshRequestBuilder.header(csrfHeaderName, csrfToken)
+            }
+            val refreshResponse = plainClient.newCall(refreshRequestBuilder.build()).execute()
+
             if (refreshResponse.isSuccessful) {
-                val body = refreshResponse.body?.string()
-                val gson = Gson()
-                val refreshDto = gson.fromJson(body, RefreshResponse::class.java)
-                val newToken = refreshDto.accessToken
+                val refreshDto = gson.fromJson(
+                    refreshResponse.body?.string(),
+                    RefreshResponse::class.java
+                )
+                val newToken = refreshDto?.accessToken
                 if (newToken != null) {
                     sessionStore.saveAccessToken(newToken)
                     response.request.newBuilder()
@@ -204,7 +252,6 @@ object NetworkModule {
         return retrofit.create(AdaptiveApi::class.java)
     }
 
-    // ------ Dev5: Lessons ------
     @Provides
     @Singleton
     fun provideLessonApi(retrofit: Retrofit): LessonApi {
@@ -215,4 +262,56 @@ object NetworkModule {
     @Singleton
     fun provideTestApi(retrofit: Retrofit): TestApi =
         retrofit.create(TestApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideRatingApi(retrofit: Retrofit): com.adaptive_tutor_mobile.data.remote.api.RatingApi =
+        retrofit.create(com.adaptive_tutor_mobile.data.remote.api.RatingApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideErrorReportApi(retrofit: Retrofit): com.adaptive_tutor_mobile.data.remote.api.ErrorReportApi =
+        retrofit.create(com.adaptive_tutor_mobile.data.remote.api.ErrorReportApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUserApi(retrofit: Retrofit): UserApi =
+        retrofit.create(UserApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideStatsApi(retrofit: Retrofit): StatsApi =
+        retrofit.create(StatsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAttemptHistoryApi(retrofit: Retrofit): AttemptHistoryApi =
+        retrofit.create(AttemptHistoryApi::class.java)
+
+    // ── AI service — domeniu separat, fără Bearer auth ────────────────────────
+    @Provides
+    @Singleton
+    @Named("ai")
+    fun provideAiOkHttpClient(logging: HttpLoggingInterceptor): OkHttpClient =
+        OkHttpClient.Builder()
+            .connectTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .readTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .writeTimeout(5, java.util.concurrent.TimeUnit.MINUTES)
+            .addInterceptor(logging)
+            .build()
+
+    @Provides
+    @Singleton
+    @Named("ai")
+    fun provideAiRetrofit(@Named("ai") client: OkHttpClient): Retrofit =
+        Retrofit.Builder()
+            .baseUrl(AI_BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideChatApi(@Named("ai") retrofit: Retrofit): ChatApi =
+        retrofit.create(ChatApi::class.java)
 }

@@ -20,13 +20,19 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.noties.markwon.Markwon
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LessonScreen(
     viewModel: LessonViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToTest: (String) -> Unit
+    onNavigateToTest: (String) -> Unit,
+    onNavigateToHistory: (String) -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -55,6 +61,13 @@ fun LessonScreen(
             )
         }
     ) { paddingValues ->
+        if (state.showRatingDialog) {
+            RatingDialog(
+                lessonId = state.lesson?.id ?: "",
+                onDismiss = { viewModel.dismissRatingDialog() },
+                onSubmit = { rating, comment -> viewModel.submitRating(state.lesson?.id ?: "", rating, comment) }
+            )
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -126,18 +139,40 @@ fun LessonScreen(
                                 ) {
                                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                                 }
-                                state.testId != null -> Button(
-                                    onClick = { onNavigateToTest(state.testId!!) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = MaterialTheme.shapes.medium
-                                ) {
-                                    Text(
-                                        text = "Dă testul",
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
+                                state.testId != null -> {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Button(
+                                            onClick = { onNavigateToTest(state.testId!!) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = MaterialTheme.shapes.medium
+                                        ) {
+                                            Text(
+                                                text = "Dă testul",
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                        }
+                                        OutlinedButton(
+                                            onClick = { onNavigateToHistory(state.testId!!) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = MaterialTheme.shapes.medium
+                                        ) {
+                                            Text(
+                                                text = "Toate încercările mele",
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                        }
+                                    }
                                 }
                                 else -> {}
                             }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            RatingSection(
+                                ratingSummary = state.ratingSummary,
+                                hasRated = state.hasRated,
+                                onRateClick = { viewModel.showRatingDialog() }
+                            )
 
                             Spacer(modifier = Modifier.height(24.dp))
                         }
@@ -146,4 +181,85 @@ fun LessonScreen(
             }
         }
     }
+}
+
+@Composable
+private fun RatingSection(
+    ratingSummary: com.adaptive_tutor_mobile.domain.model.lesson.RatingSummary?,
+    hasRated: Boolean,
+    onRateClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (ratingSummary != null) {
+            Text(
+                text = "Rating mediu: ${"%.1f".format(ratingSummary.avgRating)} ⭐ (${ratingSummary.totalRatings} recenzii)",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        if (!hasRated) {
+            OutlinedButton(onClick = onRateClick) {
+                Text("Evaluează lecția")
+            }
+        } else {
+            Text(
+                text = "Ai evaluat această lecție ✓",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
+private fun RatingDialog(
+    lessonId: String,
+    onDismiss: () -> Unit,
+    onSubmit: (Int, String?) -> Unit
+) {
+    var selectedRating by remember { mutableIntStateOf(0) }
+    var comment by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Evaluează lecția") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    (1..5).forEach { star ->
+                        IconButton(onClick = { selectedRating = star }) {
+                            Icon(
+                                imageVector = if (star <= selectedRating) Icons.Filled.Star else Icons.Outlined.StarOutline,
+                                contentDescription = "$star stele",
+                                tint = if (star <= selectedRating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = comment,
+                    onValueChange = { comment = it },
+                    label = { Text("Comentariu (opțional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSubmit(selectedRating, comment.ifBlank { null }) },
+                enabled = selectedRating > 0
+            ) {
+                Text("Trimite")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Anulează")
+            }
+        }
+    )
 }

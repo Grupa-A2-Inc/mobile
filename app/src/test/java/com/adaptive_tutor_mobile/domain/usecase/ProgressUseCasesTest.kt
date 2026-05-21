@@ -1,6 +1,8 @@
 package com.adaptive_tutor_mobile.domain.usecase
 
-import com.adaptive_tutor_mobile.domain.repository.ProgressRepository
+import com.adaptive_tutor_mobile.domain.repository.stats.ProgressRepository
+import com.adaptive_tutor_mobile.domain.usecase.courses.GetEnrolledCoursesUseCase
+import com.adaptive_tutor_mobile.domain.usecase.stats.GetMyProgressUseCase
 import com.adaptive_tutor_mobile.ProgressTestFixtures.domainCourse
 import com.adaptive_tutor_mobile.ProgressTestFixtures.progressDto
 import io.mockk.coEvery

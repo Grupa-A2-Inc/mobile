@@ -1,6 +1,9 @@
 package com.adaptive_tutor_mobile.domain.model
 
+import com.adaptive_tutor_mobile.domain.model.courses.EnrolledCourse
+import com.adaptive_tutor_mobile.domain.model.courses.toDomain
 import com.adaptive_tutor_mobile.ProgressTestFixtures.completedDto
+import com.adaptive_tutor_mobile.ProgressTestFixtures.domainCourse
 import com.adaptive_tutor_mobile.ProgressTestFixtures.enrolledDto
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -57,6 +60,26 @@ class EnrolledCourseMapperTest {
     }
 
     @Test
+    fun `EnrolledCourseDto with blank completedAt maps to null and is not completed`() {
+        val dto = enrolledDto(completedAt = " ")
+
+        val result = dto.toDomain()
+
+        assertNull(result.completedAt)
+        assertFalse(result.isCompleted)
+    }
+
+    @Test
+    fun `EnrolledCourseDto with empty completedAt maps to null and is not completed`() {
+        val dto = enrolledDto(completedAt = "")
+
+        val result = dto.toDomain()
+
+        assertNull(result.completedAt)
+        assertFalse(result.isCompleted)
+    }
+
+    @Test
     fun `CompletedCourseDto maps to domain with 100 percent`() {
         val dto = completedDto(courseId = "c5", title = "History")
 
@@ -80,5 +103,17 @@ class EnrolledCourseMapperTest {
 
         assertEquals("2024-09-01T10:00:00", result.enrolledAt)
         assertEquals("2025-01-15T18:30:00", result.completedAt)
+    }
+
+    @Test
+    fun `EnrolledCourse isCompleted is false for null empty and blank values`() {
+        assertFalse(domainCourse(completedAt = null).isCompleted)
+        assertFalse(domainCourse(completedAt = "").isCompleted)
+        assertFalse(domainCourse(completedAt = " ").isCompleted)
+    }
+
+    @Test
+    fun `EnrolledCourse isCompleted is true for non blank value`() {
+        assertTrue(domainCourse(completedAt = "2025-01-15T18:30:00").isCompleted)
     }
 }

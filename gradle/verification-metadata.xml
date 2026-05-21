@@ -12,6 +12,10 @@
          <trust group="org.jetbrains.kotlinx" name="kotlinx-coroutines-bom"/>
          <trust group="org.jetbrains.kotlin" name="kotlin-bom"/>
          <trust group="com.google.android.gms" name="play-services-base-licenses"/>
+         <!-- aapt2 is a platform-specific Android build tool from Google.
+              The linux/mac/windows variants have different checksums so the
+              metadata generated on Windows will never cover the CI Linux jar. -->
+         <trust group="com.android.tools.build" name="aapt2"/>
       </trusted-artifacts>
    </configuration>
    <components>

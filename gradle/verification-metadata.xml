@@ -16,6 +16,21 @@
               The linux/mac/windows variants have different checksums so the
               metadata generated on Windows will never cover the CI Linux jar. -->
          <trust group="com.android.tools.build" name="aapt2"/>
+         <!-- Lint tooling: ./gradlew lint resolves a separate set of artifacts
+              (lint engine, IntelliJ core, UAST, Groovy, Apache HTTP) that are
+              not pulled in by assembleDebug, so the local-generated metadata
+              never covers them. These are build-time only, never shipped. -->
+         <trust group="com.android.tools.lint"/>
+         <trust group="com.android.tools" name="play-sdk-proto"/>
+         <trust group="com.android.tools.external.com-intellij"/>
+         <trust group="com.android.tools.external.org-jetbrains"/>
+         <trust group="org.jetbrains.kotlin" name="kotlin-reflect"/>
+         <trust group="org.codehaus.groovy" name="groovy"/>
+         <trust group="org.apache" name="apache"/>
+         <trust group="org.apache.commons" name="commons-compress"/>
+         <trust group="org.apache.commons" name="commons-parent"/>
+         <trust group="org.apache.httpcomponents" name="httpclient"/>
+         <trust group="commons-codec" name="commons-codec"/>
       </trusted-artifacts>
    </configuration>
    <components>

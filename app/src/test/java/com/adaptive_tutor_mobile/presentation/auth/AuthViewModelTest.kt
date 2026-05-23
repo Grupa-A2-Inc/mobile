@@ -262,4 +262,28 @@ class AuthViewModelTest {
 
         assertEquals(AuthUiState.Idle, vm.uiState.value)
     }
+
+    @Test
+    fun `refreshUser updates currentUser from session store`() = runTest {
+        coEvery { sessionStore.getUser() } returns sampleUser
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.refreshUser()
+        advanceUntilIdle()
+
+        assertEquals(sampleUser, vm.currentUser.value)
+    }
+
+    @Test
+    fun `refreshUser sets currentUser to null when session is empty`() = runTest {
+        coEvery { sessionStore.getUser() } returns null
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.refreshUser()
+        advanceUntilIdle()
+
+        assertNull(vm.currentUser.value)
+    }
 }

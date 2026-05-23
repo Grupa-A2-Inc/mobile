@@ -413,4 +413,17 @@ class PublicCoursesViewModelTest {
 
         assertTrue(viewModel.enrolledCourses.value.isEmpty())
     }
+
+    @Test
+    fun `loadEnrolledIds stays empty when response body is null`() = runTest {
+        whenever(getPublicCoursesUseCase(0, 10)).thenReturn(Result.success(PagedCourses(emptyList(), 1, 0)))
+        val progressApi = mockk<ProgressApi>()
+        coEvery { progressApi.getMyEnrolledCourses(any(), any(), any()) } returns Response.success(null)
+
+        viewModel = PublicCoursesViewModel(getPublicCoursesUseCase, enrollInCourseUseCase, unenrollFromCourseUseCase, progressApi)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.enrolledCourses.value.isEmpty())
+        assertTrue(viewModel.enrolledCourseIds.value.isEmpty())
+    }
 }

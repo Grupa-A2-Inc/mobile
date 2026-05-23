@@ -70,4 +70,27 @@ class CourseDetailViewModelTest {
         viewModel.toggleChapter("ch1")
         assertTrue(!viewModel.uiState.value.expandedChapters.contains("ch1"))
     }
+
+    @Test
+    fun `init throws when courseId missing from SavedStateHandle`() {
+        var thrown = false
+        try {
+            CourseDetailViewModel(SavedStateHandle(), useCase)
+        } catch (e: IllegalStateException) {
+            thrown = true
+        }
+        assertTrue(thrown)
+    }
+
+    @Test
+    fun `loadCourseDetail uses fallback error message when localizedMessage is null`() = runTest {
+        whenever(useCase("c1")).thenReturn(Result.failure(object : Throwable() {
+            override val message: String? = null
+        }))
+
+        val viewModel = CourseDetailViewModel(SavedStateHandle(mapOf("courseId" to "c1")), useCase)
+        advanceUntilIdle()
+
+        assertEquals("Eroare necunoscuta", viewModel.uiState.value.error)
+    }
 }

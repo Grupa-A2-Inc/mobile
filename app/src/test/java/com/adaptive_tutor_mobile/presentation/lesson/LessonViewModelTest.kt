@@ -182,4 +182,101 @@ class LessonViewModelTest {
         assertTrue(viewModel.state.value.hasRated)
         assertTrue(!viewModel.state.value.showRatingDialog)
     }
+
+    @Test
+    fun `loadLesson success loads rating summary`() = runTest {
+        val detail = LessonDetail("l1", "Lesson", "# Md", emptyList())
+        whenever(getLessonDetailUseCase("l1")).thenReturn(Result.success(detail))
+        whenever(lessonRepository.checkLessonTest("l1")).thenReturn(null)
+        whenever(lessonRepository.markVisited("l1")).thenReturn(Unit)
+        whenever(ratingRepository.getRatingSummary("l1")).thenReturn(
+            Result.success(com.adaptive_tutor_mobile.domain.model.lesson.RatingSummary(4.5f, 10))
+        )
+
+        val viewModel = LessonViewModel(
+            getLessonDetailUseCase = getLessonDetailUseCase,
+            lessonRepository = lessonRepository,
+            submitLessonRatingUseCase = submitLessonRatingUseCase,
+            ratingRepository = ratingRepository,
+            savedStateHandle = SavedStateHandle(mapOf("lessonId" to "l1"))
+        )
+        advanceUntilIdle()
+
+        assertEquals(4.5f, viewModel.state.value.ratingSummary?.avgRating)
+        assertEquals(10, viewModel.state.value.ratingSummary?.totalRatings)
+    }
+
+    @Test
+    fun `submitRating updates rating summary after success`() = runTest {
+        whenever(submitLessonRatingUseCase("l1", 4, "Good")).thenReturn(Result.success(Unit))
+        whenever(ratingRepository.getRatingSummary("l1")).thenReturn(
+            Result.success(com.adaptive_tutor_mobile.domain.model.lesson.RatingSummary(4.0f, 5))
+        )
+
+        val viewModel = LessonViewModel(
+            getLessonDetailUseCase = getLessonDetailUseCase,
+            lessonRepository = lessonRepository,
+            submitLessonRatingUseCase = submitLessonRatingUseCase,
+            ratingRepository = ratingRepository,
+            savedStateHandle = SavedStateHandle(emptyMap())
+        )
+
+        viewModel.submitRating("l1", 4, "Good")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.state.value.hasRated)
+        assertEquals(4.0f, viewModel.state.value.ratingSummary?.avgRating)
+    }
+
+    @Test
+    fun `submitRating failure does not update hasRated`() = runTest {
+        whenever(submitLessonRatingUseCase("l1", 1, "bad"))
+            .thenReturn(Result.failure(RuntimeException("error")))
+
+        val viewModel = LessonViewModel(
+            getLessonDetailUseCase = getLessonDetailUseCase,
+            lessonRepository = lessonRepository,
+            submitLessonRatingUseCase = submitLessonRatingUseCase,
+            ratingRepository = ratingRepository,
+            savedStateHandle = SavedStateHandle(emptyMap())
+        )
+
+        viewModel.showRatingDialog()
+
+        viewModel.submitRating("l1", 1, "bad")
+        advanceUntilIdle()
+
+        assertTrue(!viewModel.state.value.hasRated)
+
+        assertTrue(viewModel.state.value.showRatingDialog)
+    }
+
+    @Test
+    fun `loadRatingSummary failure does not update summary`() = runTest {
+        val detail = LessonDetail("l1", "Lesson", "# Md", emptyList())
+
+        whenever(getLessonDetailUseCase("l1"))
+            .thenReturn(Result.success(detail))
+
+        whenever(lessonRepository.checkLessonTest("l1"))
+            .thenReturn(null)
+
+        whenever(lessonRepository.markVisited("l1"))
+            .thenReturn(Unit)
+
+        whenever(ratingRepository.getRatingSummary("l1"))
+            .thenReturn(Result.failure(RuntimeException("rating error")))
+
+        val viewModel = LessonViewModel(
+            getLessonDetailUseCase = getLessonDetailUseCase,
+            lessonRepository = lessonRepository,
+            submitLessonRatingUseCase = submitLessonRatingUseCase,
+            ratingRepository = ratingRepository,
+            savedStateHandle = SavedStateHandle(mapOf("lessonId" to "l1"))
+        )
+
+        advanceUntilIdle()
+
+        assertNull(viewModel.state.value.ratingSummary)
+    }
 }

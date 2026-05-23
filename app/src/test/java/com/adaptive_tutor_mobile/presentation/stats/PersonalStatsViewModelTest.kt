@@ -138,4 +138,35 @@ class PersonalStatsViewModelTest {
             assertFalse(successState.isLoading)
         }
     }
+
+    @Test
+    fun `init throws when courseId missing from SavedStateHandle`() {
+        val emptySavedStateHandle = SavedStateHandle()
+        coEvery { getCourseStatsUseCase(any()) } returns Result.success(mockk())
+
+        var thrown = false
+        try {
+            PersonalStatsViewModel(emptySavedStateHandle, getCourseStatsUseCase)
+        } catch (e: IllegalStateException) {
+            thrown = true
+        }
+        assertTrue(thrown)
+    }
+
+    @Test
+    fun `loadStats uses fallback error message when localizedMessage is null`() = runTest {
+        coEvery { getCourseStatsUseCase(courseId) } returns Result.failure(object : Throwable() {
+            override val message: String? = null
+        })
+
+        viewModel = PersonalStatsViewModel(savedStateHandle, getCourseStatsUseCase)
+
+        viewModel.uiState.test {
+            var state = awaitItem()
+            while (state.isLoading || (state.error == null && state.stats == null)) {
+                state = awaitItem()
+            }
+            assertEquals("Eroare la încărcarea statisticilor", state.error)
+        }
+    }
 }

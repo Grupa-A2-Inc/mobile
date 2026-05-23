@@ -124,4 +124,35 @@ class TestAttemptsViewModelTest {
             assertFalse(successState.isLoading)
         }
     }
+
+    @Test
+    fun `init throws when testId missing from SavedStateHandle`() {
+        val emptySavedStateHandle = SavedStateHandle()
+
+        var thrown = false
+        try {
+            TestAttemptsViewModel(emptySavedStateHandle, getTestAttemptsUseCase)
+        } catch (e: IllegalStateException) {
+            thrown = true
+        }
+        assertTrue(thrown)
+    }
+
+    @Test
+    fun `loadAttempts uses fallback error message when localizedMessage is null`() = runTest {
+        coEvery { getTestAttemptsUseCase(testId) } returns Result.failure(object : Throwable() {
+            override val message: String? = null
+        })
+
+        viewModel = TestAttemptsViewModel(savedStateHandle, getTestAttemptsUseCase)
+
+        viewModel.uiState.test {
+            var state = awaitItem()
+            while (state.isLoading || (state.error == null && state.attempts.isEmpty())) {
+                state = awaitItem()
+                if (state.error != null) break
+            }
+            assertEquals("Eroare la încărcarea încercărilor", state.error)
+        }
+    }
 }

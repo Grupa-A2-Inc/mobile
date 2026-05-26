@@ -299,7 +299,11 @@ fun RegisterScreen(
                     onClick = {
                         val errs = mutableMapOf<String, String>()
                         if (formState.firstName.isBlank()) errs["firstName"] = "Câmp obligatoriu"
+                        else if (formState.firstName.length > 100) errs["firstName"] = "Numele nu poate trece de 100 de caractere"
+                        
                         if (formState.lastName.isBlank())  errs["lastName"]  = "Câmp obligatoriu"
+                        else if (formState.lastName.length > 100) errs["lastName"] = "Numele nu poate trece de 100 de caractere"
+
                         if (!emailRegexRegister.matches(formState.email)) errs["email"] = "Email invalid"
                         if (formState.password.length < 8) errs["password"] = "Minim 8 caractere"
                         if (formState.confirmPassword != formState.password) errs["confirmPassword"] = "Parolele nu coincid"

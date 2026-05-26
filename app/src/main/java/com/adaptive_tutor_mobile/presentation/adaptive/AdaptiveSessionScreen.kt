@@ -231,8 +231,8 @@ private fun AdaptiveStartContent(
                 Slider(
                     value = exerciseCount,
                     onValueChange = { exerciseCount = it },
-                    valueRange = 3f..10f,
-                    steps = 6,
+                    valueRange = 3f..15f,
+                    steps = 11,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

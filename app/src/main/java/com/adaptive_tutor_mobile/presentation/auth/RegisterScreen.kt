@@ -83,6 +83,10 @@ fun RegisterScreen(
     val navigationTarget by viewModel.navigationTarget.collectAsState()
     var formState by remember { mutableStateOf(RegisterFormState()) }
 
+    LaunchedEffect(Unit) {
+        viewModel.resetState()
+    }
+
     LaunchedEffect(navigationTarget) {
         navigationTarget?.let { target ->
             onNavigateAfterAuth(target)

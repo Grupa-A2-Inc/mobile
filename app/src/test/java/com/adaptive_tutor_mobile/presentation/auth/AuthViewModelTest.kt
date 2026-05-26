@@ -290,6 +290,20 @@ class AuthViewModelTest {
     }
 
     @Test
+    fun `resetState returns uiState to Idle after ForgotPasswordSent`() = runTest {
+        coEvery { forgotPasswordUseCase("a@b.c") } returns Result.success(Unit)
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.forgotPassword("a@b.c")
+        advanceUntilIdle()
+        assertEquals(AuthUiState.ForgotPasswordSent, vm.uiState.value)
+
+        vm.resetState()
+
+        assertEquals(AuthUiState.Idle, vm.uiState.value)
+    }
+
+    @Test
     fun `consumeNavigation clears current navigation target`() = runTest {
         coEvery { loginUseCase("ana@x.com", "pwd") } returns Result.success(sampleUser)
         val vm = viewModel()

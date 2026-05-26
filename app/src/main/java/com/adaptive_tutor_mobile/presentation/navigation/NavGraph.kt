@@ -11,11 +11,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.adaptive_tutor_mobile.di.SessionStore
-import com.adaptive_tutor_mobile.domain.model.auth.UserRole
+import com.adaptive_tutor_mobile.presentation.auth.AuthNavigationTarget
 import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.auth.ForgotPasswordScreen
 import com.adaptive_tutor_mobile.presentation.auth.LoginScreen
 import com.adaptive_tutor_mobile.presentation.auth.RegisterScreen
+import com.adaptive_tutor_mobile.presentation.auth.RoleBlockedScreen
 import com.adaptive_tutor_mobile.presentation.courses.CourseDetailScreen
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 import com.adaptive_tutor_mobile.presentation.home.admin.AdminHomeScreen
@@ -31,8 +32,11 @@ import com.adaptive_tutor_mobile.presentation.test.TestScreen
 import com.adaptive_tutor_mobile.presentation.stats.PersonalStatsScreen
 import com.adaptive_tutor_mobile.presentation.test.TestAttemptsScreen
 
-fun navigateByRole(navController: NavController, role: UserRole) {
-    val dest = routeForRole(role)
+fun navigateAfterAuth(navController: NavController, target: AuthNavigationTarget) {
+    val dest = when (target) {
+        AuthNavigationTarget.STUDENT_HOME -> Screen.StudentHome.route
+        AuthNavigationTarget.ROLE_BLOCKED -> Screen.RoleBlocked.route
+    }
     navController.navigate(dest) {
         popUpTo(0) { inclusive = true }
     }
@@ -57,7 +61,7 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
         composable(Screen.Login.route) {
             LoginScreen(
                 viewModel = authViewModel,
-                onLoginSuccess = { user -> navigateByRole(navController, user.role) },
+                onNavigateAfterAuth = { target -> navigateAfterAuth(navController, target) },
                 onNavigateToRegister = { navController.navigate(Screen.Register.route) },
                 onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) }
             )
@@ -66,7 +70,7 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
         composable(Screen.Register.route) {
             RegisterScreen(
                 viewModel = authViewModel,
-                onRegisterSuccess = { user -> navigateByRole(navController, user.role) },
+                onNavigateAfterAuth = { target -> navigateAfterAuth(navController, target) },
                 onNavigateToLogin = { navController.navigateUp() }
             )
         }
@@ -75,6 +79,16 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             ForgotPasswordScreen(
                 viewModel = authViewModel,
                 onNavigateBack = { navController.navigateUp() }
+            )
+        }
+
+        composable(Screen.RoleBlocked.route) {
+            RoleBlockedScreen(
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             )
         }
 

@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
 import com.adaptive_tutor_mobile.di.SessionStore
 import com.adaptive_tutor_mobile.domain.model.auth.User
+import com.adaptive_tutor_mobile.domain.model.auth.UserRole
+import com.adaptive_tutor_mobile.domain.usecase.auth.CheckUserRoleUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.ForgotPasswordUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.LoginUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.LogoutUseCase
@@ -26,17 +28,26 @@ sealed class AuthUiState {
     object ForgotPasswordSent : AuthUiState()
 }
 
+enum class AuthNavigationTarget {
+    STUDENT_HOME,
+    ROLE_BLOCKED
+}
+
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val registerUseCase: RegisterUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val forgotPasswordUseCase: ForgotPasswordUseCase,
+    private val checkUserRoleUseCase: CheckUserRoleUseCase,
     private val sessionStore: SessionStore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    private val _navigationTarget = MutableStateFlow<AuthNavigationTarget?>(null)
+    val navigationTarget: StateFlow<AuthNavigationTarget?> = _navigationTarget.asStateFlow()
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
@@ -54,6 +65,7 @@ class AuthViewModel @Inject constructor(
                 .onSuccess { user ->
                     _currentUser.value = user
                     _uiState.value = AuthUiState.Success(user)
+                    _navigationTarget.value = navigationTargetFor(checkUserRoleUseCase())
                 }
                 .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: DEFAULT_ERROR_MESSAGE) }
         }
@@ -66,6 +78,7 @@ class AuthViewModel @Inject constructor(
                 .onSuccess { user ->
                     _currentUser.value = user
                     _uiState.value = AuthUiState.Success(user)
+                    _navigationTarget.value = navigationTargetFor(checkUserRoleUseCase())
                 }
                 .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: DEFAULT_ERROR_MESSAGE) }
         }
@@ -93,9 +106,20 @@ class AuthViewModel @Inject constructor(
         _uiState.value = AuthUiState.Idle
     }
 
+    fun consumeNavigation() {
+        _navigationTarget.value = null
+    }
+
     fun refreshUser() {
         viewModelScope.launch {
             _currentUser.value = sessionStore.getUser()
         }
     }
+
+    private fun navigationTargetFor(role: UserRole): AuthNavigationTarget =
+        if (role == UserRole.STUDENT) {
+            AuthNavigationTarget.STUDENT_HOME
+        } else {
+            AuthNavigationTarget.ROLE_BLOCKED
+        }
 }

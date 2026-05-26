@@ -38,18 +38,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.adaptive_tutor_mobile.domain.model.auth.User
 
 private val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
 @Composable
 fun LoginScreen(
     viewModel: AuthViewModel,
-    onLoginSuccess: (User) -> Unit,
+    onNavigateAfterAuth: (AuthNavigationTarget) -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val navigationTarget by viewModel.navigationTarget.collectAsState()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -57,9 +57,10 @@ fun LoginScreen(
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Success) {
-            onLoginSuccess((uiState as AuthUiState.Success).user)
+    LaunchedEffect(navigationTarget) {
+        navigationTarget?.let { target ->
+            onNavigateAfterAuth(target)
+            viewModel.consumeNavigation()
             viewModel.resetState()
         }
     }

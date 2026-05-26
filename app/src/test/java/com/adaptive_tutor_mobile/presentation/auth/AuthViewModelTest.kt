@@ -5,6 +5,7 @@ import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
 import com.adaptive_tutor_mobile.di.SessionStore
 import com.adaptive_tutor_mobile.domain.model.auth.User
 import com.adaptive_tutor_mobile.domain.model.auth.UserRole
+import com.adaptive_tutor_mobile.domain.usecase.auth.CheckUserRoleUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.ForgotPasswordUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.LoginUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.LogoutUseCase
@@ -33,6 +34,7 @@ class AuthViewModelTest {
     private lateinit var registerUseCase: RegisterUseCase
     private lateinit var logoutUseCase: LogoutUseCase
     private lateinit var forgotPasswordUseCase: ForgotPasswordUseCase
+    private lateinit var checkUserRoleUseCase: CheckUserRoleUseCase
     private lateinit var sessionStore: SessionStore
 
     private val sampleUser = User(
@@ -47,13 +49,20 @@ class AuthViewModelTest {
         registerUseCase = mockk()
         logoutUseCase = mockk()
         forgotPasswordUseCase = mockk()
+        checkUserRoleUseCase = mockk()
         sessionStore = mockk {
             coEvery { getUser() } returns null
         }
+        coEvery { checkUserRoleUseCase() } returns UserRole.STUDENT
     }
 
     private fun viewModel() = AuthViewModel(
-            loginUseCase, registerUseCase, logoutUseCase, forgotPasswordUseCase, sessionStore
+            loginUseCase,
+            registerUseCase,
+            logoutUseCase,
+            forgotPasswordUseCase,
+            checkUserRoleUseCase,
+            sessionStore
             )
 
     // ── init ─────────────────────────────────────────────────────────────────
@@ -101,6 +110,22 @@ class AuthViewModelTest {
             assertEquals(sampleUser, (success as AuthUiState.Success).user)
         }
         assertEquals(sampleUser, vm.currentUser.value)
+        assertEquals(AuthNavigationTarget.STUDENT_HOME, vm.navigationTarget.value)
+    }
+
+    @Test
+    fun `login sends non student users to blocked screen`() = runTest {
+        val teacher = sampleUser.copy(role = UserRole.TEACHER)
+        coEvery { loginUseCase("ana@x.com", "pwd") } returns Result.success(teacher)
+        coEvery { checkUserRoleUseCase() } returns UserRole.TEACHER
+
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.login("ana@x.com", "pwd")
+        advanceUntilIdle()
+
+        assertEquals(AuthNavigationTarget.ROLE_BLOCKED, vm.navigationTarget.value)
     }
 
     @Test
@@ -150,6 +175,7 @@ class AuthViewModelTest {
 
         assertTrue(vm.uiState.value is AuthUiState.Success)
         assertEquals(sampleUser, vm.currentUser.value)
+        assertEquals(AuthNavigationTarget.STUDENT_HOME, vm.navigationTarget.value)
     }
 
     @Test
@@ -261,6 +287,21 @@ class AuthViewModelTest {
         vm.resetState()
 
         assertEquals(AuthUiState.Idle, vm.uiState.value)
+    }
+
+    @Test
+    fun `consumeNavigation clears current navigation target`() = runTest {
+        coEvery { loginUseCase("ana@x.com", "pwd") } returns Result.success(sampleUser)
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.login("ana@x.com", "pwd")
+        advanceUntilIdle()
+        assertEquals(AuthNavigationTarget.STUDENT_HOME, vm.navigationTarget.value)
+
+        vm.consumeNavigation()
+
+        assertNull(vm.navigationTarget.value)
     }
 
     @Test

@@ -43,7 +43,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
-import com.adaptive_tutor_mobile.domain.model.auth.User
 import androidx.compose.material3.ExperimentalMaterial3Api
 
 private val emailRegexRegister = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
@@ -77,15 +76,17 @@ private data class RegisterFormState(
 @Composable
 fun RegisterScreen(
     viewModel: AuthViewModel,
-    onRegisterSuccess: (User) -> Unit,
+    onNavigateAfterAuth: (AuthNavigationTarget) -> Unit,
     onNavigateToLogin: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val navigationTarget by viewModel.navigationTarget.collectAsState()
     var formState by remember { mutableStateOf(RegisterFormState()) }
 
-    LaunchedEffect(uiState) {
-        if (uiState is AuthUiState.Success) {
-            onRegisterSuccess((uiState as AuthUiState.Success).user)
+    LaunchedEffect(navigationTarget) {
+        navigationTarget?.let { target ->
+            onNavigateAfterAuth(target)
+            viewModel.consumeNavigation()
             viewModel.resetState()
         }
     }

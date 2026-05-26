@@ -61,6 +61,7 @@ import com.adaptive_tutor_mobile.domain.usecase.test.ReportQuestionErrorUseCase
 import com.adaptive_tutor_mobile.presentation.components.AdaptiveTopBar
 import com.adaptive_tutor_mobile.presentation.components.ErrorScreen
 import com.adaptive_tutor_mobile.presentation.components.LoadingScreen
+import com.adaptive_tutor_mobile.ui.theme.SuccessColor
 import com.adaptive_tutor_mobile.presentation.components.ScoreCircle
 
 @Composable
@@ -486,7 +487,7 @@ private fun ResultQuestionCard(
     original: QuestionForStudentDto?
 ) {
     val correct = reportQuestion.correct
-    val accent = if (correct) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+    val accent = if (correct) SuccessColor else MaterialTheme.colorScheme.error
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -535,7 +536,7 @@ private fun ResultQuestionCard(
                     AnswerRow(
                         label = "Răspuns corect:",
                         texts = correctTexts,
-                        color = Color(0xFF4CAF50)
+                        color = SuccessColor
                     )
                 }
             }

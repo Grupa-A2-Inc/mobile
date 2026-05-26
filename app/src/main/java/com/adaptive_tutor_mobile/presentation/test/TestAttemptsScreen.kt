@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adaptive_tutor_mobile.domain.model.test.AttemptHistory
+import com.adaptive_tutor_mobile.ui.theme.SuccessColor
 import com.adaptive_tutor_mobile.presentation.components.StatusChip
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -155,7 +156,7 @@ fun AttemptHistoryItem(attempt: AttemptHistory) {
                 )
                 StatusChip(
                     text = if (attempt.passed) "ADMIS" else "RESPINS",
-                    color = if (attempt.passed) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+                    color = if (attempt.passed) SuccessColor else MaterialTheme.colorScheme.error
                 )
             }
         }

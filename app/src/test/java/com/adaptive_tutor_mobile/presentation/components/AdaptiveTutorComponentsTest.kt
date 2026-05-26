@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import com.adaptive_tutor_mobile.ui.theme.SuccessColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
@@ -203,7 +204,7 @@ class AdaptiveTutorComponentsTest {
     fun `StatusChip and ScoreCircle render both pass states`() {
         composeRule.setContent {
             AdaptiveTutorTheme {
-                StatusChip(text = "Activ", color = Color(0xFF4CAF50))
+                StatusChip(text = "Activ", color = SuccessColor)
                 ScoreCircle(scorePercent = 88.0, passed = true)
                 ScoreCircle(scorePercent = 35.0, passed = false)
             }

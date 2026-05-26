@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adaptive_tutor_mobile.domain.model.stats.AttemptSummary
 import com.adaptive_tutor_mobile.domain.model.stats.CourseStats
+import com.adaptive_tutor_mobile.ui.theme.SuccessColor
 import com.adaptive_tutor_mobile.presentation.components.ScoreCircle
 import com.adaptive_tutor_mobile.presentation.components.StatusChip
 
@@ -209,7 +210,7 @@ fun AttemptItem(attempt: AttemptSummary) {
                 )
                 StatusChip(
                     text = if (attempt.passed) "ADMIS" else "RESPINS",
-                    color = if (attempt.passed) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+                    color = if (attempt.passed) SuccessColor else MaterialTheme.colorScheme.error
                 )
             }
         }

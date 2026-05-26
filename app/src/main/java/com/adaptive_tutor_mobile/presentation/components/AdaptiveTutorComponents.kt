@@ -1,5 +1,6 @@
 package com.adaptive_tutor_mobile.presentation.components
 
+import com.adaptive_tutor_mobile.ui.theme.SuccessColor
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -180,7 +181,7 @@ fun LessonCard(
             Icon(
                 imageVector = if (visited) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
                 contentDescription = if (visited) "Vizitat" else "Nevizitat",
-                tint = if (visited) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                tint = if (visited) SuccessColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 modifier = Modifier.size(24.dp)
             )
             Column(modifier = Modifier.weight(1f)) {
@@ -378,7 +379,7 @@ fun ScoreCircle(scorePercent: Double, passed: Boolean) {
         label = "score_anim"
     )
 
-    val color = if (passed) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+    val color = if (passed) SuccessColor else MaterialTheme.colorScheme.error
     val trackColor = color.copy(alpha = 0.2f)
 
     Column(

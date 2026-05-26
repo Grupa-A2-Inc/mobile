@@ -25,4 +25,10 @@ class TestRepositoryImpl @Inject constructor(
     } catch (e: Exception) {
         Result.failure(e)
     }
+
+    override suspend fun getAttemptReport(attemptId: String): Result<AttemptReportDTO> = try {
+        Result.success(api.getAttemptReport(attemptId))
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }

@@ -16,4 +16,7 @@ interface TestApi {
         @Path("attemptId") attemptId: String,
         @Body request: SubmitRequestDto
     ): AttemptReportDTO
+
+    @retrofit2.http.GET("/api/v1/attempts/{attemptId}/report")
+    suspend fun getAttemptReport(@Path("attemptId") attemptId: String): AttemptReportDTO
 }

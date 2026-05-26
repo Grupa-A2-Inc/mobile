@@ -8,11 +8,11 @@ class ScreenRoutingTest {
 
     @Test
     fun `routeForRole maps each role to expected screen`() {
-        assertEquals(Screen.AdminHome.route,    routeForRole(UserRole.ADMIN))
-        assertEquals(Screen.OrgAdminHome.route, routeForRole(UserRole.ORGANIZATION_ADMIN))
-        assertEquals(Screen.TeacherHome.route,  routeForRole(UserRole.TEACHER))
+        assertEquals(Screen.RoleBlocked.route, routeForRole(UserRole.ADMIN))
+        assertEquals(Screen.RoleBlocked.route, routeForRole(UserRole.ORGANIZATION_ADMIN))
+        assertEquals(Screen.RoleBlocked.route, routeForRole(UserRole.TEACHER))
         assertEquals(Screen.StudentHome.route,  routeForRole(UserRole.STUDENT))
-        assertEquals(Screen.ParentHome.route,   routeForRole(UserRole.PARENT))
+        assertEquals(Screen.RoleBlocked.route, routeForRole(UserRole.PARENT))
     }
 
     @Test

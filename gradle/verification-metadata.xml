@@ -31,6 +31,11 @@
          <trust group="org.apache.commons" name="commons-parent"/>
          <trust group="org.apache.httpcomponents" name="httpclient"/>
          <trust group="commons-codec" name="commons-codec"/>
+         <!-- IDE sync resolves source attachments and Gradle source zips through
+              detached configurations. These artifacts are not executed or
+              packaged, and their checksum set is highly unstable across local
+              workflows, so we trust them by filename pattern instead. -->
+         <trust file=".*-(sources|src|javadoc)\.(jar|zip)" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components>

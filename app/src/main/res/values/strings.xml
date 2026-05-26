@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">adaptive_tutor_mobile</string>
+    <string name="role_blocked_title">Această aplicație este exclusiv pentru elevi</string>
+    <string name="role_blocked_subtitle">Dacă ești profesor, administrator sau ai alt rol, accesează platforma de pe calculator la adresa:</string>
+    <string name="role_blocked_website_url">https://frontend-teal-five-57.vercel.app</string>
+    <string name="role_blocked_open_website">Deschide platforma web</string>
+    <string name="role_blocked_logout">Deconectează-te</string>
+    <string name="role_blocked_back_disabled">Deconectează-te mai întâi</string>
+    <string name="role_blocked_browser_unavailable">Nu am putut deschide browserul.</string>
 </resources>

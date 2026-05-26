@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
 import com.adaptive_tutor_mobile.di.SessionStore
 import com.adaptive_tutor_mobile.domain.model.auth.User
+import com.adaptive_tutor_mobile.domain.usecase.auth.CheckUserRoleUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.ForgotPasswordUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.LoginUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.LogoutUseCase
@@ -32,6 +33,7 @@ class AuthViewModel @Inject constructor(
     private val registerUseCase: RegisterUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val forgotPasswordUseCase: ForgotPasswordUseCase,
+    private val checkUserRoleUseCase: CheckUserRoleUseCase,
     private val sessionStore: SessionStore
 ) : ViewModel() {
 
@@ -50,24 +52,34 @@ class AuthViewModel @Inject constructor(
     fun login(email: String, password: String) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
-            loginUseCase(email, password)
-                .onSuccess { user ->
-                    _currentUser.value = user
-                    _uiState.value = AuthUiState.Success(user)
-                }
-                .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: DEFAULT_ERROR_MESSAGE) }
+            val result = loginUseCase(email, password)
+
+            if (result.isSuccess) {
+                val user = result.getOrThrow()
+                val resolvedUser = user.copy(role = checkUserRoleUseCase())
+                _currentUser.value = resolvedUser
+                _uiState.value = AuthUiState.Success(resolvedUser)
+            } else {
+                val error = result.exceptionOrNull()
+                _uiState.value = AuthUiState.Error(error?.message ?: DEFAULT_ERROR_MESSAGE)
+            }
         }
     }
 
     fun register(request: RegisterRequest) {
         viewModelScope.launch {
             _uiState.value = AuthUiState.Loading
-            registerUseCase(request)
-                .onSuccess { user ->
-                    _currentUser.value = user
-                    _uiState.value = AuthUiState.Success(user)
-                }
-                .onFailure { e -> _uiState.value = AuthUiState.Error(e.message ?: DEFAULT_ERROR_MESSAGE) }
+            val result = registerUseCase(request)
+
+            if (result.isSuccess) {
+                val user = result.getOrThrow()
+                val resolvedUser = user.copy(role = checkUserRoleUseCase())
+                _currentUser.value = resolvedUser
+                _uiState.value = AuthUiState.Success(resolvedUser)
+            } else {
+                val error = result.exceptionOrNull()
+                _uiState.value = AuthUiState.Error(error?.message ?: DEFAULT_ERROR_MESSAGE)
+            }
         }
     }
 

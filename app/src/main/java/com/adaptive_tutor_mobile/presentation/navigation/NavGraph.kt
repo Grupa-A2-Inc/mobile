@@ -16,6 +16,7 @@ import com.adaptive_tutor_mobile.presentation.auth.AuthViewModel
 import com.adaptive_tutor_mobile.presentation.auth.ForgotPasswordScreen
 import com.adaptive_tutor_mobile.presentation.auth.LoginScreen
 import com.adaptive_tutor_mobile.presentation.auth.RegisterScreen
+import com.adaptive_tutor_mobile.presentation.auth.RoleBlockedScreen
 import com.adaptive_tutor_mobile.presentation.courses.CourseDetailScreen
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 import com.adaptive_tutor_mobile.presentation.home.admin.AdminHomeScreen
@@ -34,7 +35,12 @@ import com.adaptive_tutor_mobile.presentation.test.TestAttemptsScreen
 fun navigateByRole(navController: NavController, role: UserRole) {
     val dest = routeForRole(role)
     navController.navigate(dest) {
-        popUpTo(0) { inclusive = true }
+        if (dest == Screen.RoleBlocked.route) {
+            popUpTo(Screen.Login.route) { inclusive = false }
+        } else {
+            popUpTo(Screen.Login.route) { inclusive = true }
+        }
+        launchSingleTop = true
     }
 }
 
@@ -75,6 +81,17 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
             ForgotPasswordScreen(
                 viewModel = authViewModel,
                 onNavigateBack = { navController.navigateUp() }
+            )
+        }
+
+        composable(Screen.RoleBlocked.route) {
+            RoleBlockedScreen(
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
             )
         }
 

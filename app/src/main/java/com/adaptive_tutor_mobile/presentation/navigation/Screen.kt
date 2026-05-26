@@ -7,6 +7,7 @@ sealed class Screen(val route: String) {
     object Login          : Screen("login")
     object Register       : Screen("register")
     object ForgotPassword : Screen("forgot_password")
+    object RoleBlocked    : Screen("role_blocked")
     object AdminHome      : Screen("admin_home")
     object OrgAdminHome   : Screen("org_admin_home")
     object TeacherHome    : Screen("teacher_home")
@@ -51,10 +52,10 @@ sealed class Screen(val route: String) {
 }
 
 fun routeForRole(role: UserRole): String = when (role) {
-    UserRole.ADMIN              -> Screen.AdminHome.route
-    UserRole.ORGANIZATION_ADMIN -> Screen.OrgAdminHome.route
-    UserRole.TEACHER            -> Screen.TeacherHome.route
+    UserRole.ADMIN              -> Screen.RoleBlocked.route
+    UserRole.ORGANIZATION_ADMIN -> Screen.RoleBlocked.route
+    UserRole.TEACHER            -> Screen.RoleBlocked.route
     UserRole.STUDENT            -> Screen.StudentHome.route
-    UserRole.PARENT             -> Screen.ParentHome.route
+    UserRole.PARENT             -> Screen.RoleBlocked.route
     UserRole.UNKNOWN            -> Screen.Login.route
 }

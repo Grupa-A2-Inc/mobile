@@ -5,6 +5,7 @@ import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
 import com.adaptive_tutor_mobile.di.SessionStore
 import com.adaptive_tutor_mobile.domain.model.auth.User
 import com.adaptive_tutor_mobile.domain.model.auth.UserRole
+import com.adaptive_tutor_mobile.domain.usecase.auth.CheckUserRoleUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.ForgotPasswordUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.LoginUseCase
 import com.adaptive_tutor_mobile.domain.usecase.auth.LogoutUseCase
@@ -33,6 +34,7 @@ class AuthViewModelTest {
     private lateinit var registerUseCase: RegisterUseCase
     private lateinit var logoutUseCase: LogoutUseCase
     private lateinit var forgotPasswordUseCase: ForgotPasswordUseCase
+    private lateinit var checkUserRoleUseCase: CheckUserRoleUseCase
     private lateinit var sessionStore: SessionStore
 
     private val sampleUser = User(
@@ -47,13 +49,20 @@ class AuthViewModelTest {
         registerUseCase = mockk()
         logoutUseCase = mockk()
         forgotPasswordUseCase = mockk()
+        checkUserRoleUseCase = mockk<CheckUserRoleUseCase>()
+        coEvery { checkUserRoleUseCase() } returns UserRole.STUDENT
         sessionStore = mockk {
             coEvery { getUser() } returns null
         }
     }
 
     private fun viewModel() = AuthViewModel(
-            loginUseCase, registerUseCase, logoutUseCase, forgotPasswordUseCase, sessionStore
+            loginUseCase,
+            registerUseCase,
+            logoutUseCase,
+            forgotPasswordUseCase,
+            checkUserRoleUseCase,
+            sessionStore
             )
 
     // ── init ─────────────────────────────────────────────────────────────────
@@ -87,6 +96,7 @@ class AuthViewModelTest {
     @Test
     fun `login transitions Idle to Loading to Success`() = runTest {
         coEvery { loginUseCase("ana@x.com", "pwd") } returns Result.success(sampleUser)
+        coEvery { checkUserRoleUseCase() } returns UserRole.STUDENT
         val vm = viewModel()
         advanceUntilIdle()
 
@@ -101,6 +111,23 @@ class AuthViewModelTest {
             assertEquals(sampleUser, (success as AuthUiState.Success).user)
         }
         assertEquals(sampleUser, vm.currentUser.value)
+    }
+
+    @Test
+    fun `login uses stored role when role check resolves non-student`() = runTest {
+        val adminUser = sampleUser.copy(role = UserRole.UNKNOWN)
+        coEvery { loginUseCase("admin@x.com", "password123") } returns Result.success(adminUser)
+        coEvery { checkUserRoleUseCase() } returns UserRole.ADMIN
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.login("admin@x.com", "password123")
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertTrue(state is AuthUiState.Success)
+        assertEquals(UserRole.ADMIN, (state as AuthUiState.Success).user.role)
+        assertEquals(UserRole.ADMIN, vm.currentUser.value?.role)
     }
 
     @Test
@@ -142,6 +169,7 @@ class AuthViewModelTest {
                 "Org", "RO", "Iași", "SCHOOL"
         )
         coEvery { registerUseCase(request) } returns Result.success(sampleUser)
+        coEvery { checkUserRoleUseCase() } returns UserRole.STUDENT
         val vm = viewModel()
         advanceUntilIdle()
 

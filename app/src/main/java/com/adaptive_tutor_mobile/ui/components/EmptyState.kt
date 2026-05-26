@@ -55,10 +55,10 @@ import androidx.compose.ui.unit.dp
 fun EmptyState(
     icon: ImageVector,
     title: String,
+    modifier: Modifier = Modifier,
     subtitle: String? = null,
     actionText: String? = null,
-    onAction: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    onAction: (() -> Unit)? = null
 ) {
     // Animație ușoară de "respirație" pe iconiță — atrage atenția fără să deranjeze
     val infiniteTransition = rememberInfiniteTransition(label = "empty_state_pulse")

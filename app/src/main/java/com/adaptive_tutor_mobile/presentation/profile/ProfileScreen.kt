@@ -22,7 +22,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adaptive_tutor_mobile.ui.components.AppTopBar
 import com.adaptive_tutor_mobile.ui.components.ErrorCard
-import com.adaptive_tutor_mobile.ui.components.LoadingShimmerList
+import com.adaptive_tutor_mobile.ui.theme.LoadingShimmerList
 
 @Composable
 fun ProfileScreen(

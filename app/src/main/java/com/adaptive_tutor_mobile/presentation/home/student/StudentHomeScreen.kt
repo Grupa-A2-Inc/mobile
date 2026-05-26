@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Psychology
@@ -72,7 +71,7 @@ import com.adaptive_tutor_mobile.presentation.chat.ChatViewModel
 import com.adaptive_tutor_mobile.ui.components.AppTopBar
 import com.adaptive_tutor_mobile.ui.components.EmptyState
 import com.adaptive_tutor_mobile.ui.components.ErrorCard
-import com.adaptive_tutor_mobile.ui.components.LoadingShimmerList
+import com.adaptive_tutor_mobile.ui.theme.LoadingShimmerList
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

@@ -8,11 +8,6 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.dp
-import com.adaptive_tutor_mobile.ui.components.CourseCardShimmer
-import com.adaptive_tutor_mobile.ui.components.HeaderShimmer
-import com.adaptive_tutor_mobile.ui.components.LoadingShimmerList
-import com.adaptive_tutor_mobile.ui.components.RowShimmer
-import com.adaptive_tutor_mobile.ui.components.ShimmerBlock
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test

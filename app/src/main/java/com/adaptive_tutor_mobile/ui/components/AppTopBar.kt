@@ -41,8 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 @Composable
 fun AppTopBar(
     title: String,
-    onBack: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     CenterAlignedTopAppBar(

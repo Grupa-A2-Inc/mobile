@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adaptive_tutor_mobile.data.remote.dto.AdaptiveQuestionForAttemptReportDTO
+import com.adaptive_tutor_mobile.ui.theme.SuccessColor
 import com.adaptive_tutor_mobile.presentation.components.AdaptiveTopBar
 import com.adaptive_tutor_mobile.presentation.components.ScoreCircle
 import com.adaptive_tutor_mobile.presentation.components.EmptyScreen
@@ -90,7 +91,7 @@ fun AdaptiveResultScreen(
                             text = "Exerciții corecte: $correctCount / $totalCount",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = if (passed) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+                            color = if (passed) SuccessColor else MaterialTheme.colorScheme.error
                         )
 
                         if (result.score != null) {
@@ -139,7 +140,7 @@ private fun AdaptiveResultQuestionCard(
     correctTexts: List<String>
 ) {
     val correct = reportQuestion.correct
-    val accent = if (correct) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+    val accent = if (correct) SuccessColor else MaterialTheme.colorScheme.error
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -197,7 +198,7 @@ private fun AdaptiveResultQuestionCard(
                     Text(
                         text = correctTexts.joinToString(", "),
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF4CAF50),
+                        color = SuccessColor,
                         fontWeight = FontWeight.Medium
                     )
                 }

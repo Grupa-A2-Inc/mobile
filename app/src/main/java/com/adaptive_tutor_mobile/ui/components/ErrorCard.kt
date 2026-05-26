@@ -40,8 +40,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ErrorCard(
     message: String,
-    onRetry: (() -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onRetry: (() -> Unit)? = null
 ) {
     Surface(
         modifier = modifier

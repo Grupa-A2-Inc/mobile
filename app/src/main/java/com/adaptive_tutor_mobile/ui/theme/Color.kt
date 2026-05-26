@@ -38,6 +38,7 @@ val OnSurfaceDark = Color(0xFFD6E8F7)
 
 // ── Shared ────────────────────────────────────────────────────────────────────
 val ErrorColor = Color(0xFFE53935)
+val SuccessColor = Color(0xFF4CAF50)
 
 // ── Shimmer colors (folosite în LoadingShimmer) ────────────────────────────
 val ShimmerBase = Color(0xFFE3F0FB)

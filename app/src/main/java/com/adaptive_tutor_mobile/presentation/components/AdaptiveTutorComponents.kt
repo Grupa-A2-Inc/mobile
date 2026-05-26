@@ -1,5 +1,6 @@
 package com.adaptive_tutor_mobile.presentation.components
 
+import com.adaptive_tutor_mobile.ui.theme.SuccessColor
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,8 +32,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -53,7 +51,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
 
 
@@ -102,13 +99,13 @@ fun CourseCard(
     title: String,
     description: String?,
     category: String?,
-    progressPercent: Double? = null,
     modifier: Modifier = Modifier,
+    progressPercent: Double? = null,
     onClick: () -> Unit
 ) {
     ElevatedCard(
-        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
+        onClick = onClick,
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         )
@@ -184,7 +181,7 @@ fun LessonCard(
             Icon(
                 imageVector = if (visited) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
                 contentDescription = if (visited) "Vizitat" else "Nevizitat",
-                tint = if (visited) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                tint = if (visited) SuccessColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                 modifier = Modifier.size(24.dp)
             )
             Column(modifier = Modifier.weight(1f)) {
@@ -382,7 +379,7 @@ fun ScoreCircle(scorePercent: Double, passed: Boolean) {
         label = "score_anim"
     )
 
-    val color = if (passed) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+    val color = if (passed) SuccessColor else MaterialTheme.colorScheme.error
     val trackColor = color.copy(alpha = 0.2f)
 
     Column(

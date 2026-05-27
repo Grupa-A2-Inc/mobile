@@ -30,6 +30,14 @@
               the IDE to enable navigation into Gradle API in .gradle.kts files;
               not part of any compile/runtime classpath. -->
          <trust group="gradle" regex="true"/>
+         <!-- Maven POM files (.pom) — dependency metadata only, not executable.
+              These describe dependency trees; guava-parent, kotlinx-coroutines-bom
+              etc. are pulled transitively and have no checksums pre-registered. -->
+         <trust file=".*\.pom" regex="true"/>
+         <!-- Gradle Module Metadata (.module) — same category as POMs.
+              junit-bom and similar BOMs publish .module files that Gradle
+              downloads to resolve version constraints. -->
+         <trust file=".*\.module" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components>

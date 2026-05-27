@@ -98,7 +98,8 @@ class TokenRefreshAuthenticator(
     private val skipPaths = listOf(
         "auth/login", "auth/register", "auth/refresh",
         "auth/password-reset",
-        "ai/"  // AI service — uses X-API-KEY, not Bearer; 401 here must NOT trigger session logout
+        "ai/",         // AI service — uses X-API-KEY, not Bearer; 401 here must NOT trigger session logout
+        "/api/v1/attempts/"  // Expired attempt returns 401 from server ≠ auth failure; don't force-logout mid-test
     )
 
     override fun authenticate(route: okhttp3.Route?, response: Response): Request? {

@@ -17,6 +17,7 @@ import com.adaptive_tutor_mobile.presentation.auth.ForgotPasswordScreen
 import com.adaptive_tutor_mobile.presentation.auth.LoginScreen
 import com.adaptive_tutor_mobile.presentation.auth.RegisterScreen
 import com.adaptive_tutor_mobile.presentation.auth.RoleBlockedScreen
+import com.adaptive_tutor_mobile.presentation.splash.SplashScreen
 import com.adaptive_tutor_mobile.presentation.courses.CourseDetailScreen
 import com.adaptive_tutor_mobile.presentation.courses.PublicCoursesScreen
 import com.adaptive_tutor_mobile.presentation.home.admin.AdminHomeScreen
@@ -57,6 +58,16 @@ fun AppNavGraph(startDestination: String, sessionStore: SessionStore) {
     }
 
     NavHost(navController = navController, startDestination = startDestination) {
+
+        composable(Screen.Splash.route) {
+            SplashScreen(
+                onNavigate = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         composable(Screen.Login.route) {
             LoginScreen(

@@ -19,7 +19,20 @@
       "Bash(.\\\\gradlew.bat test *)",
       "Bash(./gradlew.bat assembleDebug)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\teodo\\\\Desktop\\\\Proiect IP\\\\mobile\" -Recurse -Directory)",
-      "PowerShell(cd \"c:\\\\Users\\\\teodo\\\\Desktop\\\\Proiect IP\\\\mobile\"; \\(Get-Content \"gradle\\\\verification-metadata.xml\" | Measure-Object -Line\\).Lines)"
+      "PowerShell(cd \"c:\\\\Users\\\\teodo\\\\Desktop\\\\Proiect IP\\\\mobile\"; \\(Get-Content \"gradle\\\\verification-metadata.xml\" | Measure-Object -Line\\).Lines)",
+      "Bash(./gradlew :app:testDebugUnitTest --tests \"com.adaptive_tutor_mobile.presentation.test.TestViewModelTest\" --no-daemon)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'fix: prevent logout on test timer expiry \\(#68\\) *)",
+      "Bash(./gradlew :app:compileDebugKotlin --no-daemon)",
+      "Bash(./gradlew tasks *)",
+      "Bash(./gradlew :app:lintDebug --no-daemon)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit -m 'fix: trust javadoc and sources JARs in verification metadata *)",
+      "Bash(git commit -m 'fix: trust Gradle distribution sources in verification metadata *)",
+      "Bash(./gradlew :app:compileDebugKotlin --stacktrace)",
+      "Bash(./gradlew :app:kspDebugKotlin --info)",
+      "Bash(./gradlew :app:kspDebugKotlin)",
+      "Bash(./gradlew :app:compileDebugKotlin --rerun-tasks)"
     ]
   }
 }

@@ -1,6 +1,6 @@
 package com.adaptive_tutor_mobile.presentation.auth
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +25,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import com.adaptive_tutor_mobile.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -72,22 +75,51 @@ fun LoginScreen(
     Scaffold { innerPadding ->
         Box(
             modifier = Modifier.fillMaxSize().padding(innerPadding),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.TopCenter
         ) {
         Column(
             modifier = Modifier
                 .widthIn(max = 480.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(72.dp))
+
+            // ── Brand ─────────────────────────────────────────────────────────
+            Image(
+                painter = painterResource(id = R.drawable.logo_mobile3x),
+                contentDescription = "AdaptiveTutor",
+                modifier = Modifier.size(120.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "AdaptiveTutor",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Învățare personalizată cu AI",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+            )
+            // ─────────────────────────────────────────────────────────────────
+
+            Spacer(modifier = Modifier.height(52.dp))
+
             Text(
                 text = "Intră în cont",
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 2.dp)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = email,
@@ -132,7 +164,7 @@ fun LoginScreen(
                 Text("Ai uitat parola?")
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (uiState is AuthUiState.Error) {
                 Card(

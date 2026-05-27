@@ -80,6 +80,13 @@ fun TestScreen(
         }
     }
 
+    // Snackbar când expiră timpul
+    LaunchedEffect(state.isTimeUp) {
+        if (state.isTimeUp) {
+            snackbarHostState.showSnackbar("Timpul a expirat! Testul a fost trimis automat.")
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { outerPadding ->
@@ -146,11 +153,25 @@ private fun TestQuestionScreen(
     val isSingle = question.questionType == "SINGLE_CHOICE" || question.questionType == "TRUE_FALSE"
     val progress = (state.currentIndex + 1).toFloat() / total
 
+    val timerText = state.remainingTimeSec?.let { formatTime(it) }
+
     Scaffold(
         topBar = {
             AdaptiveTopBar(
                 title = "Întrebarea ${state.currentIndex + 1} / $total",
-                onBack = onBack
+                onBack = onBack,
+                actions = {
+                    if (timerText != null) {
+                        Text(
+                            text = timerText,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if ((state.remainingTimeSec ?: 0) < 60) MaterialTheme.colorScheme.error 
+                                    else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+                    }
+                }
             )
         },
         bottomBar = {
@@ -162,7 +183,8 @@ private fun TestQuestionScreen(
                 onGoToQuestion = onGoToQuestion,
                 onPrev = onPrev,
                 onNext = onNext,
-                onSubmit = onSubmit
+                onSubmit = onSubmit,
+                enabled = !state.isTimeUp
             )
         }
     ) { padding ->
@@ -205,7 +227,8 @@ private fun TestQuestionScreen(
                                 }
                                 TextButton(
                                     onClick = { onReportQuestion(question.questionId) },
-                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                    enabled = !state.isTimeUp
                                 ) {
                                     Icon(
                                         imageVector = Icons.Outlined.Flag,
@@ -227,7 +250,8 @@ private fun TestQuestionScreen(
                         selected = option.optionId in selected,
                         onClick = { onSelectOption(question.questionId, option.optionId, isSingle) },
                         label = { Text(option.text, style = MaterialTheme.typography.bodyLarge) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !state.isTimeUp
                     )
                 }
             }
@@ -244,7 +268,8 @@ private fun QuestionNavigationBar(
     onGoToQuestion: (Int) -> Unit,
     onPrev: () -> Unit,
     onNext: () -> Unit,
-    onSubmit: () -> Unit
+    onSubmit: () -> Unit,
+    enabled: Boolean = true
 ) {
     Surface(
         shadowElevation = 8.dp,
@@ -278,11 +303,18 @@ private fun QuestionNavigationBar(
                 ) { Text("← Înapoi") }
                 Button(
                     onClick = if (isLast) onSubmit else onNext,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    enabled = enabled
                 ) { Text(if (isLast) "Trimite" else "Înainte →") }
             }
         }
     }
+}
+
+private fun formatTime(seconds: Int): String {
+    val m = seconds / 60
+    val s = seconds % 60
+    return String.format("%02d:%02d", m, s)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

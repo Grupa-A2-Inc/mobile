@@ -7,4 +7,5 @@ import com.adaptive_tutor_mobile.data.remote.dto.SubmitRequestDto
 interface TestRepository {
     suspend fun startTest(testId: String): Result<StartAttemptResponseDto>
     suspend fun submitAttempt(attemptId: String, request: SubmitRequestDto): Result<AttemptReportDTO>
+    suspend fun getAttemptReport(attemptId: String): Result<AttemptReportDTO>
 }

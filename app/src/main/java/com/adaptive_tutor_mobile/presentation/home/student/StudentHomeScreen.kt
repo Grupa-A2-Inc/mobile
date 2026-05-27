@@ -532,6 +532,33 @@ private fun MyCoursesTab(
                     }
                 }
             )
+        },
+        bottomBar = {
+            if (totalPages > 1) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 3.dp,
+                    shadowElevation = 8.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { studentViewModel.previousPage() },
+                            enabled = currentPage > 0
+                        ) { Text("← Înapoi") }
+                        Text("${currentPage + 1} / $totalPages")
+                        Button(
+                            onClick = { studentViewModel.nextPage() },
+                            enabled = currentPage < totalPages - 1
+                        ) { Text("Înainte →") }
+                    }
+                }
+            }
         }
     ) { innerPadding ->
         when (val state = coursesState) {
@@ -558,11 +585,11 @@ private fun MyCoursesTab(
                         modifier = Modifier.padding(innerPadding)
                     )
                 } else {
-                    Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+                    Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                         LazyColumn(
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.fillMaxSize()
                         ) {
                             items(
                                 items = courses,
@@ -577,25 +604,6 @@ private fun MyCoursesTab(
                                     },
                                     onUnenrollClick = { pendingUnenrollCourse = course }
                                 )
-                            }
-                        }
-                        if (totalPages > 1) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Button(
-                                    onClick = { studentViewModel.previousPage() },
-                                    enabled = currentPage > 0
-                                ) { Text("← Înapoi") }
-                                Text("${currentPage + 1} / $totalPages")
-                                Button(
-                                    onClick = { studentViewModel.nextPage() },
-                                    enabled = currentPage < totalPages - 1
-                                ) { Text("Înainte →") }
                             }
                         }
                     }

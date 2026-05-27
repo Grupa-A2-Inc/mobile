@@ -57,6 +57,10 @@ fun LoginScreen(
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
+    LaunchedEffect(Unit) {
+        viewModel.resetState()
+    }
+
     LaunchedEffect(navigationTarget) {
         navigationTarget?.let { target ->
             onNavigateAfterAuth(target)

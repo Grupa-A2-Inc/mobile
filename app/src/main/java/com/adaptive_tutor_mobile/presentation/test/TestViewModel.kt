@@ -10,6 +10,10 @@ import com.adaptive_tutor_mobile.data.remote.dto.SubmitRequestDto
 import com.adaptive_tutor_mobile.domain.repository.test.TestRepository
 import com.adaptive_tutor_mobile.domain.usecase.test.ReportQuestionErrorUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.Duration
+import java.time.Instant
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +31,9 @@ data class TestUiState(
     val selectedAnswers: Map<Int, List<Int>> = emptyMap(),
     val timeSpentSeconds: Map<Int, Double> = emptyMap(),
     val report: AttemptReportDTO? = null,
+    val timeLimitSec: Int? = null,
+    val remainingTimeSec: Int? = null,
+    val isTimeUp: Boolean = false,
 
     // ── Dev 5: error reporting ──────────────────────────────────────────
     val showReportDialog: Boolean = false,
@@ -48,6 +55,8 @@ class TestViewModel @Inject constructor(
 
     private var questionStartTime = System.currentTimeMillis()
 
+    private var timerJob: Job? = null
+
     init {
         val testId: String? = savedStateHandle["testId"]
         _state.update { it.copy(testId = testId) }
@@ -58,13 +67,31 @@ class TestViewModel @Inject constructor(
         viewModelScope.launch {
             repository.startTest(testId).fold(
                 onSuccess = { attempt ->
+                    // Sync with server time
+                    val serverStart = try {
+                        Instant.parse(attempt.startedAt)
+                    } catch (e: Exception) {
+                        Instant.now()
+                    }
+                    val elapsed = Duration.between(serverStart, Instant.now()).seconds
+                    val adjustedRemaining = (attempt.timeLimitSec ?: 0) - elapsed.toInt()
+
                     questionStartTime = System.currentTimeMillis()
                     _state.update {
                         it.copy(
                             isLoading = false,
                             attemptId = attempt.attemptId,
-                            questions = attempt.questions.orEmpty()
+                            questions = attempt.questions.orEmpty(),
+                            timeLimitSec = attempt.timeLimitSec,
+                            remainingTimeSec = adjustedRemaining.coerceAtLeast(0)
                         )
+                    }
+                    if (adjustedRemaining > 0) {
+                        startTimer()
+                    } else if (attempt.timeLimitSec != null && attempt.timeLimitSec > 0) {
+                        // Already expired
+                        _state.update { it.copy(isTimeUp = true) }
+                        submitTest()
                     }
                 },
                 onFailure = { e ->
@@ -72,6 +99,26 @@ class TestViewModel @Inject constructor(
                 }
             )
         }
+    }
+
+    private fun startTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            // Safety buffer: submit when 1 second is remaining instead of 0
+            while (_state.value.remainingTimeSec != null && _state.value.remainingTimeSec!! > 1) {
+                delay(1000)
+                _state.update { it.copy(remainingTimeSec = it.remainingTimeSec!! - 1) }
+            }
+            if (_state.value.remainingTimeSec == 1) {
+                _state.update { it.copy(remainingTimeSec = 0, isTimeUp = true) }
+                submitTest()
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        timerJob?.cancel()
     }
 
     fun selectOption(questionId: Int, optionId: Int, singleChoice: Boolean) {
@@ -95,6 +142,7 @@ class TestViewModel @Inject constructor(
     fun prevQuestion() = goToQuestion(_state.value.currentIndex - 1)
 
     fun submitTest() {
+        timerJob?.cancel()
         saveTime()
         val s = _state.value
         val attemptId = s.attemptId ?: return
@@ -109,7 +157,17 @@ class TestViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true) }
             repository.submitAttempt(attemptId, SubmitRequestDto(answers)).fold(
                 onSuccess = { report -> _state.update { it.copy(isLoading = false, report = report) } },
-                onFailure = { e -> _state.update { it.copy(isLoading = false, error = e.message ?: "Eroare la trimitere") } }
+                onFailure = { e ->
+                    // Handle 410 Gone - attempt already auto-submitted by server
+                    if (e is retrofit2.HttpException && e.code() == 410) {
+                        repository.getAttemptReport(attemptId).fold(
+                            onSuccess = { report -> _state.update { it.copy(isLoading = false, report = report) } },
+                            onFailure = { err -> _state.update { it.copy(isLoading = false, error = err.message ?: "Timpul a expirat și nu am putut prelua rezultatele.") } }
+                        )
+                    } else {
+                        _state.update { it.copy(isLoading = false, error = e.message ?: "Eroare la trimitere") }
+                    }
+                }
             )
         }
     }

@@ -57,9 +57,36 @@ fun PublicCoursesScreen(
     Scaffold(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = { TopAppBar(title = { Text("Cursuri disponibile") }) }
+        topBar = { TopAppBar(title = { Text("Cursuri disponibile") }) },
+        bottomBar = {
+            if (totalPages > 1) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 3.dp,
+                    shadowElevation = 8.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { viewModel.previousPage() },
+                            enabled = currentPage > 0
+                        ) { Text("← Înapoi") }
+                        Text("${currentPage + 1} / $totalPages")
+                        Button(
+                            onClick = { viewModel.nextPage() },
+                            enabled = currentPage < totalPages - 1
+                        ) { Text("Înainte →") }
+                    }
+                }
+            }
+        }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {
                 isLoading -> Box(modifier = Modifier.fillMaxSize()) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
@@ -72,11 +99,11 @@ fun PublicCoursesScreen(
                     )
                 }
 
-                else -> Column(modifier = Modifier.fillMaxSize()) {
+                else -> {
                     LazyColumn(
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         items(courses, key = { it.id }) { course ->
                             val isEnrolled = enrolledCourseIds.contains(course.id)
@@ -140,23 +167,6 @@ fun PublicCoursesScreen(
                                 }
                             }
                         }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Button(
-                            onClick = { viewModel.previousPage() },
-                            enabled = currentPage > 0
-                        ) { Text("← Înapoi") }
-                        Text("${currentPage + 1} / $totalPages")
-                        Button(
-                            onClick = { viewModel.nextPage() },
-                            enabled = currentPage < totalPages - 1
-                        ) { Text("Înainte →") }
                     }
                 }
             }

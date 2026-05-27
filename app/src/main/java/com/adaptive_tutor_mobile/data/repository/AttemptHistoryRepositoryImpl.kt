@@ -14,17 +14,17 @@ class AttemptHistoryRepositoryImpl @Inject constructor(
         return try {
             val response = api.getMyAttempts(testId)
             if (response.isSuccessful) {
-                val attempts = response.body()?.map { dto ->
+                val attempts = response.body()?.sortedBy { it.startedAt }?.mapIndexed { index, dto ->
                     AttemptHistory(
                         attemptId = dto.attemptId,
-                        attemptNumber = dto.attemptNumber,
+                        attemptNumber = if (dto.attemptNumber > 0) dto.attemptNumber else index + 1,
                         score = dto.score,
                         scorePercent = dto.scorePercent,
                         passed = dto.passed,
                         date = dto.startedAt,
                         status = dto.status
                     )
-                } ?: emptyList()
+                }?.sortedByDescending { it.date } ?: emptyList()
                 Result.success(attempts)
             } else {
                 Result.failure(Exception("Error: ${response.code()}"))

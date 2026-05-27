@@ -80,6 +80,9 @@ fun ProfileScreen(
     var firstName by rememberSaveable(profile) { mutableStateOf(profile?.firstName ?: "") }
     var lastName  by rememberSaveable(profile) { mutableStateOf(profile?.lastName  ?: "") }
 
+    val firstNameError = firstName.length > 100
+    val lastNameError  = lastName.length > 100
+
     // Câmpuri parolă
     var currentPassword    by rememberSaveable { mutableStateOf("") }
     var newPassword        by rememberSaveable { mutableStateOf("") }
@@ -199,6 +202,10 @@ fun ProfileScreen(
                             value = firstName,
                             onValueChange = { firstName = it },
                             label = { Text("Prenume") },
+                            isError = firstNameError,
+                            supportingText = if (firstNameError) {
+                                { Text("Numele nu poate trece de 100 de caractere") }
+                            } else null,
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )
@@ -207,6 +214,10 @@ fun ProfileScreen(
                             value = lastName,
                             onValueChange = { lastName = it },
                             label = { Text("Nume") },
+                            isError = lastNameError,
+                            supportingText = if (lastNameError) {
+                                { Text("Numele nu poate trece de 100 de caractere") }
+                            } else null,
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )
@@ -225,6 +236,8 @@ fun ProfileScreen(
                             enabled = !uiState.isSaving
                                     && firstName.isNotBlank()
                                     && lastName.isNotBlank()
+                                    && !firstNameError
+                                    && !lastNameError
                         ) {
                             if (uiState.isSaving) {
                                 CircularProgressIndicator(

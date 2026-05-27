@@ -6,7 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Streaming
 
-interface CertificateApi {
+fun interface CertificateApi {
 
     /**
      * GET /api/v1/enrollments/{enrollmentId}/certificat

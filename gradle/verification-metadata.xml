@@ -26,6 +26,10 @@
          <trust file=".*-javadoc\.jar" regex="true"/>
          <!-- sources JARs are similarly IDE-only artifacts -->
          <trust file=".*-sources\.jar" regex="true"/>
+         <!-- Gradle distribution sources (gradle-X.Y-src.zip) — downloaded by
+              the IDE to enable navigation into Gradle API in .gradle.kts files;
+              not part of any compile/runtime classpath. -->
+         <trust group="gradle" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components>

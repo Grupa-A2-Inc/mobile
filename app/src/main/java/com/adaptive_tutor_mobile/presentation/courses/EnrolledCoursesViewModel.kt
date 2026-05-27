@@ -3,6 +3,7 @@ package com.adaptive_tutor_mobile.presentation.courses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.adaptive_tutor_mobile.domain.model.courses.EnrolledCourse
+import com.adaptive_tutor_mobile.domain.usecase.courses.DownloadCertificateUseCase
 import com.adaptive_tutor_mobile.domain.usecase.courses.GetEnrolledCoursesUseCase
 import com.adaptive_tutor_mobile.domain.usecase.courses.UnenrollFromCourseUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,10 +19,26 @@ sealed class EnrolledCoursesUiState {
     data class Error(val message: String) : EnrolledCoursesUiState()
 }
 
+/** Starea descărcării unui certificat */
+sealed class CertificateDownloadState {
+    object Idle : CertificateDownloadState()
+    data class Loading(val enrollmentId: String) : CertificateDownloadState()
+    data class Ready(val pdfBytes: ByteArray, val courseTitle: String) : CertificateDownloadState() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Ready) return false
+            return pdfBytes.contentEquals(other.pdfBytes) && courseTitle == other.courseTitle
+        }
+        override fun hashCode(): Int = 31 * pdfBytes.contentHashCode() + courseTitle.hashCode()
+    }
+    data class Error(val message: String) : CertificateDownloadState()
+}
+
 @HiltViewModel
 class EnrolledCoursesViewModel @Inject constructor(
     private val getEnrolledCoursesUseCase: GetEnrolledCoursesUseCase,
-    private val unenrollFromCourseUseCase: UnenrollFromCourseUseCase
+    private val unenrollFromCourseUseCase: UnenrollFromCourseUseCase,
+    private val downloadCertificateUseCase: DownloadCertificateUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EnrolledCoursesUiState>(EnrolledCoursesUiState.Loading)
@@ -32,6 +49,9 @@ class EnrolledCoursesViewModel @Inject constructor(
 
     private val _unenrollSuccess = MutableStateFlow<String?>(null)
     val unenrollSuccess: StateFlow<String?> = _unenrollSuccess.asStateFlow()
+
+    private val _certificateState = MutableStateFlow<CertificateDownloadState>(CertificateDownloadState.Idle)
+    val certificateState: StateFlow<CertificateDownloadState> = _certificateState.asStateFlow()
 
     init {
         loadCourses()
@@ -67,6 +87,28 @@ class EnrolledCoursesViewModel @Inject constructor(
                 _errorMessage.value = error.message ?: "Nu am putut procesa dezabonarea"
             }
         }
+    }
+
+    fun downloadCertificate(course: EnrolledCourse) {
+        if (course.enrollmentId.isBlank()) {
+            _certificateState.value = CertificateDownloadState.Error("ID-ul de enrollment lipsește")
+            return
+        }
+        viewModelScope.launch {
+            _certificateState.value = CertificateDownloadState.Loading(course.enrollmentId)
+            val result = downloadCertificateUseCase(course.enrollmentId)
+            _certificateState.value = if (result.isSuccess) {
+                CertificateDownloadState.Ready(result.getOrThrow(), course.courseTitle)
+            } else {
+                CertificateDownloadState.Error(
+                    result.exceptionOrNull()?.message ?: "Eroare la descărcarea certificatului"
+                )
+            }
+        }
+    }
+
+    fun clearCertificateState() {
+        _certificateState.value = CertificateDownloadState.Idle
     }
 
     fun clearErrorMessage() {

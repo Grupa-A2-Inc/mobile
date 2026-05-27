@@ -2,6 +2,7 @@ package com.adaptive_tutor_mobile.di
 
 import com.adaptive_tutor_mobile.data.repository.*
 import com.adaptive_tutor_mobile.domain.repository.auth.AuthRepository
+import com.adaptive_tutor_mobile.domain.repository.courses.CertificateRepository
 import com.adaptive_tutor_mobile.domain.repository.courses.CourseRepository
 import com.adaptive_tutor_mobile.domain.repository.courses.CourseDetailRepository
 import com.adaptive_tutor_mobile.domain.repository.lesson.LessonRepository
@@ -70,4 +71,8 @@ abstract class AppModule {
     @Binds
     @Singleton
     abstract fun bindAttemptHistoryRepository(impl: AttemptHistoryRepositoryImpl): AttemptHistoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCertificateRepository(impl: CertificateRepositoryImpl): CertificateRepository
 }

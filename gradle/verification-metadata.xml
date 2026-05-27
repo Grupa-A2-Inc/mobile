@@ -20,6 +20,12 @@
          <trust group="org.codehaus.groovy" regex="true"/>
          <!-- kotlin-reflect pulled by lint (different version than app deps) -->
          <trust group="org.jetbrains.kotlin" name="kotlin-reflect" regex="true"/>
+         <!-- javadoc JARs are downloaded by the IDE for documentation only;
+              they are never on the runtime or compile classpath and do not
+              affect reproducibility of the build. -->
+         <trust file=".*-javadoc\.jar" regex="true"/>
+         <!-- sources JARs are similarly IDE-only artifacts -->
+         <trust file=".*-sources\.jar" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components>

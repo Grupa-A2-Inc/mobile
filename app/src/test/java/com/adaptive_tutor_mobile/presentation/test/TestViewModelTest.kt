@@ -16,6 +16,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -334,5 +335,120 @@ class TestViewModelTest {
                 }
             )
         }
+    }
+
+    // ── timer-expiry error-handling (bug #68) ─────────────────────────────────
+
+    private fun makeHttpException(code: Int): retrofit2.HttpException {
+        val responseBody = byteArrayOf().toResponseBody(null)
+        return retrofit2.HttpException(retrofit2.Response.error<Any>(code, responseBody))
+    }
+
+    @Test
+    fun `submitTest with 410 Gone fetches report and shows result`() = runTest {
+        val report = AttemptReportDTO(attemptId, 50.0, 50.0, false, null, emptyList())
+        coEvery { repository.startTest(testId) } returns Result.success(sampleStartResponse)
+        coEvery { repository.submitAttempt(attemptId, any()) } returns
+                Result.failure(makeHttpException(410))
+        coEvery { repository.getAttemptReport(attemptId) } returns Result.success(report)
+
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.submitTest()
+        advanceUntilIdle()
+
+        assertEquals(report, vm.state.value.report)
+        assertNull(vm.state.value.error)
+        coVerify { repository.getAttemptReport(attemptId) }
+    }
+
+    @Test
+    fun `submitTest with 401 Unauthorized fetches report and shows result`() = runTest {
+        val report = AttemptReportDTO(attemptId, 30.0, 30.0, false, null, emptyList())
+        coEvery { repository.startTest(testId) } returns Result.success(sampleStartResponse)
+        coEvery { repository.submitAttempt(attemptId, any()) } returns
+                Result.failure(makeHttpException(401))
+        coEvery { repository.getAttemptReport(attemptId) } returns Result.success(report)
+
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.submitTest()
+        advanceUntilIdle()
+
+        assertEquals(report, vm.state.value.report)
+        assertNull(vm.state.value.error)
+        coVerify { repository.getAttemptReport(attemptId) }
+    }
+
+    @Test
+    fun `submitTest with 403 Forbidden fetches report and shows result`() = runTest {
+        val report = AttemptReportDTO(attemptId, 0.0, 0.0, false, null, emptyList())
+        coEvery { repository.startTest(testId) } returns Result.success(sampleStartResponse)
+        coEvery { repository.submitAttempt(attemptId, any()) } returns
+                Result.failure(makeHttpException(403))
+        coEvery { repository.getAttemptReport(attemptId) } returns Result.success(report)
+
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.submitTest()
+        advanceUntilIdle()
+
+        assertEquals(report, vm.state.value.report)
+        assertNull(vm.state.value.error)
+        coVerify { repository.getAttemptReport(attemptId) }
+    }
+
+    @Test
+    fun `submitTest with 404 fetches report and shows result`() = runTest {
+        val report = AttemptReportDTO(attemptId, 0.0, 0.0, false, null, emptyList())
+        coEvery { repository.startTest(testId) } returns Result.success(sampleStartResponse)
+        coEvery { repository.submitAttempt(attemptId, any()) } returns
+                Result.failure(makeHttpException(404))
+        coEvery { repository.getAttemptReport(attemptId) } returns Result.success(report)
+
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.submitTest()
+        advanceUntilIdle()
+
+        assertEquals(report, vm.state.value.report)
+        assertNull(vm.state.value.error)
+        coVerify { repository.getAttemptReport(attemptId) }
+    }
+
+    @Test
+    fun `submitTest when both submit and getAttemptReport fail shows friendly error`() = runTest {
+        coEvery { repository.startTest(testId) } returns Result.success(sampleStartResponse)
+        coEvery { repository.submitAttempt(attemptId, any()) } returns
+                Result.failure(makeHttpException(410))
+        coEvery { repository.getAttemptReport(attemptId) } returns
+                Result.failure(RuntimeException("Network error"))
+
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.submitTest()
+        advanceUntilIdle()
+
+        assertNull(vm.state.value.report)
+        assertEquals(
+            "Testul a expirat. Verifică istoricul testelor pentru a vedea rezultatul.",
+            vm.state.value.error
+        )
+    }
+
+    @Test
+    fun `submitTest with generic 500 error shows raw error without fetching report`() = runTest {
+        coEvery { repository.startTest(testId) } returns Result.success(sampleStartResponse)
+        coEvery { repository.submitAttempt(attemptId, any()) } returns
+                Result.failure(makeHttpException(500))
+
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.submitTest()
+        advanceUntilIdle()
+
+        assertNull(vm.state.value.report)
+        coVerify(exactly = 0) { repository.getAttemptReport(any()) }
+        assertTrue(vm.state.value.error != null)
     }
 }

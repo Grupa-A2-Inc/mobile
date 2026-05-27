@@ -158,11 +158,21 @@ class TestViewModel @Inject constructor(
             repository.submitAttempt(attemptId, SubmitRequestDto(answers)).fold(
                 onSuccess = { report -> _state.update { it.copy(isLoading = false, report = report) } },
                 onFailure = { e ->
-                    // Handle 410 Gone - attempt already auto-submitted by server
-                    if (e is retrofit2.HttpException && e.code() == 410) {
+                    val httpCode = (e as? retrofit2.HttpException)?.code() ?: -1
+                    // 410 Gone    = attempt already auto-submitted by server (timer expired server-side)
+                    // 401/403/404 = server treats the expired/closed attempt as unauthorized/forbidden/missing
+                    // In all these cases fetch the stored report instead of showing a raw error
+                    if (httpCode == 410 || httpCode == 401 || httpCode == 403 || httpCode == 404) {
                         repository.getAttemptReport(attemptId).fold(
                             onSuccess = { report -> _state.update { it.copy(isLoading = false, report = report) } },
-                            onFailure = { err -> _state.update { it.copy(isLoading = false, error = err.message ?: "Timpul a expirat și nu am putut prelua rezultatele.") } }
+                            onFailure = { _ ->
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        error = "Testul a expirat. Verifică istoricul testelor pentru a vedea rezultatul."
+                                    )
+                                }
+                            }
                         )
                     } else {
                         _state.update { it.copy(isLoading = false, error = e.message ?: "Eroare la trimitere") }

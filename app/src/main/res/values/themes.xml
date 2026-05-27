@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Adaptive_tutor_mobile" parent="android:Theme.Material.Light.NoActionBar"/>
+    <style name="Theme.Adaptive_tutor_mobile" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Window background before Compose renders — eliminates grey flash -->
+        <item name="android:windowBackground">@color/app_background</item>
+        <!-- Android 12+ system splash screen -->
+        <item name="android:windowSplashScreenBackground">@color/app_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/logo_mobile3x</item>
+    </style>
 </resources>

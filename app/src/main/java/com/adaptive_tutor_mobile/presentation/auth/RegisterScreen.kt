@@ -1,5 +1,6 @@
 package com.adaptive_tutor_mobile.presentation.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import com.adaptive_tutor_mobile.R
 import com.adaptive_tutor_mobile.data.remote.dto.RegisterRequest
 import androidx.compose.material3.ExperimentalMaterial3Api
 
@@ -107,6 +111,26 @@ fun RegisterScreen(
         ) {
             item {
                 Spacer(modifier = Modifier.height(24.dp))
+                // ── Brand header ───────────────────────────────────────────────
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_mobile3x),
+                        contentDescription = "AdaptiveTutor",
+                        modifier = Modifier.size(80.dp)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "AdaptiveTutor",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+                // ──────────────────────────────────────────────────────────────
                 Text("Înregistrare", style = MaterialTheme.typography.headlineMedium)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Date personale", style = MaterialTheme.typography.titleMedium)

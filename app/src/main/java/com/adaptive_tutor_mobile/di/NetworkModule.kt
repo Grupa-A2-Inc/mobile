@@ -95,16 +95,27 @@ class TokenRefreshAuthenticator(
     private val plainClientProvider: () -> OkHttpClient
 ) : okhttp3.Authenticator {
 
+    // Paths that skip the authenticator entirely (no refresh, no logout).
     private val skipPaths = listOf(
         "auth/login", "auth/register", "auth/refresh",
         "auth/password-reset",
-        "ai/"  // AI service — uses X-API-KEY, not Bearer; 401 here must NOT trigger session logout
+        "ai/"          // AI service — uses X-API-KEY, not Bearer; 401 here must NOT trigger session logout
+    )
+
+    // Paths for which a refresh FAILURE must NOT emit force-logout.
+    // A 401 on an attempt endpoint can mean "attempt expired", not "auth expired".
+    // We still attempt the token refresh (good for genuine token expiry), but we
+    // do NOT kick the user out if refresh fails — the ViewModel handles it gracefully.
+    private val noLogoutOnRefreshFailPaths = listOf(
+        "/api/v1/attempts/"
     )
 
     override fun authenticate(route: okhttp3.Route?, response: Response): Request? {
         val path = response.request.url.encodedPath
         if (skipPaths.any { path.contains(it) }) return null
         if (response.code != 401) return null
+
+        val suppressLogout = noLogoutOnRefreshFailPaths.any { path.contains(it) }
 
         return try {
             val plainClient = plainClientProvider()
@@ -157,15 +168,15 @@ class TokenRefreshAuthenticator(
                         .header("Authorization", "Bearer $newToken")
                         .build()
                 } else {
-                    sessionStore.emitForceLogout()
+                    if (!suppressLogout) sessionStore.emitForceLogout()
                     null
                 }
             } else {
-                sessionStore.emitForceLogout()
+                if (!suppressLogout) sessionStore.emitForceLogout()
                 null
             }
         } catch (e: Exception) {
-            sessionStore.emitForceLogout()
+            if (!suppressLogout) sessionStore.emitForceLogout()
             null
         }
     }

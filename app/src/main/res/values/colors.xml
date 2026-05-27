@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <!-- Window background shown before Compose renders its first frame -->
+    <color name="app_background">#FFF0F6FD</color>
 </resources>

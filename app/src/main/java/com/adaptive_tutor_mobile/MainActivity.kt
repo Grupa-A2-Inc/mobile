@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
             val themeMode by themeViewModel.themeMode.collectAsState()
 
             AdaptiveTutorTheme(themeMode = themeMode) {
-                AppNavGraph(startDestination = Screen.Login.route, sessionStore = sessionStore)
+                AppNavGraph(startDestination = Screen.Splash.route, sessionStore = sessionStore)
             }
         }
     }

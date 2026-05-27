@@ -26,15 +26,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -246,13 +247,39 @@ private fun TestQuestionScreen(
                     }
                 }
                 items(question.options.orEmpty()) { option ->
-                    FilterChip(
-                        selected = option.optionId in selected,
+                    val isSelected = option.optionId in selected
+                    Surface(
                         onClick = { onSelectOption(question.questionId, option.optionId, isSingle) },
-                        label = { Text(option.text, style = MaterialTheme.typography.bodyLarge) },
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !state.isTimeUp
-                    )
+                        enabled = !state.isTimeUp,
+                        shape = MaterialTheme.shapes.medium,
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (isSingle) {
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = { onSelectOption(question.questionId, option.optionId, true) },
+                                    enabled = !state.isTimeUp
+                                )
+                            } else {
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = { onSelectOption(question.questionId, option.optionId, false) },
+                                    enabled = !state.isTimeUp
+                                )
+                            }
+                            Text(
+                                text = option.text,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
                 }
             }
         }

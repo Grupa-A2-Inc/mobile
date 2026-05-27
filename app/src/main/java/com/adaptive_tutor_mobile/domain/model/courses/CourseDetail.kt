@@ -4,6 +4,7 @@ data class CourseDetail(
     val id: String,
     val title: String,
     val description: String,
+    val visibility: String,
     val chapters: List<Chapter>
 )
 

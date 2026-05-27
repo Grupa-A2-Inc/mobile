@@ -1,5 +1,7 @@
 package com.adaptive_tutor_mobile.presentation.courses
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -14,21 +16,26 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adaptive_tutor_mobile.domain.model.courses.Chapter
 import com.adaptive_tutor_mobile.domain.model.courses.CourseDetail
 import com.adaptive_tutor_mobile.domain.model.courses.LessonSummary
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,9 +46,27 @@ fun CourseDetailScreen(
     viewModel: CourseDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // ── Gestionare certificat ────────────────────────────────────────────────
+    LaunchedEffect(uiState.certificateState) {
+        when (val certState = uiState.certificateState) {
+            is CertificateDownloadState.Ready -> {
+                openPdf(context, certState.pdfBytes, certState.courseTitle)
+                viewModel.clearCertificateState()
+            }
+            is CertificateDownloadState.Error -> {
+                snackbarHostState.showSnackbar(certState.message)
+                viewModel.clearCertificateState()
+            }
+            else -> Unit
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -105,12 +130,15 @@ fun CourseDetailScreen(
 
             uiState.courseDetail != null -> {
                 CourseDetailContent(
-                    courseDetail     = uiState.courseDetail!!,
-                    expandedChapters = uiState.expandedChapters,
-                    onToggleChapter  = viewModel::toggleChapter,
-                    onLessonClick    = onNavigateToLesson,
-                    onStatsClick     = onNavigateToStats,
-                    modifier         = Modifier.padding(innerPadding)
+                    courseDetail            = uiState.courseDetail!!,
+                    expandedChapters        = uiState.expandedChapters,
+                    canDownloadCertificate  = uiState.canDownloadCertificate,
+                    isCertificateLoading    = uiState.certificateState is CertificateDownloadState.Loading,
+                    onToggleChapter         = viewModel::toggleChapter,
+                    onLessonClick           = onNavigateToLesson,
+                    onStatsClick            = onNavigateToStats,
+                    onCertificateClick      = viewModel::downloadCertificate,
+                    modifier                = Modifier.padding(innerPadding)
                 )
             }
         }
@@ -123,9 +151,12 @@ fun CourseDetailScreen(
 private fun CourseDetailContent(
     courseDetail: CourseDetail,
     expandedChapters: Set<String>,
+    canDownloadCertificate: Boolean,
+    isCertificateLoading: Boolean,
     onToggleChapter: (String) -> Unit,
     onLessonClick: (String) -> Unit,
     onStatsClick: (String) -> Unit,
+    onCertificateClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -135,11 +166,14 @@ private fun CourseDetailContent(
     ) {
         item {
             CourseHeaderCard(
-                title        = courseDetail.title,
-                description  = courseDetail.description,
-                chapterCount = courseDetail.chapters.size,
-                lessonCount  = courseDetail.chapters.sumOf { it.lessons.size },
-                onStatsClick = { onStatsClick(courseDetail.id) }
+                title                  = courseDetail.title,
+                description            = courseDetail.description,
+                chapterCount           = courseDetail.chapters.size,
+                lessonCount            = courseDetail.chapters.sumOf { it.lessons.size },
+                canDownloadCertificate = canDownloadCertificate,
+                isCertificateLoading   = isCertificateLoading,
+                onStatsClick           = { onStatsClick(courseDetail.id) },
+                onCertificateClick     = onCertificateClick
             )
         }
 
@@ -177,7 +211,10 @@ private fun CourseHeaderCard(
     description: String,
     chapterCount: Int,
     lessonCount: Int,
-    onStatsClick: () -> Unit
+    canDownloadCertificate: Boolean,
+    isCertificateLoading: Boolean,
+    onStatsClick: () -> Unit,
+    onCertificateClick: () -> Unit
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -229,6 +266,8 @@ private fun CourseHeaderCard(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            // ── Buton statistici ─────────────────────────────────────────────
             Button(
                 onClick = onStatsClick,
                 modifier = Modifier.fillMaxWidth(),
@@ -238,12 +277,37 @@ private fun CourseHeaderCard(
                 )
             ) {
                 Icon(
-                    imageVector = androidx.compose.material.icons.Icons.Default.BarChart,
+                    imageVector = Icons.Default.BarChart,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Statisticile mele")
+            }
+
+            // ── Buton certificat (vizibil doar dacă cursul e 100% și public) ─
+            if (canDownloadCertificate) {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onCertificateClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !isCertificateLoading
+                ) {
+                    if (isCertificateLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (isCertificateLoading) "Se descarcă..." else "Vezi certificatul")
+                }
             }
         }
     }
@@ -408,3 +472,32 @@ private fun LessonRow(
         )
     }
 }
+
+// ── PDF helper ────────────────────────────────────────────────────────────────
+
+private fun openPdf(context: Context, bytes: ByteArray, courseTitle: String) {
+    try {
+        val cacheDir = File(context.cacheDir, "certificates").apply { mkdirs() }
+        val safeTitle = courseTitle.replace(Regex("[^a-zA-Z0-9_\\-]"), "_").take(40)
+        val file = File(cacheDir, "certificat_$safeTitle.pdf")
+        file.writeBytes(bytes)
+
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(Intent.createChooser(intent, "Deschide certificatul").apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
+    } catch (_: Exception) { /* Snackbar deja afișat via certificateState */ }
+}
+
+// ── Workaround for `remember` import from foundation ─────────────────────────
+@Composable
+private fun remember(init: () -> SnackbarHostState) = androidx.compose.runtime.remember { init() }

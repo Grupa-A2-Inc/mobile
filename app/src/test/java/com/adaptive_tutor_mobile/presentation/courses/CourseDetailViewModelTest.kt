@@ -4,7 +4,9 @@ import androidx.lifecycle.SavedStateHandle
 import com.adaptive_tutor_mobile.domain.model.courses.Chapter
 import com.adaptive_tutor_mobile.domain.model.courses.CourseDetail
 import com.adaptive_tutor_mobile.domain.model.courses.LessonSummary
+import com.adaptive_tutor_mobile.domain.usecase.courses.DownloadCertificateUseCase
 import com.adaptive_tutor_mobile.domain.usecase.courses.GetCourseFullViewUseCase
+import com.adaptive_tutor_mobile.domain.usecase.courses.GetEnrolledCoursesUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -22,6 +24,15 @@ class CourseDetailViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val useCase: GetCourseFullViewUseCase = mock()
+    private val getEnrolledCoursesUseCase: GetEnrolledCoursesUseCase = mock()
+    private val downloadCertificateUseCase: DownloadCertificateUseCase = mock()
+
+    private fun viewModel(courseId: String = "c1") = CourseDetailViewModel(
+        SavedStateHandle(mapOf("courseId" to courseId)),
+        useCase,
+        getEnrolledCoursesUseCase,
+        downloadCertificateUseCase
+    )
 
     @Test
     fun `loadCourseDetail success updates state`() = runTest {
@@ -29,6 +40,7 @@ class CourseDetailViewModelTest {
             id = "c1",
             title = "Course",
             description = "Desc",
+            visibility = "PUBLIC",
             chapters = listOf(
                 Chapter(
                     id = "ch1",
@@ -38,11 +50,12 @@ class CourseDetailViewModelTest {
             )
         )
         whenever(useCase("c1")).thenReturn(Result.success(detail))
+        whenever(getEnrolledCoursesUseCase()).thenReturn(Result.success(emptyList()))
 
-        val viewModel = CourseDetailViewModel(SavedStateHandle(mapOf("courseId" to "c1")), useCase)
+        val vm = viewModel()
         advanceUntilIdle()
 
-        val state = viewModel.uiState.value
+        val state = vm.uiState.value
         assertEquals(detail, state.courseDetail)
         assertTrue(!state.isLoading)
         assertNull(state.error)
@@ -51,31 +64,40 @@ class CourseDetailViewModelTest {
     @Test
     fun `loadCourseDetail failure sets error`() = runTest {
         whenever(useCase("c1")).thenReturn(Result.failure(RuntimeException("boom")))
+        whenever(getEnrolledCoursesUseCase()).thenReturn(Result.success(emptyList()))
 
-        val viewModel = CourseDetailViewModel(SavedStateHandle(mapOf("courseId" to "c1")), useCase)
+        val vm = viewModel()
         advanceUntilIdle()
 
-        val state = viewModel.uiState.value
+        val state = vm.uiState.value
         assertTrue(state.error != null)
         assertTrue(!state.isLoading)
     }
 
     @Test
-    fun `toggleChapter adds and removes ids`() {
-        val viewModel = CourseDetailViewModel(SavedStateHandle(mapOf("courseId" to "c1")), useCase)
+    fun `toggleChapter adds and removes ids`() = runTest {
+        whenever(useCase("c1")).thenReturn(Result.failure(RuntimeException()))
+        whenever(getEnrolledCoursesUseCase()).thenReturn(Result.success(emptyList()))
 
-        viewModel.toggleChapter("ch1")
-        assertTrue(viewModel.uiState.value.expandedChapters.contains("ch1"))
+        val vm = viewModel()
 
-        viewModel.toggleChapter("ch1")
-        assertTrue(!viewModel.uiState.value.expandedChapters.contains("ch1"))
+        vm.toggleChapter("ch1")
+        assertTrue(vm.uiState.value.expandedChapters.contains("ch1"))
+
+        vm.toggleChapter("ch1")
+        assertTrue(!vm.uiState.value.expandedChapters.contains("ch1"))
     }
 
     @Test
     fun `init throws when courseId missing from SavedStateHandle`() {
         var thrown = false
         try {
-            CourseDetailViewModel(SavedStateHandle(), useCase)
+            CourseDetailViewModel(
+                SavedStateHandle(),
+                useCase,
+                getEnrolledCoursesUseCase,
+                downloadCertificateUseCase
+            )
         } catch (e: IllegalStateException) {
             thrown = true
         }
@@ -87,10 +109,11 @@ class CourseDetailViewModelTest {
         whenever(useCase("c1")).thenReturn(Result.failure(object : Throwable() {
             override val message: String? = null
         }))
+        whenever(getEnrolledCoursesUseCase()).thenReturn(Result.success(emptyList()))
 
-        val viewModel = CourseDetailViewModel(SavedStateHandle(mapOf("courseId" to "c1")), useCase)
+        val vm = viewModel()
         advanceUntilIdle()
 
-        assertEquals("Eroare necunoscuta", viewModel.uiState.value.error)
+        assertEquals("Eroare necunoscuta", vm.uiState.value.error)
     }
 }

@@ -1,6 +1,7 @@
 package com.adaptive_tutor_mobile.presentation.courses
 
 import app.cash.turbine.test
+import com.adaptive_tutor_mobile.domain.usecase.courses.DownloadCertificateUseCase
 import com.adaptive_tutor_mobile.domain.usecase.courses.GetEnrolledCoursesUseCase
 import com.adaptive_tutor_mobile.domain.usecase.courses.UnenrollFromCourseUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
@@ -25,14 +26,16 @@ class EnrolledCoursesViewModelTest {
 
     private lateinit var useCase: GetEnrolledCoursesUseCase
     private lateinit var unenrollFromCourseUseCase: UnenrollFromCourseUseCase
+    private lateinit var downloadCertificateUseCase: DownloadCertificateUseCase
 
     @Before
     fun setup() {
         useCase = mockk()
         unenrollFromCourseUseCase = mockk()
+        downloadCertificateUseCase = mockk()
     }
 
-    private fun viewModel() = EnrolledCoursesViewModel(useCase, unenrollFromCourseUseCase)
+    private fun viewModel() = EnrolledCoursesViewModel(useCase, unenrollFromCourseUseCase, downloadCertificateUseCase)
 
     @Test
     fun `initial state is Loading before init runs`() = runTest {

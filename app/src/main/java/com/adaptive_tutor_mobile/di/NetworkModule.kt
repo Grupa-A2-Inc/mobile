@@ -2,6 +2,7 @@ package com.adaptive_tutor_mobile.di
 
 import android.webkit.CookieManager
 import com.adaptive_tutor_mobile.data.remote.api.AuthApi
+import com.adaptive_tutor_mobile.data.remote.api.CertificateApi
 import com.adaptive_tutor_mobile.data.remote.api.CourseDetailApi
 import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 import com.adaptive_tutor_mobile.data.remote.api.LessonApi
@@ -287,6 +288,11 @@ object NetworkModule {
     @Singleton
     fun provideAttemptHistoryApi(retrofit: Retrofit): AttemptHistoryApi =
         retrofit.create(AttemptHistoryApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCertificateApi(retrofit: Retrofit): CertificateApi =
+        retrofit.create(CertificateApi::class.java)
 
     // ── AI service — domeniu separat, fără Bearer auth ────────────────────────
     @Provides

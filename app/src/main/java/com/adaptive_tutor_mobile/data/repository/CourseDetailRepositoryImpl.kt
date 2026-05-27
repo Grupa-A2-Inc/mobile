@@ -41,6 +41,7 @@ class CourseDetailRepositoryImpl @Inject constructor(
             id          = id,
             title       = title,
             description = description ?: "",
+            visibility  = visibility,
             chapters    = chapters
                 .sortedBy { it.orderIndex }
                 .map { it.toDomain() }

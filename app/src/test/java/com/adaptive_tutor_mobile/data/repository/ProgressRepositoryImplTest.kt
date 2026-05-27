@@ -1,16 +1,20 @@
 package com.adaptive_tutor_mobile.data.repository
 
 import com.adaptive_tutor_mobile.data.remote.api.CourseApi
+import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.ProgressTestFixtures.completedDto
 import com.adaptive_tutor_mobile.ProgressTestFixtures.enrolledDto
 import com.adaptive_tutor_mobile.ProgressTestFixtures.progressDto
+import com.adaptive_tutor_mobile.data.remote.dto.PageResponseCourseDto
+import com.adaptive_tutor_mobile.data.remote.dto.ResponseCourseDto
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -21,13 +25,20 @@ class ProgressRepositoryImplTest {
 
     private lateinit var courseApi: CourseApi
     private lateinit var progressApi: ProgressApi
+    private lateinit var enrollmentApi: EnrollmentApi
     private lateinit var repository: ProgressRepositoryImpl
 
     @Before
     fun setup() {
         courseApi = mockk()
         progressApi = mockk()
-        repository = ProgressRepositoryImpl(courseApi, progressApi)
+        enrollmentApi = mockk()
+        repository = ProgressRepositoryImpl(courseApi, progressApi, enrollmentApi)
+
+        // Default: niciun curs public -> canUnenroll = false pentru toate
+        coEvery { enrollmentApi.getPublicCourses(any(), any()) } returns Response.success(
+            PageResponseCourseDto(content = emptyList(), totalPages = 0, totalElements = 0, number = 0, size = 0)
+        )
     }
 
     // ── getEnrolledCourses ───────────────────────────────────────────────────
@@ -300,5 +311,58 @@ class ProgressRepositoryImplTest {
 
         assertTrue(result.isFailure)
         assertEquals("Eroare 500", result.exceptionOrNull()?.message)
+    }
+
+    // ── canUnenroll cross-referencing ─────────────────────────────────────────
+
+    @Test
+    fun `getEnrolledCourses marks PUBLIC course as canUnenroll true`() = runTest {
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.success(
+            PageDto(content = listOf(enrolledDto(courseId = "pub-1")))
+        )
+        coEvery { enrollmentApi.getPublicCourses(any(), any()) } returns Response.success(
+            PageResponseCourseDto(
+                content = listOf(
+                    ResponseCourseDto(id = "pub-1", title = "Curs public", description = null,
+                        category = null, status = "PUBLISHED", visibility = "PUBLIC", createdBy = null)
+                ),
+                totalPages = 1, totalElements = 1, number = 0, size = 1
+            )
+        )
+
+        val result = repository.getEnrolledCourses()
+
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrNull()!![0].canUnenroll)
+    }
+
+    @Test
+    fun `getEnrolledCourses marks PRIVATE course as canUnenroll false`() = runTest {
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.success(
+            PageDto(content = listOf(enrolledDto(courseId = "priv-1")))
+        )
+        // priv-1 nu apare in cursurile publice -> PRIVATE
+        coEvery { enrollmentApi.getPublicCourses(any(), any()) } returns Response.success(
+            PageResponseCourseDto(content = emptyList(), totalPages = 0, totalElements = 0, number = 0, size = 0)
+        )
+
+        val result = repository.getEnrolledCourses()
+
+        assertTrue(result.isSuccess)
+        assertFalse(result.getOrNull()!![0].canUnenroll)
+    }
+
+    @Test
+    fun `getEnrolledCourses canUnenroll false when public courses request fails`() = runTest {
+        coEvery { progressApi.getMyEnrolledCourses() } returns Response.success(
+            PageDto(content = listOf(enrolledDto(courseId = "c1")))
+        )
+        coEvery { enrollmentApi.getPublicCourses(any(), any()) } throws RuntimeException("timeout")
+
+        val result = repository.getEnrolledCourses()
+
+        // Eșecul la fetch-ul cursurilor publice nu blochează ecranul
+        assertTrue(result.isSuccess)
+        assertFalse(result.getOrNull()!![0].canUnenroll)
     }
 }

@@ -9,7 +9,8 @@ data class EnrolledCourse(
     val courseCategory: String?,
     val progressPercent: Double,
     val enrolledAt: String,
-    val completedAt: String?
+    val completedAt: String?,
+    val canUnenroll: Boolean = true
 ) {
     val isCompleted: Boolean get() = !completedAt.isNullOrBlank()
 }
@@ -20,7 +21,9 @@ fun EnrolledCourseDto.toDomain(): EnrolledCourse = EnrolledCourse(
     courseCategory  = courseCategory,
     progressPercent = progressPercent ?: 0.0,
     enrolledAt      = enrolledAt,
-    completedAt     = completedAt?.takeIf { it.isNotBlank() }
+    completedAt     = completedAt?.takeIf { it.isNotBlank() },
+    // canUnenroll este setat de repository dupa cross-reference cu cursurile publice
+    canUnenroll     = false
 )
 
 fun CompletedCourseDto.toDomain(): EnrolledCourse = EnrolledCourse(

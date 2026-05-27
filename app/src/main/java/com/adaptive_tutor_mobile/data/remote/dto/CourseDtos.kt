@@ -137,6 +137,7 @@ data class EnrolledCourseDto(
     val courseCategory: String?,
     val enrolledAt: String,
     val progressPercent: Double?,
-    val completedAt: String?
+    val completedAt: String?,
+    val courseVisibility: String? = null
 )
 

@@ -116,4 +116,24 @@ class EnrolledCourseMapperTest {
     fun `EnrolledCourse isCompleted is true for non blank value`() {
         assertTrue(domainCourse(completedAt = "2025-01-15T18:30:00").isCompleted)
     }
+
+    @Test
+    fun `EnrolledCourseDto toDomain sets canUnenroll false by default`() {
+        // canUnenroll este setat de repository dupa cross-reference cu PUBLIC courses,
+        // nu direct din DTO
+        val dto = enrolledDto(visibility = "PUBLIC")
+        assertFalse(dto.toDomain().canUnenroll)
+    }
+
+    @Test
+    fun `EnrolledCourse copy with canUnenroll true reflects leave permission`() {
+        val course = enrolledDto().toDomain().copy(canUnenroll = true)
+        assertTrue(course.canUnenroll)
+    }
+
+    @Test
+    fun `EnrolledCourse copy with canUnenroll false hides leave button`() {
+        val course = enrolledDto().toDomain().copy(canUnenroll = false)
+        assertFalse(course.canUnenroll)
+    }
 }

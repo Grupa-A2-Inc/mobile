@@ -13,7 +13,8 @@ object ProgressTestFixtures {
         category: String? = "STEM",
         progress: Double? = 42.5,
         enrolledAt: String = "2025-01-10T09:00:00",
-        completedAt: String? = null
+        completedAt: String? = null,
+        visibility: String? = null
     ) = EnrolledCourseDto(
         unrollmentId = unrollmentId,
         courseId = courseId,
@@ -21,7 +22,8 @@ object ProgressTestFixtures {
         courseCategory = category,
         progressPercent = progress,
         enrolledAt = enrolledAt,
-        completedAt = completedAt
+        completedAt = completedAt,
+        courseVisibility = visibility
     )
 
     fun completedDto(

@@ -39,18 +39,22 @@ object ProgressTestFixtures {
     )
 
     fun domainCourse(
+        enrollmentId: String = "enr-1",
         courseId: String = "course-1",
         title: String = "Matematică",
         category: String? = "STEM",
         progress: Double = 42.5,
-        completedAt: String? = null
+        completedAt: String? = null,
+        courseVisibility: String? = null
     ) = EnrolledCourse(
+        enrollmentId = enrollmentId,
         courseId = courseId,
         courseTitle = title,
         courseCategory = category,
         progressPercent = progress,
         enrolledAt = "2025-01-10T09:00:00",
-        completedAt = completedAt
+        completedAt = completedAt,
+        courseVisibility = courseVisibility
     )
 
     fun progressDto(

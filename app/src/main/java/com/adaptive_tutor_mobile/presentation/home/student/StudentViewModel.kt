@@ -2,6 +2,7 @@ package com.adaptive_tutor_mobile.presentation.home.student
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto
 import com.adaptive_tutor_mobile.domain.usecase.courses.UnenrollFromCourseUseCase
@@ -21,6 +22,7 @@ sealed class CoursesUiState {
 @HiltViewModel
 class StudentViewModel @Inject constructor(
     private val progressApi: ProgressApi,
+    private val enrollmentApi: EnrollmentApi,
     private val unenrollFromCourseUseCase: UnenrollFromCourseUseCase
 ) : ViewModel() {
 
@@ -46,7 +48,20 @@ class StudentViewModel @Inject constructor(
                     val body = response.body()
                     _currentPage.value = body?.number ?: page
                     _totalPages.value = body?.totalPages ?: 1
-                    _coursesState.value = CoursesUiState.Success(body?.content ?: emptyList())
+
+                    // Fetch public course IDs to know which courses allow unenroll
+                    val publicIds: Set<String> = try {
+                        val pub = enrollmentApi.getPublicCourses(page = 0, size = 500)
+                        if (pub.isSuccessful) pub.body()?.content?.map { it.id }?.toSet() ?: emptySet()
+                        else emptySet()
+                    } catch (_: Exception) { emptySet() }
+
+                    // Mark courseVisibility so the UI card knows whether to show the button
+                    val courses = (body?.content ?: emptyList()).map { dto ->
+                        dto.copy(courseVisibility = if (dto.courseId in publicIds) "PUBLIC" else "PRIVATE")
+                    }
+
+                    _coursesState.value = CoursesUiState.Success(courses)
                 } else {
                     _coursesState.value = CoursesUiState.Error(
                         "Nu s-au putut încărca cursurile (cod ${response.code()})"

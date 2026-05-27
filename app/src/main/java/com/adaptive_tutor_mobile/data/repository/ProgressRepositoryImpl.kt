@@ -1,6 +1,7 @@
 package com.adaptive_tutor_mobile.data.repository
 
 import com.adaptive_tutor_mobile.data.remote.api.CourseApi
+import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.dto.ProgressWithLessonListDto
 import com.adaptive_tutor_mobile.domain.model.courses.EnrolledCourse
@@ -13,15 +14,33 @@ import javax.inject.Singleton
 @Singleton
 class ProgressRepositoryImpl @Inject constructor(
     private val courseApi: CourseApi,
-    private val progressApi: ProgressApi
+    private val progressApi: ProgressApi,
+    private val enrollmentApi: EnrollmentApi
 ) : ProgressRepository {
 
     override suspend fun getEnrolledCourses(): Result<List<EnrolledCourse>> = runCatching {
-        val response = progressApi.getMyEnrolledCourses()
-        if (response.isSuccessful) {
-            response.body()?.content?.map { it.toDomain() } ?: emptyList()
+        // Fetch enrolled courses and public course IDs in parallel.
+        // Cursurile PUBLIC pot fi parasitede student; cele PRIVATE (asignate de profesor) nu.
+        val enrolledResponse = progressApi.getMyEnrolledCourses()
+
+        // Fetch all public courses (large page) to build a set of public IDs.
+        val publicIds: Set<String> = try {
+            val publicResponse = enrollmentApi.getPublicCourses(page = 0, size = 500)
+            if (publicResponse.isSuccessful) {
+                publicResponse.body()?.content?.map { it.id }?.toSet() ?: emptySet()
+            } else {
+                emptySet()
+            }
+        } catch (_: Exception) {
+            emptySet()  // Dacă request-ul eșuează, nu blocam ecranul
+        }
+
+        if (enrolledResponse.isSuccessful) {
+            enrolledResponse.body()?.content?.map { dto ->
+                dto.toDomain().copy(canUnenroll = dto.courseId in publicIds)
+            } ?: emptyList()
         } else {
-            error(parseError(response.code(), response.errorBody()?.string()))
+            error(parseError(enrolledResponse.code(), enrolledResponse.errorBody()?.string()))
         }
     }
 

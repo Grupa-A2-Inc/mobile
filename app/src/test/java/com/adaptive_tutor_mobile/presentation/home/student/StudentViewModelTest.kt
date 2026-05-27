@@ -1,8 +1,10 @@
 package com.adaptive_tutor_mobile.presentation.home.student
 
 import com.adaptive_tutor_mobile.ProgressTestFixtures.enrolledDto
+import com.adaptive_tutor_mobile.data.remote.api.EnrollmentApi
 import com.adaptive_tutor_mobile.data.remote.api.ProgressApi
 import com.adaptive_tutor_mobile.data.remote.dto.PageDto
+import com.adaptive_tutor_mobile.data.remote.dto.PageResponseCourseDto
 import com.adaptive_tutor_mobile.domain.repository.courses.CourseRepository
 import com.adaptive_tutor_mobile.domain.usecase.courses.UnenrollFromCourseUseCase
 import com.adaptive_tutor_mobile.testing.MainDispatcherRule
@@ -34,6 +36,13 @@ class StudentViewModelTest {
     private val progressApi: ProgressApi = mock()
     private val unenrollFromCourseUseCase: UnenrollFromCourseUseCase = mock()
 
+    // Default: niciun curs public -> canUnenroll = false (buton ascuns)
+    private val enrollmentApi: EnrollmentApi = mockk {
+        coEvery { getPublicCourses(any(), any()) } returns Response.success(
+            PageResponseCourseDto(content = emptyList(), totalPages = 0, totalElements = 0, number = 0, size = 0)
+        )
+    }
+
     @Test
     fun `loadEnrolledCourses success sets Success state`() = runTest {
         val page = PageDto(
@@ -50,7 +59,7 @@ class StudentViewModelTest {
         )
         whenever(progressApi.getMyEnrolledCourses()).thenReturn(Response.success(page))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         val state = viewModel.coursesState.value
@@ -62,7 +71,7 @@ class StudentViewModelTest {
         val body = "oops".toResponseBody("text/plain".toMediaType())
         whenever(progressApi.getMyEnrolledCourses()).thenReturn(Response.error(500, body))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         val state = viewModel.coursesState.value
@@ -73,7 +82,7 @@ class StudentViewModelTest {
     fun `loadEnrolledCourses exception sets Error state`() = runTest {
         whenever(progressApi.getMyEnrolledCourses()).thenThrow(RuntimeException("boom"))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         val state = viewModel.coursesState.value
@@ -84,7 +93,7 @@ class StudentViewModelTest {
     fun `loadEnrolledCourses exception without message uses unknown error fallback`() = runTest {
         whenever(progressApi.getMyEnrolledCourses()).thenThrow(RuntimeException())
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         val state = viewModel.coursesState.value as CoursesUiState.Error
@@ -95,7 +104,7 @@ class StudentViewModelTest {
     fun `loadEnrolledCourses with null body content sets empty success list`() = runTest {
         whenever(progressApi.getMyEnrolledCourses()).thenReturn(Response.success(PageDto(content = emptyList())))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         val state = viewModel.coursesState.value
@@ -109,7 +118,7 @@ class StudentViewModelTest {
         whenever(progressApi.getMyEnrolledCourses())
             .thenReturn(Response.success(null) as Response<PageDto<com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto>>)
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         val state = viewModel.coursesState.value
@@ -124,7 +133,7 @@ class StudentViewModelTest {
         whenever(page.content).thenReturn(null as List<com.adaptive_tutor_mobile.data.remote.dto.EnrolledCourseDto>?)
         whenever(progressApi.getMyEnrolledCourses()).thenReturn(Response.success(page))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         val state = viewModel.coursesState.value
@@ -143,7 +152,7 @@ class StudentViewModelTest {
         whenever(progressApi.getMyEnrolledCourses()).thenReturn(Response.success(page))
         whenever(unenrollFromCourseUseCase.invoke("c1")).thenReturn(Result.success(Unit))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         viewModel.unenroll("c1")
@@ -166,7 +175,7 @@ class StudentViewModelTest {
             Result.success(Unit)
         }
 
-        val viewModel = StudentViewModel(progressApi, suspendingUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, suspendingUseCase)
         advanceUntilIdle()
 
         viewModel.unenroll("c1")
@@ -184,7 +193,7 @@ class StudentViewModelTest {
         whenever(unenrollFromCourseUseCase.invoke("c1"))
             .thenReturn(Result.failure(IllegalStateException("Nu merge")))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         viewModel.unenroll("c1")
@@ -202,7 +211,7 @@ class StudentViewModelTest {
         whenever(unenrollFromCourseUseCase.invoke("c1"))
             .thenReturn(Result.failure(IllegalStateException()))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         viewModel.unenroll("c1")
@@ -217,7 +226,7 @@ class StudentViewModelTest {
         whenever(progressApi.getMyEnrolledCourses()).thenReturn(Response.success(page))
         whenever(unenrollFromCourseUseCase.invoke(any())).thenThrow(IllegalStateException("crash"))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         viewModel.unenroll("c1")
@@ -237,7 +246,7 @@ class StudentViewModelTest {
             throw IllegalStateException()
         }
 
-        val viewModel = StudentViewModel(progressApi, suspendingUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, suspendingUseCase)
         advanceUntilIdle()
 
         viewModel.unenroll("c1")
@@ -251,7 +260,7 @@ class StudentViewModelTest {
         val body = "oops".toResponseBody("text/plain".toMediaType())
         whenever(progressApi.getMyEnrolledCourses()).thenReturn(Response.error(500, body))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         viewModel.unenroll("c1")
@@ -268,7 +277,7 @@ class StudentViewModelTest {
         whenever(progressApi.getMyEnrolledCourses()).thenReturn(Response.success(page))
         whenever(unenrollFromCourseUseCase.invoke("c1")).thenReturn(Result.success(Unit))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
         viewModel.unenroll("c1")
         advanceUntilIdle()
@@ -285,7 +294,7 @@ class StudentViewModelTest {
         )
         whenever(progressApi.getMyEnrolledCourses(any(), any(), any())).thenReturn(Response.success(page))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         assertEquals(0, viewModel.currentPage.value)
@@ -304,7 +313,7 @@ class StudentViewModelTest {
             .thenReturn(Response.success(page0))
             .thenReturn(Response.success(page1))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         viewModel.nextPage()
@@ -320,7 +329,7 @@ class StudentViewModelTest {
         )
         whenever(progressApi.getMyEnrolledCourses(any(), any(), any())).thenReturn(Response.success(page))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         viewModel.nextPage()
@@ -341,7 +350,7 @@ class StudentViewModelTest {
             .thenReturn(Response.success(page1))
             .thenReturn(Response.success(page0))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         viewModel.previousPage()
@@ -357,7 +366,7 @@ class StudentViewModelTest {
         )
         whenever(progressApi.getMyEnrolledCourses(any(), any(), any())).thenReturn(Response.success(page))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         viewModel.previousPage()
@@ -371,7 +380,7 @@ class StudentViewModelTest {
         val body = "".toResponseBody("text/plain".toMediaType())
         whenever(progressApi.getMyEnrolledCourses(any(), any(), any())).thenReturn(Response.error(503, body))
 
-        val viewModel = StudentViewModel(progressApi, unenrollFromCourseUseCase)
+        val viewModel = StudentViewModel(progressApi, enrollmentApi, unenrollFromCourseUseCase)
         advanceUntilIdle()
 
         val state = viewModel.coursesState.value as CoursesUiState.Error

@@ -428,7 +428,7 @@ private fun DashboardTab(
 
                 item {
                     Text(
-                        text = "Statistici rapide",
+                        text = "Statistici rapide (ultimele 10 cursuri)",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -677,12 +677,14 @@ private fun MyCourseCard(
                     }
                 }
 
-                IconButton(onClick = onUnenrollClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = "Dezabonează-te",
-                        tint = MaterialTheme.colorScheme.error
-                    )
+                if (course.courseVisibility == "PUBLIC") {
+                    IconButton(onClick = onUnenrollClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Dezabonează-te",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
 

@@ -202,7 +202,7 @@ private fun EnrolledCourseCard(
                             leadingIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     )
-                } else {
+                } else if (course.canUnenroll) {
                     IconButton(onClick = onUnenrollClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
